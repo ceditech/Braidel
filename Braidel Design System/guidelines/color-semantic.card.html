@@ -1,0 +1,26 @@
+<!-- @dsCard group="Colors" viewport="700x170" name="Semantic & Status" subtitle="Surface, text & status aliases in use" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--bg-page);padding:20px;font-family:var(--font-sans);color:var(--text-body)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .chip{border-radius:var(--radius-md);padding:12px;border:1px solid var(--border-default);font-size:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .k{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);display:block;margin-top:4px}
+  .surfaces{display:flex;gap:10px;margin-bottom:12px}
+  .surf{flex:1;height:46px;border-radius:var(--radius-md);display:grid;place-items:center;font-size:11px;
+        font-family:var(--font-mono);border:1px solid var(--border-default)}
+</style></head>
+<body>
+<div class="surfaces">
+  <div class="surf" style="background:var(--bg-page)">bg-page</div>
+  <div class="surf" style="background:var(--bg-subtle)">bg-subtle</div>
+  <div class="surf" style="background:var(--surface-card)">surface-card</div>
+  <div class="surf" style="background:var(--bg-inverse);color:var(--cream-50);border:none">bg-inverse</div>
+</div>
+<div class="grid">
+  <div class="chip" style="background:var(--success-soft)"><b style="color:var(--success-strong)"><span class="dot" style="background:var(--success)"></span>Success</b><span class="k">--success</span></div>
+  <div class="chip" style="background:var(--warning-soft)"><b style="color:var(--gold-700)"><span class="dot" style="background:var(--warning)"></span>Warning</b><span class="k">--warning</span></div>
+  <div class="chip" style="background:var(--danger-soft)"><b style="color:var(--danger-strong)"><span class="dot" style="background:var(--danger)"></span>Danger</b><span class="k">--danger</span></div>
+  <div class="chip" style="background:var(--info-soft)"><b style="color:var(--teal-600)"><span class="dot" style="background:var(--info)"></span>Info</b><span class="k">--info</span></div>
+</div>
+</body></html>

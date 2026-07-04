@@ -1,0 +1,108 @@
+/* ── Braidel color system ──────────────────────────────────────────
+   Warm, elevated, trustworthy. Cream + warm browns + deep charcoal,
+   with terracotta as the brand accent and deep gold as secondary.
+   Base ramps first, then semantic aliases. Prefer the semantic
+   aliases (--brand, --text-body, --surface-card…) in product code.
+------------------------------------------------------------------- */
+:root {
+  /* ── Warm neutrals: cream → charcoal ── */
+  --cream-50:   #FBF7F1;
+  --cream-100:  #F5EEE3;
+  --cream-200:  #ECE1D2;
+  --sand-300:   #DECDB6;
+  --taupe-400:  #BCA384;
+  --brown-500:  #8B6B50;
+  --brown-600:  #6B4E38;
+  --espresso-700: #4A3526;
+  --charcoal-800: #2C2420;
+  --charcoal-900: #1B1611;
+
+  /* ── Brand: terracotta ── */
+  --terracotta-50:  #FBEDE6;
+  --terracotta-100: #F6D8C9;
+  --terracotta-200: #EEBBA3;
+  --terracotta-300: #E39E80;
+  --terracotta-400: #D77B58;
+  --terracotta-500: #C75D3F;
+  --terracotta-600: #B14A2E;
+  --terracotta-700: #8F3A22;
+  --terracotta-800: #6B2C1A;
+
+  /* ── Secondary: deep gold ── */
+  --gold-50:   #FBF3DE;
+  --gold-100:  #F6E8C4;
+  --gold-200:  #ECD193;
+  --gold-300:  #E0BB68;
+  --gold-400:  #D2A648;
+  --gold-500:  #C2922F;
+  --gold-600:  #A2781F;
+  --gold-700:  #7E5D17;
+
+  /* ── Support hues (status only) ── */
+  --sage-100:  #E4EDE0;
+  --sage-500:  #4F7A52;
+  --sage-600:  #3C6140;
+  --clay-100:  #F7E0DB;
+  --clay-500:  #C0392B;
+  --clay-600:  #9A2B20;
+  --teal-100:  #DCE9EA;
+  --teal-500:  #3C6E78;
+  --teal-600:  #2C545C;
+
+  /* ── Pure / utility ── */
+  --white:      #FFFFFF;
+  --warm-white: #FCFAF7;
+  --black:      #14100C;
+
+  /* ════════ Semantic aliases ════════ */
+
+  /* Surfaces & backgrounds */
+  --bg-page:        var(--cream-50);
+  --bg-subtle:      var(--cream-100);
+  --bg-sunken:      var(--cream-200);
+  --bg-inverse:     var(--charcoal-900);
+  --surface-card:   var(--warm-white);
+  --surface-raised: var(--white);
+  --surface-overlay: var(--white);
+
+  /* Borders & dividers */
+  --border-subtle:  var(--cream-200);
+  --border-default: #E6D9C8;
+  --border-strong:  var(--sand-300);
+  --border-inverse: rgba(251, 247, 241, 0.16);
+
+  /* Text */
+  --text-strong:    var(--charcoal-900);
+  --text-body:      var(--charcoal-800);
+  --text-muted:     var(--brown-500);
+  --text-subtle:    var(--taupe-400);
+  --text-on-brand:  var(--cream-50);
+  --text-on-dark:   var(--cream-100);
+  --text-link:      var(--terracotta-600);
+
+  /* Brand / interactive */
+  --brand:          var(--terracotta-500);
+  --brand-hover:    var(--terracotta-600);
+  --brand-active:   var(--terracotta-700);
+  --brand-soft:     var(--terracotta-50);
+  --brand-soft-border: var(--terracotta-100);
+  --brand-on:       var(--cream-50);
+
+  --secondary:      var(--gold-500);
+  --secondary-hover: var(--gold-600);
+  --secondary-soft: var(--gold-50);
+
+  --focus-ring:     var(--terracotta-400);
+
+  /* Status */
+  --success:        var(--sage-500);
+  --success-strong: var(--sage-600);
+  --success-soft:   var(--sage-100);
+  --warning:        var(--gold-600);
+  --warning-soft:   var(--gold-100);
+  --danger:         var(--clay-500);
+  --danger-strong:  var(--clay-600);
+  --danger-soft:    var(--clay-100);
+  --info:           var(--teal-500);
+  --info-soft:      var(--teal-100);
+}

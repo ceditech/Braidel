@@ -1,0 +1,26 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Warm Neutrals" subtitle="Cream → charcoal · the backbone of the UI" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--bg-page);padding:20px;font-family:var(--font-mono)}
+  .ramp{display:grid;grid-template-columns:repeat(10,1fr);gap:8px}
+  .sw{height:78px;border-radius:var(--radius-sm);display:flex;align-items:flex-end;padding:6px;
+      box-shadow:var(--shadow-xs);border:1px solid rgba(0,0,0,.06)}
+  .sw span{font-size:9.5px;font-weight:600;background:rgba(255,255,255,.82);padding:1px 3px;border-radius:4px;color:#3a2a1e}
+  .sw.dk span{background:rgba(0,0,0,.3);color:#fff}
+  .cap{margin-top:8px;font-size:11px;color:var(--text-muted)}
+</style></head>
+<body>
+<div class="ramp">
+  <div class="sw" style="background:var(--cream-50)"><span>cream50</span></div>
+  <div class="sw" style="background:var(--cream-100)"><span>cream100</span></div>
+  <div class="sw" style="background:var(--cream-200)"><span>cream200</span></div>
+  <div class="sw" style="background:var(--sand-300)"><span>sand300</span></div>
+  <div class="sw dk" style="background:var(--taupe-400)"><span>taupe400</span></div>
+  <div class="sw dk" style="background:var(--brown-500)"><span>brown500</span></div>
+  <div class="sw dk" style="background:var(--brown-600)"><span>brown600</span></div>
+  <div class="sw dk" style="background:var(--espresso-700)"><span>esp700</span></div>
+  <div class="sw dk" style="background:var(--charcoal-800)"><span>char800</span></div>
+  <div class="sw dk" style="background:var(--charcoal-900)"><span>char900</span></div>
+</div>
+<div class="cap"><b>--bg-page = cream-50</b> · cards on warm white · <b>--text-strong = charcoal-900</b>, body 800, muted brown-500.</div>
+</body></html>

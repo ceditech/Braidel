@@ -1,0 +1,203 @@
+/* ── Google Fonts — must be first ────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+/* ── Design tokens ────────────────────────────────────────────────── */
+:root {
+  /* Warm neutrals */
+  --cream-50:      #FBF7F1;
+  --cream-100:     #F5EEE3;
+  --cream-200:     #ECE1D2;
+  --sand-300:      #DECDB6;
+  --taupe-400:     #BCA384;
+  --brown-500:     #8B6B50;
+  --brown-600:     #6B4E38;
+  --espresso-700:  #4A3526;
+  --charcoal-800:  #2C2420;
+  --charcoal-900:  #1B1611;
+
+  /* Brand: terracotta */
+  --terracotta-50:  #FBEDE6;
+  --terracotta-100: #F6D8C9;
+  --terracotta-200: #EEBBA3;
+  --terracotta-300: #E39E80;
+  --terracotta-400: #D77B58;
+  --terracotta-500: #C75D3F;
+  --terracotta-600: #B14A2E;
+  --terracotta-700: #8F3A22;
+  --terracotta-800: #6B2C1A;
+
+  /* Secondary: deep gold */
+  --gold-50:   #FBF3DE;
+  --gold-100:  #F6E8C4;
+  --gold-200:  #ECD193;
+  --gold-300:  #E0BB68;
+  --gold-400:  #D2A648;
+  --gold-500:  #C2922F;
+  --gold-600:  #A2781F;
+  --gold-700:  #7E5D17;
+
+  /* Status */
+  --sage-100:  #E4EDE0;
+  --sage-500:  #4F7A52;
+  --sage-600:  #3C6140;
+  --clay-100:  #F7E0DB;
+  --clay-500:  #C0392B;
+  --clay-600:  #9A2B20;
+  --teal-100:  #DCE9EA;
+  --teal-500:  #3C6E78;
+  --teal-600:  #2C545C;
+
+  /* Pure */
+  --white:      #FFFFFF;
+  --warm-white: #FCFAF7;
+  --black:      #14100C;
+
+  /* Semantic surfaces */
+  --bg-page:         var(--cream-50);
+  --bg-subtle:       var(--cream-100);
+  --bg-sunken:       var(--cream-200);
+  --bg-inverse:      var(--charcoal-900);
+  --surface-card:    var(--warm-white);
+  --surface-raised:  var(--white);
+  --surface-overlay: var(--white);
+
+  /* Borders */
+  --border-subtle:  var(--cream-200);
+  --border-default: #E6D9C8;
+  --border-strong:  var(--sand-300);
+  --border-inverse: rgba(251,247,241,.16);
+
+  /* Text */
+  --text-strong:    var(--charcoal-900);
+  --text-body:      var(--charcoal-800);
+  --text-muted:     var(--brown-500);
+  --text-subtle:    var(--taupe-400);
+  --text-on-brand:  var(--cream-50);
+  --text-on-dark:   var(--cream-100);
+  --text-link:      var(--terracotta-600);
+
+  /* Brand interactive */
+  --brand:              var(--terracotta-500);
+  --brand-hover:        var(--terracotta-600);
+  --brand-active:       var(--terracotta-700);
+  --brand-soft:         var(--terracotta-50);
+  --brand-soft-border:  var(--terracotta-100);
+  --brand-on:           var(--cream-50);
+  --secondary:          var(--gold-500);
+  --secondary-hover:    var(--gold-600);
+  --secondary-soft:     var(--gold-50);
+  --focus-ring:         var(--terracotta-400);
+
+  /* Status semantic */
+  --success:        var(--sage-500);
+  --success-strong: var(--sage-600);
+  --success-soft:   var(--sage-100);
+  --warning:        var(--gold-600);
+  --warning-soft:   var(--gold-100);
+  --danger:         var(--clay-500);
+  --danger-strong:  var(--clay-600);
+  --danger-soft:    var(--clay-100);
+  --info:           var(--teal-500);
+  --info-soft:      var(--teal-100);
+
+  /* Typography */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Radii */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-2xl:  36px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-xs:    0 1px 2px rgba(43,33,24,.06);
+  --shadow-sm:    0 1px 2px rgba(43,33,24,.05), 0 2px 6px -2px rgba(43,33,24,.08);
+  --shadow-md:    0 4px 10px -3px rgba(43,33,24,.10), 0 10px 24px -8px rgba(43,33,24,.12);
+  --shadow-lg:    0 8px 18px -6px rgba(43,33,24,.12), 0 24px 48px -16px rgba(43,33,24,.18);
+  --shadow-xl:    0 24px 70px -24px rgba(43,33,24,.28);
+  --shadow-focus: 0 0 0 3px rgba(199,93,63,.28);
+
+  /* Motion */
+  --ease-out:    cubic-bezier(0.22,1,0.36,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --dur-fast:    120ms;
+  --dur-base:    200ms;
+  --dur-slow:    360ms;
+
+  /* Spacing */
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
+  --container-max:  1200px;
+  --control-md: 44px;
+}
+
+/* ── Tailwind v4 theme mapping ────────────────────────────────────── */
+@theme inline {
+  --font-sans:    var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono:    var(--font-mono);
+
+  --color-brand:          var(--terracotta-500);
+  --color-brand-hover:    var(--terracotta-600);
+  --color-brand-soft:     var(--terracotta-50);
+  --color-gold:           var(--gold-500);
+  --color-gold-soft:      var(--gold-50);
+  --color-page:           var(--bg-page);
+  --color-subtle:         var(--bg-subtle);
+  --color-card:           var(--surface-card);
+  --color-charcoal:       var(--charcoal-900);
+  --color-charcoal-800:   var(--charcoal-800);
+  --color-muted:          var(--brown-500);
+  --color-border:         var(--border-default);
+  --color-border-subtle:  var(--border-subtle);
+  --color-success:        var(--sage-500);
+  --color-success-soft:   var(--sage-100);
+  --color-danger:         var(--clay-500);
+  --color-danger-soft:    var(--clay-100);
+  --color-info:           var(--teal-500);
+  --color-info-soft:      var(--teal-100);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  background: var(--bg-page);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+a { text-decoration: none; }
+
+/* ── Utility classes ──────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+.text-strong { color: var(--text-strong); }
+.text-muted  { color: var(--text-muted); }
+.text-subtle { color: var(--text-subtle); }
+.text-brand  { color: var(--brand); }
+
+.bg-page     { background: var(--bg-page); }
+.bg-card     { background: var(--surface-card); }
+.bg-inverse  { background: var(--charcoal-900); }
+
+.border-default { border-color: var(--border-default); }
+.border-subtle  { border-color: var(--border-subtle); }
+
+/* ── Focus visible ────────────────────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

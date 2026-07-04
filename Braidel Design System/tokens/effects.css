@@ -1,0 +1,31 @@
+/* ── Braidel radii, shadows & motion ───────────────────────────────
+   Soft, warm-tinted shadows (never pure black). Generous but not
+   pill-everything radii. Calm, confident motion.
+------------------------------------------------------------------- */
+:root {
+  /* Corner radii */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   14px;   /* default control */
+  --radius-lg:   20px;   /* cards */
+  --radius-xl:   28px;   /* feature panels */
+  --radius-2xl:  36px;
+  --radius-pill: 999px;
+
+  /* Shadows — warm charcoal, layered & soft */
+  --shadow-xs:  0 1px 2px rgba(43, 33, 24, 0.06);
+  --shadow-sm:  0 1px 2px rgba(43, 33, 24, 0.05), 0 2px 6px -2px rgba(43, 33, 24, 0.08);
+  --shadow-md:  0 4px 10px -3px rgba(43, 33, 24, 0.10), 0 10px 24px -8px rgba(43, 33, 24, 0.12);
+  --shadow-lg:  0 8px 18px -6px rgba(43, 33, 24, 0.12), 0 24px 48px -16px rgba(43, 33, 24, 0.18);
+  --shadow-xl:  0 24px 70px -24px rgba(43, 33, 24, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(199, 93, 63, 0.28);
+  --shadow-inset: inset 0 1px 2px rgba(43, 33, 24, 0.06);
+
+  /* Motion */
+  --ease-out:   cubic-bezier(0.22, 1, 0.36, 1);   /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);  /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-base:   200ms; /* @kind other */
+  --dur-slow:   360ms; /* @kind other */
+}
