@@ -84,6 +84,67 @@ export const APPLICANTS: SampleApplicant[] = [
   { id: "lina",  name: "Lina Mensah",  experience: "8 yrs", specs: ["Locs", "Faux locs"],   rate: 5.0, rev: 54,  status: "Shortlisted", appliedFor: "Weekend knotless specialist" },
 ];
 
+/* ── Salons (public discovery) ───────────────────────────────────── */
+
+export interface SampleSalon {
+  id: string;
+  name: string;
+  city: string;
+  rating: number;
+  reviews: number;
+  services: string[];
+  openRoles: number;
+  verified: boolean;
+  tone: number;
+}
+
+export const SALONS: SampleSalon[] = [
+  { id: "crown-coils",   name: "Crown & Coils",   city: "Atlanta, GA",  rating: 4.9, reviews: 320, services: ["Knotless", "Box braids", "Feed-in"], openRoles: 3, verified: true,  tone: 0 },
+  { id: "braid-bar",     name: "The Braid Bar",   city: "Decatur, GA",  rating: 4.8, reviews: 210, services: ["Box braids", "Locs"],               openRoles: 2, verified: true,  tone: 1 },
+  { id: "halo-studio",   name: "Halo Studio",     city: "Atlanta, GA",  rating: 4.7, reviews: 148, services: ["Goddess braids", "Senegalese twists"], openRoles: 1, verified: false, tone: 2 },
+  { id: "roots-crowns",  name: "Roots & Crowns",  city: "Smyrna, GA",   rating: 4.9, reviews: 96,  services: ["Cornrows", "Stitch braids"],        openRoles: 2, verified: true,  tone: 3 },
+  { id: "gilded-braids", name: "Gilded Braids",   city: "Marietta, GA", rating: 4.6, reviews: 74,  services: ["Faux locs", "Knotless"],            openRoles: 0, verified: false, tone: 4 },
+  { id: "the-parting",   name: "The Parting Room",city: "Atlanta, GA",  rating: 5.0, reviews: 52,  services: ["Feed-in", "Goddess braids"],        openRoles: 1, verified: true,  tone: 5 },
+];
+
+/* ── Braider-side sample data ────────────────────────────────────── */
+
+export interface SampleJob {
+  id: string;
+  title: string;
+  salon: string;
+  city: string;
+  pay: string;
+  distance: string;
+  type: string;
+  specs: string[];
+  posted: string;
+}
+
+export const JOBS: SampleJob[] = [
+  { id: "knotless-wknd", title: "Weekend knotless specialist", salon: "Crown & Coils", city: "Atlanta, GA", pay: "$28–35/hr", distance: "2.3 mi", type: "Part-time",    specs: ["Knotless", "Feed-in"],     posted: "2h ago" },
+  { id: "senior-ft",     title: "Senior braider — full time",  salon: "The Braid Bar", city: "Decatur, GA", pay: "$45k–60k",  distance: "5.1 mi", type: "Full-time",    specs: ["Box braids", "Locs"],      posted: "1d ago" },
+  { id: "event-1day",    title: "Event braider (1 day)",       salon: "Halo Studio",   city: "Atlanta, GA", pay: "$320 flat", distance: "3.8 mi", type: "Single event", specs: ["Goddess braids"],          posted: "3d ago" },
+  { id: "apprentice",    title: "Apprentice braider",          salon: "Roots & Crowns",city: "Smyrna, GA",  pay: "$18–24/hr", distance: "7.2 mi", type: "Part-time",    specs: ["Cornrows", "Stitch braids"], posted: "4d ago" },
+];
+
+export type ApplicationStatus = "Shortlisted" | "Under review" | "Not selected" | "Matched";
+
+export interface SampleApplication {
+  id: string;
+  role: string;
+  salon: string;
+  when: string;
+  status: ApplicationStatus;
+}
+
+export const APPLICATIONS: SampleApplication[] = [
+  { id: "a1", role: "Lead stylist",      salon: "Halo Studio",    when: "Applied 2 days ago",  status: "Shortlisted"  },
+  { id: "a2", role: "Weekend braider",   salon: "Crown & Coils",  when: "Applied 3 days ago",  status: "Under review" },
+  { id: "a3", role: "Full-time braider", salon: "The Braid Bar",  when: "Applied 1 week ago",  status: "Not selected" },
+  { id: "a4", role: "Event braider",     salon: "Roots & Crowns", when: "Applied 1 week ago",  status: "Matched"      },
+];
+
 /* ── Messaging sample data ───────────────────────────────────────── */
 
 export interface SampleMessage {

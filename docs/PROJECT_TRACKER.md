@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~62% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~77% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,8 +14,8 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 31 / 50 | ~62% |
-| **Phase 2** | Client Booking (early discovery UI) | 2 / 3 | ~67% |
+| **Phase 1** | Workforce & Staffing | 39 / 52 | ~75% |
+| **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
 scoped into tracked tasks._
@@ -69,8 +69,10 @@ _Public-facing pages_
 | ✅ | Footer | High | 1 |
 | ✅ | Landing page | High | 1 |
 | ✅ | Find Braiders page | High | 2 |
-| ⬜ | Find Salons page | High | 2 |
-| ⬜ | Job Opportunities page | High | 1 |
+| ✅ | Find Salons page | High | 2 |
+| ✅ | Salon detail page | High | 2 |
+| ✅ | Job Opportunities page | High | 1 |
+| ✅ | Job Opportunity detail page | High | 1 |
 | ✅ | Braider profile page | High | 2 |
 | ⬜ | Pricing page | Medium | 1 |
 | ⬜ | How It Works page | Low | 1 |
@@ -104,10 +106,11 @@ _Braider workflows_
 
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
-| ⬜ | Braider dashboard home | High | 1 |
-| ⬜ | Find Work (search + apply) | High | 1 |
-| ⬜ | Applications tracker | High | 1 |
-| ⬜ | Profile editor + portfolio upload | High | 1 |
+| ✅ | Role switch (salon / braider) | High | 1 |
+| ✅ | Braider dashboard home | High | 1 |
+| ✅ | Find Work (search + apply) | High | 1 |
+| ✅ | Applications tracker | High | 1 |
+| ✅ | Profile editor + portfolio upload | High | 1 |
 
 ## Shared App
 _Cross-role features_
@@ -116,7 +119,7 @@ _Cross-role features_
 |--------|------|----------|-------|
 | ✅ | Messaging (list + thread) | High | 1 |
 | ⬜ | Notifications page | Medium | 1 |
-| ⬜ | Settings page | Medium | 1 |
+| ✅ | Settings page (role-aware) | Medium | 1 |
 
 ## Backend / API
 _Data routes & business logic_

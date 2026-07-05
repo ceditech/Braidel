@@ -61,7 +61,9 @@ src/
 │   │   ├── BraidelLogo, Button, Card, Badge, Tag,
 │   │   └── Avatar, Rating, StatCard
 │   ├── marketing/                # Navbar, Footer
-│   └── dashboard/                # Sidebar, Topbar, PrintButton
+│   └── dashboard/                # Sidebar, Topbar, PrintButton,
+│                                 #   RoleContext (salon/braider toggle),
+│                                 #   Salon/BraiderDashboardHome
 ├── db/
 │   ├── index.ts                  # Drizzle + Neon connection
 │   ├── schema.ts                 # 7 tables + relations
@@ -103,6 +105,16 @@ Rules while this holds:
    query `db` directly**, or add `GET` API routes — prefer Server Components for reads.
 3. Add write routes: `POST /api/opportunities`, `/api/applications`, `/api/messages`, `/api/ratings`.
 4. Replace `sampleData` imports with the real queries, screen by screen.
+
+### Roles in the dashboard
+
+The dashboard shell serves both **salon** and **braider** roles from one layout.
+Role is held in a client context — [`RoleContext`](src/components/dashboard/RoleContext.tsx)
+— toggled from the sidebar pill, defaulting to `salon`. The sidebar swaps its nav
+set and `/dashboard` renders `SalonDashboardHome` or `BraiderDashboardHome`
+accordingly. **When the backend pass lands, seed the initial role from the
+signed-in user's `users.role`** and the toggle becomes a dev/demo affordance (or
+is gated to the user's real role).
 
 ---
 
@@ -197,18 +209,25 @@ accurate. Both pages are protected routes (auth required).
 
 ---
 
-## 9. What's Next (highest priority first)
+## 9. Status & What's Next
 
-1. **Find Braiders page** (public) — search, filter chips, braider card grid.
-2. **Post Opportunity form** (salon) — core salon workflow.
-3. **Manage Applicants** (salon) — tabs, applicant rows, actions.
-4. **Braider dashboard + Find Work** — completes the braider loop.
-5. **Messaging** — connects both sides.
-6. **API routes** — wire real Neon data into all screens (currently sample data).
-7. **Form input primitives** (Input, Select, Switch, Checkbox) — needed by most
-   remaining screens; build these early.
+**Phase 1 is UI-complete (~77% overall).** Both marketplace sides are fully
+navigable on mock data with no dead links:
 
-Full breakdown in [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md).
+- **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
+  Job Opportunities (+ detail).
+- **Salon app:** dashboard, Opportunities (list + post form), Applicants, Messages, Settings.
+- **Braider app:** dashboard, Find Work, Applications, Messages, Settings (profile editor).
+- **Shell:** role switch (salon/braider), internal Tracker + Market Study.
+
+**Remaining (highest value first):**
+
+1. **Backend wiring pass** — seed script + swap all `sampleData` imports for real
+   Neon queries (Server Components for reads; API routes for writes). See §4.
+2. **Notifications page** (shared) — last pending UI screen.
+3. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives.
+
+Full, live breakdown in [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md) and at `/tracker`.
 
 ---
 

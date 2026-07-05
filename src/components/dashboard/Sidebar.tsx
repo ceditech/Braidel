@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
+import { useRole, type Role } from "@/components/dashboard/RoleContext";
 
 const salonNav = [
   { href: "/dashboard",              label: "Dashboard",     icon: <GridIcon /> },
@@ -12,14 +13,29 @@ const salonNav = [
   { href: "/dashboard/settings",     label: "Settings",      icon: <SettingsIcon /> },
 ];
 
+const braiderNav = [
+  { href: "/dashboard",             label: "Dashboard",    icon: <GridIcon /> },
+  { href: "/dashboard/find-work",   label: "Find work",    icon: <BriefcaseIcon /> },
+  { href: "/dashboard/applications",label: "Applications", icon: <InboxIcon /> },
+  { href: "/dashboard/messages",    label: "Messages",     icon: <MessageIcon /> },
+  { href: "/dashboard/settings",    label: "Settings",     icon: <SettingsIcon /> },
+];
+
 const buildNav = [
   { href: "/tracker",      label: "Project Tracker", icon: <TrackerIcon /> },
   { href: "/market-study", label: "Market Study",    icon: <ChartIcon /> },
 ];
 
-export function Sidebar({ role = "salon" }: { role?: "salon" | "braider" }) {
+export function Sidebar() {
   const pathname = usePathname();
-  const nav = salonNav;
+  const router = useRouter();
+  const { role, setRole } = useRole();
+  const nav = role === "braider" ? braiderNav : salonNav;
+
+  const switchRole = (next: Role) => {
+    setRole(next);
+    router.push("/dashboard"); // return to the role-aware home on switch
+  };
 
   return (
     <aside
@@ -60,11 +76,13 @@ export function Sidebar({ role = "salon" }: { role?: "salon" | "braider" }) {
         }}
       >
         {(["salon", "braider"] as const).map((r) => (
-          <span
+          <button
             key={r}
+            onClick={() => switchRole(r)}
             style={{
               flex: 1,
               textAlign: "center",
+              border: "none",
               borderRadius: "var(--radius-pill)",
               padding: "7px 0",
               fontFamily: "var(--font-sans)",
@@ -72,11 +90,11 @@ export function Sidebar({ role = "salon" }: { role?: "salon" | "braider" }) {
               fontSize: 13,
               background: role === r ? "var(--terracotta-500)" : "transparent",
               color: role === r ? "#fff" : "var(--taupe-400)",
-              cursor: "default",
+              cursor: "pointer",
             }}
           >
             {r.charAt(0).toUpperCase() + r.slice(1)}
-          </span>
+          </button>
         ))}
       </div>
 
@@ -191,6 +209,9 @@ function UsersIcon() {
 }
 function MessageIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+}
+function InboxIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>;
 }
 function SettingsIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;

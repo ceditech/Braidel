@@ -78,8 +78,10 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Footer", status: "done", priority: "high", phase: 1 },
       { title: "Landing page", status: "done", priority: "high", phase: 1 },
       { title: "Find Braiders page", status: "done", priority: "high", phase: 2 },
-      { title: "Find Salons page", status: "pending", priority: "high", phase: 2 },
-      { title: "Job Opportunities page", status: "pending", priority: "high", phase: 1 },
+      { title: "Find Salons page", status: "done", priority: "high", phase: 2 },
+      { title: "Salon detail page", status: "done", priority: "high", phase: 2 },
+      { title: "Job Opportunities page", status: "done", priority: "high", phase: 1 },
+      { title: "Job Opportunity detail page", status: "done", priority: "high", phase: 1 },
       { title: "Braider profile page", status: "done", priority: "high", phase: 2 },
       { title: "Pricing page", status: "pending", priority: "medium", phase: 1 },
       { title: "How It Works page", status: "pending", priority: "low", phase: 1 },
@@ -116,10 +118,11 @@ export const ROADMAP: RoadmapGroup[] = [
     label: "Braider Dashboard",
     description: "Braider workflows",
     items: [
-      { title: "Braider dashboard home", status: "pending", priority: "high", phase: 1 },
-      { title: "Find Work (search + apply)", status: "pending", priority: "high", phase: 1 },
-      { title: "Applications tracker", status: "pending", priority: "high", phase: 1 },
-      { title: "Profile editor + portfolio upload", status: "pending", priority: "high", phase: 1 },
+      { title: "Role switch (salon / braider)", status: "done", priority: "high", phase: 1 },
+      { title: "Braider dashboard home", status: "done", priority: "high", phase: 1 },
+      { title: "Find Work (search + apply)", status: "done", priority: "high", phase: 1 },
+      { title: "Applications tracker", status: "done", priority: "high", phase: 1 },
+      { title: "Profile editor + portfolio upload", status: "done", priority: "high", phase: 1 },
     ],
   },
   {
@@ -129,7 +132,7 @@ export const ROADMAP: RoadmapGroup[] = [
     items: [
       { title: "Messaging (list + thread)", status: "done", priority: "high", phase: 1 },
       { title: "Notifications page", status: "pending", priority: "medium", phase: 1 },
-      { title: "Settings page", status: "pending", priority: "medium", phase: 1 },
+      { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
     ],
   },
   {
