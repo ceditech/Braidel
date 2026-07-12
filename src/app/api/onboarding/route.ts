@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   if (role === "braider" && user) {
     await db
       .insert(braiders)
-      .values({ userId: user.id })
+      .values({ userId: user.id, slug: `${clerkUser.id}-braider` })
       .onConflictDoNothing();
   }
 

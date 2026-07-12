@@ -7,6 +7,7 @@ import {
   uuid,
   boolean,
   decimal,
+  real,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -65,6 +66,10 @@ export const salons = pgTable("salons", {
   phone: text("phone"),
   website: text("website"),
   logoUrl: text("logo_url"),
+  services: text("services").array(),
+  ratingAvg: real("rating_avg"),
+  ratingCount: integer("rating_count").notNull().default(0),
+  openRoles: integer("open_roles").notNull().default(0),
   isVerified: boolean("is_verified").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -77,11 +82,15 @@ export const braiders = pgTable("braiders", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
   bio: text("bio"),
   city: text("city"),
   state: text("state"),
   yearsExperience: integer("years_experience"),
   specialties: text("specialties").array(),
+  priceRange: text("price_range"),
+  ratingAvg: real("rating_avg"),
+  ratingCount: integer("rating_count").notNull().default(0),
   isAvailable: boolean("is_available").notNull().default(true),
   isVerified: boolean("is_verified").notNull().default(false),
   portfolioUrls: text("portfolio_urls").array(),
