@@ -1,17 +1,33 @@
-"use client";
-import { useUser } from "@clerk/nextjs";
-import { useRole } from "@/components/dashboard/RoleContext";
-import { SalonDashboardHome } from "@/components/dashboard/SalonDashboardHome";
-import { BraiderDashboardHome } from "@/components/dashboard/BraiderDashboardHome";
+import { currentUser } from "@clerk/nextjs/server";
+import {
+  getActiveOpportunities,
+  getApplicantsForSalon,
+  getApplicationsForBraider,
+  getOpportunitiesForSalon,
+} from "@/db/queries";
+import { DashboardClient } from "./DashboardClient";
 
-export default function DashboardPage() {
-  const { user } = useUser();
-  const { role } = useRole();
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const user = await currentUser();
   const firstName = user?.firstName ?? "there";
+  const clerkId = user?.id ?? "";
 
-  return role === "braider" ? (
-    <BraiderDashboardHome firstName={firstName} />
-  ) : (
-    <SalonDashboardHome firstName={firstName} />
+  const [salonOpportunities, salonApplicants, braiderOpportunities, braiderApplications] = await Promise.all([
+    clerkId ? getOpportunitiesForSalon(clerkId) : [],
+    clerkId ? getApplicantsForSalon(clerkId) : [],
+    getActiveOpportunities(),
+    clerkId ? getApplicationsForBraider(clerkId) : [],
+  ]);
+
+  return (
+    <DashboardClient
+      firstName={firstName}
+      salonOpportunities={salonOpportunities}
+      salonApplicants={salonApplicants}
+      braiderOpportunities={braiderOpportunities}
+      braiderApplications={braiderApplications}
+    />
   );
 }

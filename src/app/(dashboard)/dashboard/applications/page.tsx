@@ -1,26 +1,36 @@
+import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { APPLICATIONS, type ApplicationStatus } from "@/lib/sampleData";
+import { getApplicationsForBraider, type ApplicationDTO } from "@/db/queries";
 
-const STATUS_VARIANT: Record<ApplicationStatus, "info" | "warning" | "danger" | "success"> = {
+const STATUS_VARIANT: Record<ApplicationDTO["status"], "info" | "warning" | "danger" | "success"> = {
   Shortlisted: "info",
   "Under review": "warning",
   "Not selected": "danger",
   Matched: "success",
 };
 
-export default function ApplicationsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ApplicationsPage() {
+  const user = await currentUser();
+  const applications = user ? await getApplicationsForBraider(user.id) : [];
+
   return (
     <>
       <Topbar title="Your applications" subtitle="Track where you stand with each salon." />
 
       <div style={{ padding: 32, maxWidth: 820 }}>
         <Card>
-          {APPLICATIONS.map((a, i) => (
+          {applications.length === 0 ? (
+            <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "32px 0", margin: 0 }}>
+              No applications yet.
+            </p>
+          ) : applications.map((a, i) => (
             <div
               key={a.id}
               style={{

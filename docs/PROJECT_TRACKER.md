@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~81% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~85% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 44 / 55 | ~80% |
+| **Phase 1** | Workforce & Staffing | 45 / 55 | ~84% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -131,9 +131,9 @@ _Data routes & business logic_
 | ✅ | DB query layer (reads) | High | 1 |
 | ✅ | Wire Find Braiders to DB | High | 1 |
 | ✅ | Wire Find Salons to DB | High | 1 |
-| ⬜ | Wire Job Opportunities to DB | High | 1 |
-| ⬜ | Wire dashboards to DB | High | 1 |
-| ⬜ | Write routes: applications, messages, ratings | High | 1 |
+| ✅ | Wire Job Opportunities to DB | High | 1 |
+| 🔄 | Wire dashboards to DB | High | 1 |
+| 🔄 | Write routes: applications, messages, ratings | High | 1 |
 
 ---
 

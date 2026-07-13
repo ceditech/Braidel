@@ -22,6 +22,20 @@
       "when": 1783241015116,
       "tag": "0002_nasty_domino",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783892498916,
+      "tag": "0004_broad_mad_thinker",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783913880339,
+      "tag": "0005_lazy_azazel",
+      "breakpoints": true
     }
   ]
 }

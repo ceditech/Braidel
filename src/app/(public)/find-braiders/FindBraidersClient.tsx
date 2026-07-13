@@ -8,7 +8,6 @@ import { Tag } from "@/components/ui/Tag";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Photo } from "@/components/ui/Photo";
-import { SPECIALTIES } from "@/lib/sampleData";
 import type { BraiderDTO } from "@/db/queries";
 
 const SORTS = ["Sort: Top rated", "Sort: Most reviews", "Sort: Name A–Z"] as const;
@@ -16,7 +15,13 @@ type Sort = (typeof SORTS)[number];
 
 const TOTAL_POOL = 12480; // headline count for social proof
 
-export function FindBraidersClient({ braiders }: { braiders: BraiderDTO[] }) {
+export function FindBraidersClient({
+  braiders,
+  specialtyOptions,
+}: {
+  braiders: BraiderDTO[];
+  specialtyOptions: string[];
+}) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("Sort: Top rated");
@@ -91,7 +96,7 @@ export function FindBraidersClient({ braiders }: { braiders: BraiderDTO[] }) {
 
       {/* Specialty filter chips */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 4px", alignItems: "center" }}>
-        {SPECIALTIES.map((s) => (
+        {specialtyOptions.map((s) => (
           <Tag key={s} selected={active.includes(s)} onClick={() => toggle(s)}>
             {s}
           </Tag>

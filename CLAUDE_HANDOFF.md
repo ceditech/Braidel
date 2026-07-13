@@ -85,26 +85,32 @@ relations in [`src/db/schema.ts`](src/db/schema.ts).
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
 - Role-specific profile rows (`salons`, `braiders`) are seeded on onboarding.
 
-### Data strategy — mock now, wire later (deliberate)
+### Data strategy — backend wiring in progress
 
-**Decision:** Phase 1 screens are built on **mock data first**; backend wiring is a
-single dedicated pass at the end, not per-screen. This keeps UI/UX velocity high
-and makes the data-access patterns consistent when we do wire them.
+**Current state:** Phase 1 screens were built on **mock data first**, and the
+backend wiring pass is now underway. The database schema, migrations, seed
+script, and read query layer exist. Public Find Braiders and Find Salons are
+already DB-backed; opportunities, applications, applicants, messages, ratings,
+and most dashboard screens still need full DB wiring.
 
-Rules while this holds:
-- **All mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)** (plus a
-  little co-located in dashboard pages). New screens import from there — never
-  inline fresh arrays. This keeps the eventual swap contained.
-- Nothing except auth/onboarding reads or writes Neon yet. The tables exist and
-  are migrated but are empty.
+Rules while this transition holds:
+- **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
+  Do not add new inline mock arrays. Replace imports with query helpers screen by
+  screen.
+- Prefer Server Components for read screens that can query `db` directly.
+- Use route handlers or Server Actions for writes, and always re-check auth and
+  authorization inside the write path.
 
-**The backend wiring pass will need to:**
-1. Add a **seed script** to populate `braiders`, `salons`, `opportunities`, etc.
-   for local dev (tables are empty).
-2. Convert read screens (Find Braiders, dashboards) to **Server Components that
-   query `db` directly**, or add `GET` API routes — prefer Server Components for reads.
-3. Add write routes: `POST /api/opportunities`, `/api/applications`, `/api/messages`, `/api/ratings`.
-4. Replace `sampleData` imports with the real queries, screen by screen.
+**Backend wiring progress:**
+1. ✅ Seed script exists (`npm run db:seed`) and currently populates braiders and
+   salons from the shared mock dataset.
+2. ✅ DB query layer exists in [`src/db/queries.ts`](src/db/queries.ts).
+3. ✅ Find Braiders + braider profile read from Neon.
+4. ✅ Find Salons + salon detail read from Neon.
+5. ⬜ Wire opportunities to Neon reads/writes.
+6. ⬜ Wire applications/applicants to Neon reads/writes.
+7. ⬜ Wire messages and ratings to Neon reads/writes.
+8. ⬜ Wire dashboard summaries to the signed-in user's real role/profile.
 
 ### Roles in the dashboard
 
@@ -211,23 +217,30 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete (~77% overall).** Both marketplace sides are fully
-navigable on mock data with no dead links:
+**Phase 1 is UI-complete and ~81% complete overall by the tracker.** Both
+marketplace sides are navigable, with public braider/salon discovery now
+DB-backed and the remaining workforce flows still partly mock-driven:
 
 - **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
-  Job Opportunities (+ detail).
+  Job Opportunities (+ detail). Find Braiders and Find Salons are wired to Neon;
+  Job Opportunities are the next DB target.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants, Messages, Settings.
 - **Braider app:** dashboard, Find Work, Applications, Messages, Settings (profile editor).
 - **Shell:** role switch (salon/braider), internal Tracker + Market Study.
 
 **Remaining (highest value first):**
 
-1. **Backend wiring pass** — seed script + swap all `sampleData` imports for real
-   Neon queries (Server Components for reads; API routes for writes). See §4.
-2. **Notifications page** (shared) — last pending UI screen.
-3. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives.
+1. **Backend Wiring Pass 2: Opportunities + Applications** — seed opportunities,
+   add opportunity/application query helpers and guarded write routes, then swap
+   public opportunities, Find Work, Applications, and Applicants off mock data.
+2. **Backend Wiring Pass 3: Dashboards + Messaging + Ratings** — replace dashboard
+   summaries and conversations with real user-scoped reads/writes.
+3. **Notifications page** (shared) — last pending UI screen.
+4. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
+   and content pages.
 
-Full, live breakdown in [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md) and at `/tracker`.
+Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
+[`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md). Live dashboard: `/tracker`.
 
 ---
 

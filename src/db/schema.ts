@@ -51,6 +51,22 @@ export const users = pgTable("users", {
 
 // ─── Salons ───────────────────────────────────────────────────────────────────
 
+export const braidStyles = pgTable("braid_styles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  catalogId: integer("catalog_id"),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description").notNull(),
+  imagePrompt: text("image_prompt"),
+  imagePath: text("image_path"),
+  isCustom: boolean("is_custom").notNull().default(false),
+  createdById: uuid("created_by_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const salons = pgTable("salons", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerId: uuid("owner_id")
@@ -105,12 +121,14 @@ export const opportunities = pgTable("opportunities", {
   salonId: uuid("salon_id")
     .notNull()
     .references(() => salons.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   type: opportunityTypeEnum("type").notNull(),
   city: text("city"),
   state: text("state"),
   compensation: text("compensation"),
+  specialties: text("specialties").array(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

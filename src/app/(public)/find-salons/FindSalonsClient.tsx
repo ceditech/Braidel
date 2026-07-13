@@ -9,13 +9,18 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { SPECIALTIES } from "@/lib/sampleData";
 import type { SalonDTO } from "@/db/queries";
 
 const SORTS = ["Sort: Top rated", "Sort: Most reviews", "Sort: Open roles"] as const;
 type Sort = (typeof SORTS)[number];
 
-export function FindSalonsClient({ salons }: { salons: SalonDTO[] }) {
+export function FindSalonsClient({
+  salons,
+  specialtyOptions,
+}: {
+  salons: SalonDTO[];
+  specialtyOptions: string[];
+}) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>("Sort: Top rated");
@@ -78,7 +83,7 @@ export function FindSalonsClient({ salons }: { salons: SalonDTO[] }) {
 
       {/* Service chips */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 4px", alignItems: "center" }}>
-        {SPECIALTIES.map((s) => (
+        {specialtyOptions.map((s) => (
           <Tag key={s} selected={active.includes(s)} onClick={() => toggle(s)}>{s}</Tag>
         ))}
         {active.length > 0 && (

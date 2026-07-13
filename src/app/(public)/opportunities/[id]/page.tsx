@@ -1,11 +1,9 @@
-"use client";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import { getOpportunityBySlug } from "@/db/queries";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
-import { JOBS, SALONS } from "@/lib/sampleData";
 
 const RESPONSIBILITIES = [
   "Deliver high-quality braiding styles to a steady flow of clients",
@@ -21,9 +19,11 @@ const OFFERS = [
   "Flexible scheduling",
 ];
 
-export default function JobDetailPage() {
-  const params = useParams<{ id: string }>();
-  const job = JOBS.find((j) => j.id === params.id);
+export const dynamic = "force-dynamic";
+
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const job = await getOpportunityBySlug(id);
 
   if (!job) {
     return (
@@ -35,8 +35,6 @@ export default function JobDetailPage() {
     );
   }
 
-  const salon = SALONS.find((s) => s.name === job.salon);
-
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px var(--gutter) 40px" }}>
       <Link href="/opportunities" style={{ color: "var(--text-muted)", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 18 }}>
@@ -45,7 +43,6 @@ export default function JobDetailPage() {
       </Link>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32, alignItems: "start" }}>
-        {/* Main */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,34px)", margin: 0, color: "var(--charcoal-900)" }}>
@@ -54,13 +51,9 @@ export default function JobDetailPage() {
             <Badge variant="neutral">{job.type}</Badge>
           </div>
           <div style={{ display: "flex", gap: 16, marginTop: 10, color: "var(--text-muted)", fontSize: 15, flexWrap: "wrap", alignItems: "center" }}>
-            {salon ? (
-              <Link href={`/find-salons/${salon.id}`} style={{ color: "var(--text-link)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <BuildingIcon /> {job.salon}
-              </Link>
-            ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><BuildingIcon /> {job.salon}</span>
-            )}
+            <Link href={`/find-salons/${job.salonSlug}`} style={{ color: "var(--text-link)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <BuildingIcon /> {job.salon}
+            </Link>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><PinIcon /> {job.city}</span>
             <span>Posted {job.posted}</span>
           </div>
@@ -69,12 +62,9 @@ export default function JobDetailPage() {
             {job.specs.map((s) => <Tag key={s}>{s}</Tag>)}
           </div>
 
-          {/* Sections */}
           <Section title="About the role">
             <p style={{ fontSize: 16, lineHeight: 1.7, color: "var(--text-body)", margin: 0 }}>
-              {job.salon} in {job.city} is hiring a {job.title.toLowerCase()} ({job.type.toLowerCase()}).
-              You&apos;ll work with a supportive team serving clients who love {job.specs.map((s) => s.toLowerCase()).join(", ")} styles.
-              This is a great fit for a braider who takes pride in clean part work, healthy scalps, and lasting styles.
+              {job.description}
             </p>
           </Section>
 
@@ -87,7 +77,6 @@ export default function JobDetailPage() {
           </Section>
         </div>
 
-        {/* Sticky apply card */}
         <Card padded style={{ position: "sticky", top: 90 }}>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--charcoal-900)" }}>{job.pay}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>{job.type} · {job.city}</div>
