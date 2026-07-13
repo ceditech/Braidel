@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
@@ -18,24 +19,59 @@ const STATUS_VARIANT: Record<ApplicantDTO["status"], "warning" | "info" | "succe
   Declined: "danger",
 };
 
-type Filter = "all" | "New" | "Shortlisted" | "Matched";
+type ApplicantStatus = ApplicantDTO["status"];
+type Filter = "all" | ApplicantStatus;
+
+const ACTIONS: Array<{ label: string; status: ApplicantStatus; variant: "primary" | "outline" | "ghost" | "dark" }> = [
+  { label: "Shortlist", status: "Shortlisted", variant: "outline" },
+  { label: "Match", status: "Matched", variant: "primary" },
+  { label: "Decline", status: "Declined", variant: "ghost" },
+];
 
 export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] }) {
+  const router = useRouter();
+  const [localApplicants, setLocalApplicants] = useState(applicants);
   const [filter, setFilter] = useState<Filter>("all");
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const counts = useMemo(() => {
     return {
-      all: applicants.length,
-      New: applicants.filter((a) => a.status === "New").length,
-      Shortlisted: applicants.filter((a) => a.status === "Shortlisted").length,
-      Matched: applicants.filter((a) => a.status === "Matched").length,
+      all: localApplicants.length,
+      New: localApplicants.filter((a) => a.status === "New").length,
+      Shortlisted: localApplicants.filter((a) => a.status === "Shortlisted").length,
+      Matched: localApplicants.filter((a) => a.status === "Matched").length,
+      Declined: localApplicants.filter((a) => a.status === "Declined").length,
     };
-  }, [applicants]);
+  }, [localApplicants]);
 
   const rows = useMemo(
-    () => (filter === "all" ? applicants : applicants.filter((a) => a.status === filter)),
-    [applicants, filter]
+    () => (filter === "all" ? localApplicants : localApplicants.filter((a) => a.status === filter)),
+    [localApplicants, filter]
   );
+
+  async function updateStatus(applicant: ApplicantDTO, status: ApplicantStatus) {
+    const previous = localApplicants;
+    setPendingId(applicant.id);
+    setError(null);
+    setLocalApplicants((current) => current.map((row) => (row.id === applicant.id ? { ...row, status } : row)));
+
+    const res = await fetch(`/api/applications/${applicant.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setPendingId(null);
+
+    if (!res.ok) {
+      setLocalApplicants(previous);
+      setError(data.error ?? "Could not update applicant status.");
+      return;
+    }
+
+    router.refresh();
+  }
 
   return (
     <>
@@ -51,9 +87,16 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
               { value: "New", label: "New", count: counts.New },
               { value: "Shortlisted", label: "Shortlisted", count: counts.Shortlisted },
               { value: "Matched", label: "Matched", count: counts.Matched },
+              { value: "Declined", label: "Declined", count: counts.Declined },
             ]}
           />
         </div>
+
+        {error && (
+          <div style={{ marginBottom: 14, color: "var(--danger)", fontSize: 14, fontWeight: 600 }}>
+            {error}
+          </div>
+        )}
 
         {rows.length === 0 ? (
           <Card padded>
@@ -81,7 +124,17 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
                   <Link href="/dashboard/messages">
                     <Button size="sm" variant="outline" iconLeft={<MessageIcon />}>Message</Button>
                   </Link>
-                  <Button size="sm">Shortlist</Button>
+                  {ACTIONS.filter((action) => action.status !== a.status).map((action) => (
+                    <Button
+                      key={action.status}
+                      size="sm"
+                      variant={action.variant}
+                      disabled={pendingId === a.id}
+                      onClick={() => updateStatus(a, action.status)}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
                 </div>
               </div>
             ))}
