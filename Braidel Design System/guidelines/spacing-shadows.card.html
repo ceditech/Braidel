@@ -1,0 +1,19 @@
+<!-- @dsCard group="Spacing" viewport="700x170" name="Elevation / shadows" subtitle="Warm-tinted, layered & soft · --shadow-*" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--bg-page);padding:26px 22px;font-family:var(--font-mono);color:var(--text-muted)}
+  .row{display:flex;gap:24px;flex-wrap:wrap}
+  .item{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .box{width:96px;height:64px;background:var(--surface-raised);border-radius:var(--radius-md)}
+  .n{font-size:10.5px}
+</style></head>
+<body>
+<div class="row">
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-xs)"></div><span class="n">xs</span></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-sm)"></div><span class="n">sm</span></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-md)"></div><span class="n">md</span></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-lg)"></div><span class="n">lg</span></div>
+  <div class="item"><div class="box" style="box-shadow:var(--shadow-xl)"></div><span class="n">xl</span></div>
+</div>
+<div style="margin-top:16px;font-size:11px">Shadows use warm charcoal (43,33,24), never pure black. Cards rest at <b>sm</b>, lift to <b>lg</b> on hover.</div>
+</body></html>

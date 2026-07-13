@@ -1,0 +1,10 @@
+/* ── Braidel webfonts ──────────────────────────────────────────────
+   Loaded from Google Fonts CDN. These are SUBSTITUTES chosen to match
+   the intended brand voice until licensed brand files are supplied:
+     · Display  → Bricolage Grotesque (warm, editorial, characterful)
+     · Body/UI  → Hanken Grotesk      (humanist, highly readable)
+     · Mono     → JetBrains Mono      (data, eyebrows, tabular figures)
+   If you have official brand fonts, drop the .woff2 files in
+   assets/fonts/ and replace this @import with @font-face rules.
+------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:ital,wght@0,400..800;1,400..600&family=JetBrains+Mono:wght@400;500;600&display=swap');

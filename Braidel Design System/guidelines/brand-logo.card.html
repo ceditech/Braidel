@@ -1,0 +1,28 @@
+<!-- @dsCard group="Brand" viewport="700x200" name="Logo & wordmark" subtitle="Primary lockup, light & dark" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--bg-page);padding:24px;font-family:var(--font-display)}
+  .row{display:flex;gap:18px;align-items:stretch}
+  .panel{flex:1;border-radius:var(--radius-lg);display:flex;align-items:center;gap:14px;padding:22px 26px;
+         box-shadow:var(--shadow-sm);border:1px solid var(--border-subtle)}
+  .light{background:var(--surface-card)}
+  .dark{background:var(--charcoal-900);border-color:transparent}
+  .word{font-weight:700;font-size:34px;letter-spacing:-0.02em}
+  .light .word{color:var(--charcoal-900)}
+  .dark .word{color:var(--cream-50)}
+  .dark .word b{color:var(--terracotta-400)}
+  .light .word b{color:var(--terracotta-500)}
+  .mark{flex:none}
+</style></head>
+<body>
+<div class="row">
+  <div class="panel light">
+    <img class="mark" src="../assets/braidel-mark.svg" width="44" height="44" alt="">
+    <span class="word">Braide<b>l</b></span>
+  </div>
+  <div class="panel dark">
+    <img class="mark" src="../assets/braidel-mark.svg" width="44" height="44" alt="">
+    <span class="word">Braide<b>l</b></span>
+  </div>
+</div>
+</body></html>

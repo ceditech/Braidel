@@ -1,0 +1,56 @@
+/* ── Braidel typography ────────────────────────────────────────────
+   Display: Bricolage Grotesque (headlines, brand moments)
+   Body/UI: Hanken Grotesk     (everything functional)
+   Mono:    JetBrains Mono     (eyebrows, data, tabular figures)
+------------------------------------------------------------------- */
+:root {
+  /* Families */
+  --font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
+  --font-sans:    'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Weights */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-extra:    800;
+
+  /* Fluid display + heading sizes (clamp: min, vw, max) */
+  --text-display:  clamp(2.75rem, 1.6rem + 5.2vw, 5rem);     /* @kind spacing */ /* hero */
+  --text-h1:       clamp(2.1rem, 1.4rem + 3.1vw, 3.25rem);   /* @kind spacing */
+  --text-h2:       clamp(1.65rem, 1.2rem + 2vw, 2.5rem);     /* @kind spacing */
+  --text-h3:       clamp(1.35rem, 1.1rem + 1.1vw, 1.75rem);  /* @kind spacing */
+  --text-h4:       1.3125rem;   /* 21 */
+  --text-h5:       1.125rem;    /* 18 */
+
+  /* Body & UI */
+  --text-lead:     1.1875rem;   /* 19 intro paragraphs */
+  --text-base:     1rem;        /* 16 */
+  --text-sm:       0.875rem;    /* 14 */
+  --text-xs:       0.78125rem;  /* 12.5 */
+  --text-eyebrow:  0.75rem;     /* 12 uppercase mono */
+
+  /* Line heights */
+  --leading-tight:   1.06;
+  --leading-snug:    1.22;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+
+  /* Letter spacing */
+  --tracking-tight:   -0.022em;
+  --tracking-snug:    -0.012em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.06em;
+  --tracking-eyebrow: 0.16em;
+}
+
+/* Opinionated base — apply via the .braidel root or globally */
+:root {
+  font-family: var(--font-sans);
+  color: var(--text-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
