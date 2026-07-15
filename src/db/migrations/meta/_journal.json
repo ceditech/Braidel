@@ -43,6 +43,13 @@
       "when": 1784094159054,
       "tag": "0006_fresh_sentry",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784097688657,
+      "tag": "0007_salty_the_hand",
+      "breakpoints": true
     }
   ]
 }

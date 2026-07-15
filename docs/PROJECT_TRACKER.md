@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~85% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~86% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 50 / 59 | ~85% |
+| **Phase 1** | Workforce & Staffing | 51 / 59 | ~86% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -137,7 +137,7 @@ _Data routes & business logic_
 | ✅ | Application read/create/status flows | High | 1 |
 | ✅ | Profile + settings DB persistence | High | 1 |
 | ✅ | Messaging DB persistence | High | 1 |
-| ⬜ | Ratings read/write flows | High | 1 |
+| ✅ | Ratings read/write flows | High | 1 |
 
 ---
 

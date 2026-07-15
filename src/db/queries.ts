@@ -1,7 +1,16 @@
 import { and, asc, count, desc, eq, inArray, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { applications, braiders, braidStyles, messages, opportunities, salons, users } from "./schema";
+import {
+  applications,
+  braiders,
+  braidStyles,
+  messages,
+  opportunities,
+  ratings,
+  salons,
+  users,
+} from "./schema";
 
 /* Shape returned to the UI — matches the fields the braider screens expect,
    so wiring a screen is just swapping the data source (see CLAUDE_HANDOFF §4). */
@@ -456,6 +465,12 @@ export interface ApplicationDTO {
   salon: string;
   when: string;
   status: "Under review" | "Shortlisted" | "Matched" | "Not selected";
+  review: ReviewDTO | null;
+}
+
+export interface ReviewDTO {
+  score: number;
+  comment: string;
 }
 
 export interface ApplicantDTO {
@@ -467,6 +482,45 @@ export interface ApplicantDTO {
   rev: number;
   status: "New" | "Shortlisted" | "Matched" | "Declined";
   appliedFor: string;
+  review: ReviewDTO | null;
+}
+
+async function attachReviews<T extends { id: string; review: ReviewDTO | null }>(
+  rows: T[],
+  reviewerId: string
+): Promise<T[]> {
+  if (!rows.length) return rows;
+
+  const reviewRows = await db
+    .select({
+      applicationId: ratings.applicationId,
+      score: ratings.score,
+      comment: ratings.comment,
+    })
+    .from(ratings)
+    .where(
+      and(
+        eq(ratings.reviewerId, reviewerId),
+        inArray(
+          ratings.applicationId,
+          rows.map((row) => row.id)
+        )
+      )
+    );
+
+  const reviewsByApplication = new Map(
+    reviewRows
+      .filter((review) => review.applicationId !== null)
+      .map((review) => [
+        review.applicationId as string,
+        { score: review.score, comment: review.comment ?? "" },
+      ])
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    review: reviewsByApplication.get(row.id) ?? null,
+  }));
 }
 
 function applicationStatusLabel(status: string): ApplicationDTO["status"] {
@@ -490,6 +544,12 @@ function applicantStatusLabel(status: string): ApplicantDTO["status"] {
 }
 
 export async function getApplicationsForBraider(clerkId: string): Promise<ApplicationDTO[]> {
+  const [reviewer] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
+
   const rows = await db
     .select({
       id: applications.id,
@@ -512,9 +572,12 @@ export async function getApplicationsForBraider(clerkId: string): Promise<Applic
     salon: r.salon,
     when: `Applied ${postedLabel(r.createdAt)}`,
     status: applicationStatusLabel(r.status),
+    review: null,
   }));
-  if (includeDemoRows()) return uniqueById(mapped, await getApplications());
-  return mapped;
+  const visibleRows = includeDemoRows()
+    ? uniqueById(mapped, await getApplications())
+    : mapped;
+  return reviewer ? attachReviews(visibleRows, reviewer.id) : visibleRows;
 }
 
 export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantDTO[]> {
@@ -555,9 +618,12 @@ export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantD
     rev: r.ratingCount,
     status: applicantStatusLabel(r.status),
     appliedFor: r.appliedFor,
+    review: null,
   }));
-  if (includeDemoRows()) return uniqueById(mapped, await getApplicants());
-  return mapped;
+  const visibleRows = includeDemoRows()
+    ? uniqueById(mapped, await getApplicants())
+    : mapped;
+  return attachReviews(visibleRows, ownerRows[0].id);
 }
 
 export async function hasApplication(opportunityId: string, braiderId: string): Promise<boolean> {
@@ -589,6 +655,7 @@ export async function getApplications(): Promise<ApplicationDTO[]> {
     salon: r.salon,
     when: `Applied ${postedLabel(r.createdAt)}`,
     status: applicationStatusLabel(r.status),
+    review: null,
   }));
 }
 
@@ -620,6 +687,7 @@ export async function getApplicants(): Promise<ApplicantDTO[]> {
     rev: r.ratingCount,
     status: applicantStatusLabel(r.status),
     appliedFor: r.appliedFor,
+    review: null,
   }));
 }
 

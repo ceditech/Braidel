@@ -151,7 +151,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Application read/create/status flows", status: "done", priority: "high", phase: 1 },
       { title: "Profile + settings DB persistence", status: "done", priority: "high", phase: 1 },
       { title: "Messaging DB persistence", status: "done", priority: "high", phase: 1 },
-      { title: "Ratings read/write flows", status: "pending", priority: "high", phase: 1 },
+      { title: "Ratings read/write flows", status: "done", priority: "high", phase: 1 },
     ],
   },
 ];
