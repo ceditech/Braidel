@@ -66,7 +66,7 @@ src/
 │                                 #   Salon/BraiderDashboardHome
 ├── db/
 │   ├── index.ts                  # Drizzle + Neon connection
-│   ├── schema.ts                 # 7 tables + relations
+│   ├── schema.ts                 # 8 tables + relations
 │   └── migrations/               # Drizzle-generated SQL
 ├── lib/
 │   ├── roadmap.ts                # Source of truth for /tracker
@@ -91,8 +91,9 @@ relations in [`src/db/schema.ts`](src/db/schema.ts).
 backend wiring pass is now well underway. The database schema, migrations, seed
 script, read query layer, public marketplace reads, opportunity posting,
 application creation, applicant review, dashboard summaries, and the braid style
-catalog, and settings/profile persistence are DB-backed. Messages and ratings
-are the remaining major backend wiring targets.
+catalog, settings/profile persistence, and application-scoped messaging are
+DB-backed. Ratings and reviews are application-scoped, participant-authorized,
+and persisted in Neon with database-maintained aggregates.
 
 Rules while this transition holds:
 - **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
@@ -113,7 +114,10 @@ Rules while this transition holds:
    shortlist, match, and decline applicants.
 7. ✅ Dashboard summaries use DB-backed opportunity/application data.
 8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
-9. 🔄 Wire messages and ratings to Neon reads/writes.
+9. ✅ Messaging reads, sends, and read receipts are application-scoped and
+   persisted in Neon.
+10. ✅ Ratings are limited to matched applications, support one editable review
+    per participant direction, and refresh salon/braider aggregates in Neon.
 
 ### Roles in the dashboard
 
@@ -220,11 +224,11 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete and ~85% complete overall by the tracker.** Both
+**Phase 1 is UI-complete and ~86% complete overall by the tracker.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
-The remaining workforce flows are concentrated in messaging, ratings, and
-supporting polish:
+The remaining workforce work is concentrated in portfolio media and supporting
+polish:
 
 - **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
   Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
@@ -236,12 +240,10 @@ supporting polish:
 
 **Remaining (highest value first):**
 
-1. **Backend Wiring Pass 4: Messaging + Ratings** — replace dashboard
-   conversations and ratings with real user-scoped reads/writes.
-2. **Portfolio media persistence** — replace placeholder portfolio tiles with
+1. **Portfolio media persistence** — replace placeholder portfolio tiles with
    real upload/storage once storage is selected.
-3. **Notifications page** (shared) — last pending UI screen.
-4. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
+2. **Notifications page** (shared) — last pending UI screen.
+3. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
    and content pages.
 
 Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:

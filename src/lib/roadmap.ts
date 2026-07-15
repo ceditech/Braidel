@@ -131,7 +131,7 @@ export const ROADMAP: RoadmapGroup[] = [
     label: "Shared App",
     description: "Cross-role features",
     items: [
-      { title: "Messaging (list + thread)", status: "done", priority: "high", phase: 1 },
+      { title: "Messaging (DB-backed list + thread)", status: "done", priority: "high", phase: 1 },
       { title: "Notifications page", status: "pending", priority: "medium", phase: 1 },
       { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
     ],
@@ -150,7 +150,8 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Wire dashboards to DB", status: "done", priority: "high", phase: 1 },
       { title: "Application read/create/status flows", status: "done", priority: "high", phase: 1 },
       { title: "Profile + settings DB persistence", status: "done", priority: "high", phase: 1 },
-      { title: "Write routes: messages and ratings", status: "in_progress", priority: "high", phase: 1 },
+      { title: "Messaging DB persistence", status: "done", priority: "high", phase: 1 },
+      { title: "Ratings read/write flows", status: "done", priority: "high", phase: 1 },
     ],
   },
 ];

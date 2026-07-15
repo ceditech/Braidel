@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Rating } from "@/components/ui/Rating";
 import { Tag } from "@/components/ui/Tag";
 import { Tabs } from "@/components/ui/Tabs";
+import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import type { ApplicantDTO } from "@/db/queries";
 
 const STATUS_VARIANT: Record<ApplicantDTO["status"], "warning" | "info" | "success" | "danger"> = {
@@ -121,9 +122,17 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
                   <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <Link href="/dashboard/messages">
+                  <Link href={`/dashboard/messages?application=${a.id}`}>
                     <Button size="sm" variant="outline" iconLeft={<MessageIcon />}>Message</Button>
                   </Link>
+                  {a.status === "Matched" && (
+                    <ReviewDialog
+                      applicationId={a.id}
+                      targetName={a.name}
+                      targetType="braider"
+                      initialReview={a.review}
+                    />
+                  )}
                   {ACTIONS.filter((action) => action.status !== a.status).map((action) => (
                     <Button
                       key={action.status}

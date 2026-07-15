@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
+import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import { getApplicationsForBraider, type ApplicationDTO } from "@/db/queries";
 
 const STATUS_VARIANT: Record<ApplicationDTO["status"], "info" | "warning" | "danger" | "success"> = {
@@ -39,6 +40,7 @@ export default async function ApplicationsPage() {
                 gap: 16,
                 padding: "18px 22px",
                 borderTop: i ? "1px solid var(--border-subtle)" : "none",
+                flexWrap: "wrap",
               }}
             >
               <div style={{ width: 46, height: 46, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
@@ -49,9 +51,19 @@ export default async function ApplicationsPage() {
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{a.when}</div>
               </div>
               <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
-              <Link href="/dashboard/messages">
-                <Button size="sm" variant="outline" iconRight={<ChevronIcon />}>View</Button>
-              </Link>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {a.status === "Matched" && (
+                  <ReviewDialog
+                    applicationId={a.id}
+                    targetName={a.salon}
+                    targetType="salon"
+                    initialReview={a.review}
+                  />
+                )}
+                <Link href={`/dashboard/messages?application=${a.id}`}>
+                  <Button size="sm" variant="outline" iconRight={<ChevronIcon />}>View</Button>
+                </Link>
+              </div>
             </div>
           ))}
         </Card>

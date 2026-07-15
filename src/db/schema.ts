@@ -6,10 +6,12 @@ import {
   pgEnum,
   uuid,
   boolean,
-  decimal,
   real,
+  index,
+  uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -152,36 +154,68 @@ export const applications = pgTable("applications", {
 
 // ─── Messages ─────────────────────────────────────────────────────────────────
 
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  senderId: uuid("sender_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  recipientId: uuid("recipient_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  body: text("body").notNull(),
-  readAt: timestamp("read_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id").references(() => applications.id, {
+      onDelete: "cascade",
+    }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recipientId: uuid("recipient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("messages_application_created_idx").on(table.applicationId, table.createdAt),
+    index("messages_sender_idx").on(table.senderId),
+    index("messages_recipient_read_idx").on(table.recipientId, table.readAt),
+  ]
+);
 
 // ─── Ratings ──────────────────────────────────────────────────────────────────
 
-export const ratings = pgTable("ratings", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  reviewerId: uuid("reviewer_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  braiderId: uuid("braider_id").references(() => braiders.id, {
-    onDelete: "cascade",
-  }),
-  salonId: uuid("salon_id").references(() => salons.id, {
-    onDelete: "cascade",
-  }),
-  score: integer("score").notNull(), // 1–5
-  comment: text("comment"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const ratings = pgTable(
+  "ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id").references(() => applications.id, {
+      onDelete: "cascade",
+    }),
+    reviewerId: uuid("reviewer_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    braiderId: uuid("braider_id").references(() => braiders.id, {
+      onDelete: "cascade",
+    }),
+    salonId: uuid("salon_id").references(() => salons.id, {
+      onDelete: "cascade",
+    }),
+    score: integer("score").notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ratings_application_reviewer_unique").on(
+      table.applicationId,
+      table.reviewerId
+    ),
+    index("ratings_reviewer_idx").on(table.reviewerId),
+    index("ratings_braider_idx").on(table.braiderId),
+    index("ratings_salon_idx").on(table.salonId),
+    check("ratings_score_check", sql`${table.score} between 1 and 5`),
+    check(
+      "ratings_single_target_check",
+      sql`(${table.braiderId} is not null) <> (${table.salonId} is not null)`
+    ),
+  ]
+);
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 
@@ -216,7 +250,7 @@ export const opportunitiesRelations = relations(
   })
 );
 
-export const applicationsRelations = relations(applications, ({ one }) => ({
+export const applicationsRelations = relations(applications, ({ one, many }) => ({
   opportunity: one(opportunities, {
     fields: [applications.opportunityId],
     references: [opportunities.id],
@@ -224,5 +258,44 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
   braider: one(braiders, {
     fields: [applications.braiderId],
     references: [braiders.id],
+  }),
+  messages: many(messages),
+  ratings: many(ratings),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  application: one(applications, {
+    fields: [messages.applicationId],
+    references: [applications.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+    relationName: "sender",
+  }),
+  recipient: one(users, {
+    fields: [messages.recipientId],
+    references: [users.id],
+    relationName: "recipient",
+  }),
+}));
+
+export const ratingsRelations = relations(ratings, ({ one }) => ({
+  application: one(applications, {
+    fields: [ratings.applicationId],
+    references: [applications.id],
+  }),
+  reviewer: one(users, {
+    fields: [ratings.reviewerId],
+    references: [users.id],
+    relationName: "reviewer",
+  }),
+  braider: one(braiders, {
+    fields: [ratings.braiderId],
+    references: [braiders.id],
+  }),
+  salon: one(salons, {
+    fields: [ratings.salonId],
+    references: [salons.id],
   }),
 }));
