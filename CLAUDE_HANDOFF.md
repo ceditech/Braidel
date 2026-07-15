@@ -78,8 +78,8 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Seven tables, all migrated and live: `users`, `salons`, `braiders`,
-`opportunities`, `applications`, `messages`, `ratings`. Full definitions and
+Eight tables, all migrated and live: `users`, `salons`, `braiders`,
+`opportunities`, `applications`, `braid_styles`, `messages`, `ratings`. Full definitions and
 relations in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
@@ -88,10 +88,11 @@ relations in [`src/db/schema.ts`](src/db/schema.ts).
 ### Data strategy — backend wiring in progress
 
 **Current state:** Phase 1 screens were built on **mock data first**, and the
-backend wiring pass is now underway. The database schema, migrations, seed
-script, and read query layer exist. Public Find Braiders and Find Salons are
-already DB-backed; opportunities, applications, applicants, messages, ratings,
-and most dashboard screens still need full DB wiring.
+backend wiring pass is now well underway. The database schema, migrations, seed
+script, read query layer, public marketplace reads, opportunity posting,
+application creation, applicant review, dashboard summaries, and the braid style
+catalog, and settings/profile persistence are DB-backed. Messages and ratings
+are the remaining major backend wiring targets.
 
 Rules while this transition holds:
 - **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
@@ -102,15 +103,17 @@ Rules while this transition holds:
   authorization inside the write path.
 
 **Backend wiring progress:**
-1. ✅ Seed script exists (`npm run db:seed`) and currently populates braiders and
-   salons from the shared mock dataset.
+1. ✅ Seed script exists (`npm run db:seed`) and currently populates braid styles,
+   braiders, salons, opportunities, and applications from shared seed datasets.
 2. ✅ DB query layer exists in [`src/db/queries.ts`](src/db/queries.ts).
 3. ✅ Find Braiders + braider profile read from Neon.
 4. ✅ Find Salons + salon detail read from Neon.
-5. ⬜ Wire opportunities to Neon reads/writes.
-6. ⬜ Wire applications/applicants to Neon reads/writes.
-7. ⬜ Wire messages and ratings to Neon reads/writes.
-8. ⬜ Wire dashboard summaries to the signed-in user's real role/profile.
+5. ✅ Opportunities read from and write to Neon.
+6. ✅ Applications/applicants read from Neon; braiders can apply; salons can
+   shortlist, match, and decline applicants.
+7. ✅ Dashboard summaries use DB-backed opportunity/application data.
+8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
+9. 🔄 Wire messages and ratings to Neon reads/writes.
 
 ### Roles in the dashboard
 
@@ -217,24 +220,26 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete and ~81% complete overall by the tracker.** Both
-marketplace sides are navigable, with public braider/salon discovery now
-DB-backed and the remaining workforce flows still partly mock-driven:
+**Phase 1 is UI-complete and ~85% complete overall by the tracker.** Both
+marketplace sides are navigable, with public discovery, opportunities,
+applications/applicants, style catalog, and dashboard summaries now DB-backed.
+The remaining workforce flows are concentrated in messaging, ratings, and
+supporting polish:
 
 - **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
-  Job Opportunities (+ detail). Find Braiders and Find Salons are wired to Neon;
-  Job Opportunities are the next DB target.
-- **Salon app:** dashboard, Opportunities (list + post form), Applicants, Messages, Settings.
-- **Braider app:** dashboard, Find Work, Applications, Messages, Settings (profile editor).
+  Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
+- **Salon app:** dashboard, Opportunities (list + post form), Applicants with
+  status actions, Messages, Settings.
+- **Braider app:** dashboard, Find Work + apply, Applications, Messages,
+  Settings (profile editor).
 - **Shell:** role switch (salon/braider), internal Tracker + Market Study.
 
 **Remaining (highest value first):**
 
-1. **Backend Wiring Pass 2: Opportunities + Applications** — seed opportunities,
-   add opportunity/application query helpers and guarded write routes, then swap
-   public opportunities, Find Work, Applications, and Applicants off mock data.
-2. **Backend Wiring Pass 3: Dashboards + Messaging + Ratings** — replace dashboard
-   summaries and conversations with real user-scoped reads/writes.
+1. **Backend Wiring Pass 4: Messaging + Ratings** — replace dashboard
+   conversations and ratings with real user-scoped reads/writes.
+2. **Portfolio media persistence** — replace placeholder portfolio tiles with
+   real upload/storage once storage is selected.
 3. **Notifications page** (shared) — last pending UI screen.
 4. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
    and content pages.

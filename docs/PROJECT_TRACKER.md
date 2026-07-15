@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 45 / 55 | ~84% |
+| **Phase 1** | Workforce & Staffing | 49 / 58 | ~85% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -44,6 +44,7 @@ _Tables & relations in Neon_
 | ✅ | braiders table | High | 1 |
 | ✅ | opportunities table | High | 1 |
 | ✅ | applications table | High | 1 |
+| ✅ | braid_styles table | High | 1 |
 | ✅ | messages table | High | 1 |
 | ✅ | ratings table | High | 1 |
 
@@ -132,8 +133,10 @@ _Data routes & business logic_
 | ✅ | Wire Find Braiders to DB | High | 1 |
 | ✅ | Wire Find Salons to DB | High | 1 |
 | ✅ | Wire Job Opportunities to DB | High | 1 |
-| 🔄 | Wire dashboards to DB | High | 1 |
-| 🔄 | Write routes: applications, messages, ratings | High | 1 |
+| ✅ | Wire dashboards to DB | High | 1 |
+| ✅ | Application read/create/status flows | High | 1 |
+| ✅ | Profile + settings DB persistence | High | 1 |
+| 🔄 | Write routes: messages and ratings | High | 1 |
 
 ---
 
