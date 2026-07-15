@@ -149,8 +149,8 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Wire Job Opportunities to DB", status: "done", priority: "high", phase: 1 },
       { title: "Wire dashboards to DB", status: "done", priority: "high", phase: 1 },
       { title: "Application read/create/status flows", status: "done", priority: "high", phase: 1 },
-      { title: "Profile + settings DB persistence", status: "in_progress", priority: "high", phase: 1 },
-      { title: "Write routes: messages and ratings", status: "pending", priority: "high", phase: 1 },
+      { title: "Profile + settings DB persistence", status: "done", priority: "high", phase: 1 },
+      { title: "Write routes: messages and ratings", status: "in_progress", priority: "high", phase: 1 },
     ],
   },
 ];

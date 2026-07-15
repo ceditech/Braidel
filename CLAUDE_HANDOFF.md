@@ -91,8 +91,8 @@ relations in [`src/db/schema.ts`](src/db/schema.ts).
 backend wiring pass is now well underway. The database schema, migrations, seed
 script, read query layer, public marketplace reads, opportunity posting,
 application creation, applicant review, dashboard summaries, and the braid style
-catalog are DB-backed. Messages, ratings, and settings/profile persistence are
-the remaining major backend wiring targets.
+catalog, and settings/profile persistence are DB-backed. Messages and ratings
+are the remaining major backend wiring targets.
 
 Rules while this transition holds:
 - **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
@@ -112,8 +112,8 @@ Rules while this transition holds:
 6. ✅ Applications/applicants read from Neon; braiders can apply; salons can
    shortlist, match, and decline applicants.
 7. ✅ Dashboard summaries use DB-backed opportunity/application data.
-8. 🔄 Profile + settings persistence is the active backend pass.
-9. ⬜ Wire messages and ratings to Neon reads/writes.
+8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
+9. 🔄 Wire messages and ratings to Neon reads/writes.
 
 ### Roles in the dashboard
 
@@ -223,8 +223,8 @@ accurate. Both pages are protected routes (auth required).
 **Phase 1 is UI-complete and ~85% complete overall by the tracker.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
-The remaining workforce flows are concentrated in profile/settings persistence,
-messaging, ratings, and supporting polish:
+The remaining workforce flows are concentrated in messaging, ratings, and
+supporting polish:
 
 - **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
   Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
@@ -236,11 +236,10 @@ messaging, ratings, and supporting polish:
 
 **Remaining (highest value first):**
 
-1. **Backend Wiring Pass 3: Profiles + Settings** — persist braider/salon
-   profile edits, specialties/services, availability, pricing, and profile
-   metadata to Neon, then reflect those edits in public discovery and dashboards.
-2. **Backend Wiring Pass 4: Messaging + Ratings** — replace dashboard
+1. **Backend Wiring Pass 4: Messaging + Ratings** — replace dashboard
    conversations and ratings with real user-scoped reads/writes.
+2. **Portfolio media persistence** — replace placeholder portfolio tiles with
+   real upload/storage once storage is selected.
 3. **Notifications page** (shared) — last pending UI screen.
 4. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
    and content pages.

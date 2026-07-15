@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 48 / 58 | ~84% |
+| **Phase 1** | Workforce & Staffing | 49 / 58 | ~85% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -135,8 +135,8 @@ _Data routes & business logic_
 | ✅ | Wire Job Opportunities to DB | High | 1 |
 | ✅ | Wire dashboards to DB | High | 1 |
 | ✅ | Application read/create/status flows | High | 1 |
-| 🔄 | Profile + settings DB persistence | High | 1 |
-| ⬜ | Write routes: messages and ratings | High | 1 |
+| ✅ | Profile + settings DB persistence | High | 1 |
+| 🔄 | Write routes: messages and ratings | High | 1 |
 
 ---
 

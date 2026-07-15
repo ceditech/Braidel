@@ -185,6 +185,101 @@ export async function getBraidStyles(): Promise<BraidStyleDTO[]> {
   }));
 }
 
+export interface SettingsProfileDTO {
+  user: {
+    id: string;
+    role: "salon_owner" | "braider" | "client";
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  salon: {
+    name: string;
+    city: string;
+    bio: string;
+    services: string[];
+    phone: string;
+    website: string;
+  } | null;
+  braider: {
+    fullName: string;
+    city: string;
+    bio: string;
+    specialties: string[];
+    priceRange: string;
+    yearsExperience: number | null;
+    isAvailable: boolean;
+  } | null;
+}
+
+export async function getSettingsProfile(clerkId: string): Promise<SettingsProfileDTO> {
+  const userRows = await db
+    .select({
+      id: users.id,
+      role: users.role,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
+
+  if (!userRows.length) return { user: null, salon: null, braider: null };
+
+  const user = userRows[0];
+  const [salon] = await db
+    .select({
+      name: salons.name,
+      city: salons.city,
+      bio: salons.bio,
+      services: salons.services,
+      phone: salons.phone,
+      website: salons.website,
+    })
+    .from(salons)
+    .where(eq(salons.ownerId, user.id))
+    .limit(1);
+
+  const [braider] = await db
+    .select({
+      city: braiders.city,
+      bio: braiders.bio,
+      specialties: braiders.specialties,
+      priceRange: braiders.priceRange,
+      yearsExperience: braiders.yearsExperience,
+      isAvailable: braiders.isAvailable,
+    })
+    .from(braiders)
+    .where(eq(braiders.userId, user.id))
+    .limit(1);
+
+  return {
+    user,
+    salon: salon
+      ? {
+          name: salon.name,
+          city: salon.city ?? "",
+          bio: salon.bio ?? "",
+          services: salon.services ?? [],
+          phone: salon.phone ?? "",
+          website: salon.website ?? "",
+        }
+      : null,
+    braider: braider
+      ? {
+          fullName: `${user.firstName} ${user.lastName}`.replace(/\s*-$/, "").trim(),
+          city: braider.city ?? "",
+          bio: braider.bio ?? "",
+          specialties: braider.specialties ?? [],
+          priceRange: braider.priceRange ?? "",
+          yearsExperience: braider.yearsExperience,
+          isAvailable: braider.isAvailable,
+        }
+      : null,
+  };
+}
+
 /* ── Opportunities ───────────────────────────────────────────────────────── */
 
 export type OpportunityStatus = "active" | "draft" | "closed";
