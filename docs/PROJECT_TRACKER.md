@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 49 / 58 | ~85% |
+| **Phase 1** | Workforce & Staffing | 50 / 59 | ~85% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -118,7 +118,7 @@ _Cross-role features_
 
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
-| ✅ | Messaging (list + thread) | High | 1 |
+| ✅ | Messaging (DB-backed list + thread) | High | 1 |
 | ⬜ | Notifications page | Medium | 1 |
 | ✅ | Settings page (role-aware) | Medium | 1 |
 
@@ -136,7 +136,8 @@ _Data routes & business logic_
 | ✅ | Wire dashboards to DB | High | 1 |
 | ✅ | Application read/create/status flows | High | 1 |
 | ✅ | Profile + settings DB persistence | High | 1 |
-| 🔄 | Write routes: messages and ratings | High | 1 |
+| ✅ | Messaging DB persistence | High | 1 |
+| ⬜ | Ratings read/write flows | High | 1 |
 
 ---
 

@@ -6,8 +6,8 @@ import {
   pgEnum,
   uuid,
   boolean,
-  decimal,
   real,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -152,18 +152,29 @@ export const applications = pgTable("applications", {
 
 // ─── Messages ─────────────────────────────────────────────────────────────────
 
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  senderId: uuid("sender_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  recipientId: uuid("recipient_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  body: text("body").notNull(),
-  readAt: timestamp("read_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id").references(() => applications.id, {
+      onDelete: "cascade",
+    }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recipientId: uuid("recipient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("messages_application_created_idx").on(table.applicationId, table.createdAt),
+    index("messages_sender_idx").on(table.senderId),
+    index("messages_recipient_read_idx").on(table.recipientId, table.readAt),
+  ]
+);
 
 // ─── Ratings ──────────────────────────────────────────────────────────────────
 
@@ -216,7 +227,7 @@ export const opportunitiesRelations = relations(
   })
 );
 
-export const applicationsRelations = relations(applications, ({ one }) => ({
+export const applicationsRelations = relations(applications, ({ one, many }) => ({
   opportunity: one(opportunities, {
     fields: [applications.opportunityId],
     references: [opportunities.id],
@@ -224,5 +235,23 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
   braider: one(braiders, {
     fields: [applications.braiderId],
     references: [braiders.id],
+  }),
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  application: one(applications, {
+    fields: [messages.applicationId],
+    references: [applications.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+    relationName: "sender",
+  }),
+  recipient: one(users, {
+    fields: [messages.recipientId],
+    references: [users.id],
+    relationName: "recipient",
   }),
 }));

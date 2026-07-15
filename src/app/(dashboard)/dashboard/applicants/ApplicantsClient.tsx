@@ -121,7 +121,7 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
                   <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <Link href="/dashboard/messages">
+                  <Link href={`/dashboard/messages?application=${a.id}`}>
                     <Button size="sm" variant="outline" iconLeft={<MessageIcon />}>Message</Button>
                   </Link>
                   {ACTIONS.filter((action) => action.status !== a.status).map((action) => (

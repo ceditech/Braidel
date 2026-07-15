@@ -1,0 +1,25 @@
+.mobileBack {
+  display: none !important;
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .layout:not(.threadOpen) .thread {
+    display: none !important;
+  }
+
+  .layout.threadOpen .conversationList {
+    display: none !important;
+  }
+
+  .mobileBack {
+    display: inline-flex !important;
+  }
+
+  .bubble {
+    max-width: 85% !important;
+  }
+}

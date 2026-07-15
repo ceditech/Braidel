@@ -66,7 +66,7 @@ src/
 │                                 #   Salon/BraiderDashboardHome
 ├── db/
 │   ├── index.ts                  # Drizzle + Neon connection
-│   ├── schema.ts                 # 7 tables + relations
+│   ├── schema.ts                 # 8 tables + relations
 │   └── migrations/               # Drizzle-generated SQL
 ├── lib/
 │   ├── roadmap.ts                # Source of truth for /tracker
@@ -91,8 +91,8 @@ relations in [`src/db/schema.ts`](src/db/schema.ts).
 backend wiring pass is now well underway. The database schema, migrations, seed
 script, read query layer, public marketplace reads, opportunity posting,
 application creation, applicant review, dashboard summaries, and the braid style
-catalog, and settings/profile persistence are DB-backed. Messages and ratings
-are the remaining major backend wiring targets.
+catalog, settings/profile persistence, and application-scoped messaging are
+DB-backed. Ratings are the remaining major backend wiring target.
 
 Rules while this transition holds:
 - **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
@@ -113,7 +113,9 @@ Rules while this transition holds:
    shortlist, match, and decline applicants.
 7. ✅ Dashboard summaries use DB-backed opportunity/application data.
 8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
-9. 🔄 Wire messages and ratings to Neon reads/writes.
+9. ✅ Messaging reads, sends, and read receipts are application-scoped and
+   persisted in Neon.
+10. 🔄 Wire ratings to Neon reads/writes.
 
 ### Roles in the dashboard
 
@@ -236,8 +238,8 @@ supporting polish:
 
 **Remaining (highest value first):**
 
-1. **Backend Wiring Pass 4: Messaging + Ratings** — replace dashboard
-   conversations and ratings with real user-scoped reads/writes.
+1. **Backend Wiring Pass 4: Ratings** — replace remaining rating displays and
+   actions with real user-scoped reads/writes and aggregate updates.
 2. **Portfolio media persistence** — replace placeholder portfolio tiles with
    real upload/storage once storage is selected.
 3. **Notifications page** (shared) — last pending UI screen.

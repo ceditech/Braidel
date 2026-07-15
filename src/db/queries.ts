@@ -1,6 +1,7 @@
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { applications, braiders, braidStyles, opportunities, salons, users } from "./schema";
+import { applications, braiders, braidStyles, messages, opportunities, salons, users } from "./schema";
 
 /* Shape returned to the UI — matches the fields the braider screens expect,
    so wiring a screen is just swapping the data source (see CLAUDE_HANDOFF §4). */
@@ -620,4 +621,124 @@ export async function getApplicants(): Promise<ApplicantDTO[]> {
     status: applicantStatusLabel(r.status),
     appliedFor: r.appliedFor,
   }));
+}
+
+/* ─── Messages ─────────────────────────────────────────────────────────────── */
+
+export interface MessageDTO {
+  id: string;
+  body: string;
+  isMine: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface ConversationDTO {
+  id: string; // application id
+  name: string;
+  avatarUrl: string | null;
+  context: string;
+  lastActivityAt: string;
+  unread: boolean;
+  messages: MessageDTO[];
+}
+
+const messageBraiderUsers = alias(users, "message_braider_users");
+const messageOwnerUsers = alias(users, "message_owner_users");
+
+export async function getConversationsForUser(clerkId: string): Promise<ConversationDTO[]> {
+  const [user] = await db
+    .select({ id: users.id, role: users.role })
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
+
+  if (!user || user.role === "client") return [];
+
+  let applicationsQuery = db
+    .select({
+      id: applications.id,
+      createdAt: applications.createdAt,
+      context: opportunities.title,
+      salonName: salons.name,
+      salonLogoUrl: salons.logoUrl,
+      ownerId: messageOwnerUsers.id,
+      ownerAvatarUrl: messageOwnerUsers.avatarUrl,
+      braiderUserId: messageBraiderUsers.id,
+      braiderFirstName: messageBraiderUsers.firstName,
+      braiderLastName: messageBraiderUsers.lastName,
+      braiderAvatarUrl: messageBraiderUsers.avatarUrl,
+    })
+    .from(applications)
+    .innerJoin(opportunities, eq(applications.opportunityId, opportunities.id))
+    .innerJoin(salons, eq(opportunities.salonId, salons.id))
+    .innerJoin(messageOwnerUsers, eq(salons.ownerId, messageOwnerUsers.id))
+    .innerJoin(braiders, eq(applications.braiderId, braiders.id))
+    .innerJoin(messageBraiderUsers, eq(braiders.userId, messageBraiderUsers.id))
+    .$dynamic();
+
+  if (!includeDemoRows()) {
+    applicationsQuery = applicationsQuery.where(
+      or(eq(messageOwnerUsers.id, user.id), eq(messageBraiderUsers.id, user.id))
+    );
+  }
+
+  const applicationRows = await applicationsQuery.orderBy(desc(applications.createdAt));
+  if (!applicationRows.length) return [];
+
+  const applicationIds = applicationRows.map((application) => application.id);
+  const messageRows = await db
+    .select({
+      id: messages.id,
+      applicationId: messages.applicationId,
+      senderId: messages.senderId,
+      recipientId: messages.recipientId,
+      body: messages.body,
+      readAt: messages.readAt,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .where(inArray(messages.applicationId, applicationIds))
+    .orderBy(asc(messages.createdAt), asc(messages.id));
+
+  const messagesByApplication = new Map<string, MessageDTO[]>();
+  const unreadApplicationIds = new Set<string>();
+  for (const message of messageRows) {
+    if (!message.applicationId) continue;
+    const thread = messagesByApplication.get(message.applicationId) ?? [];
+    thread.push({
+      id: message.id,
+      body: message.body,
+      isMine: message.senderId === user.id,
+      readAt: message.readAt?.toISOString() ?? null,
+      createdAt: message.createdAt.toISOString(),
+    });
+    messagesByApplication.set(message.applicationId, thread);
+    if (message.recipientId === user.id && message.readAt === null) {
+      unreadApplicationIds.add(message.applicationId);
+    }
+  }
+
+  const asBraider = user.role === "braider";
+  return applicationRows
+    .map((application) => {
+      const thread = messagesByApplication.get(application.id) ?? [];
+      const lastMessage = thread.at(-1);
+      const name = asBraider
+        ? application.salonName
+        : `${application.braiderFirstName} ${application.braiderLastName}`.replace(/\s+-$/, "").trim();
+
+      return {
+        id: application.id,
+        name,
+        avatarUrl: asBraider
+          ? application.salonLogoUrl ?? application.ownerAvatarUrl
+          : application.braiderAvatarUrl,
+        context: application.context,
+        lastActivityAt: lastMessage?.createdAt ?? application.createdAt.toISOString(),
+        unread: unreadApplicationIds.has(application.id),
+        messages: thread,
+      } satisfies ConversationDTO;
+    })
+    .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
 }

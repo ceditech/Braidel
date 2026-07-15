@@ -49,7 +49,7 @@ export default async function ApplicationsPage() {
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{a.when}</div>
               </div>
               <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
-              <Link href="/dashboard/messages">
+              <Link href={`/dashboard/messages?application=${a.id}`}>
                 <Button size="sm" variant="outline" iconRight={<ChevronIcon />}>View</Button>
               </Link>
             </div>
