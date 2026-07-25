@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -8,10 +9,8 @@ import { Tag } from "@/components/ui/Tag";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Tabs } from "@/components/ui/Tabs";
-import { Photo } from "@/components/ui/Photo";
 import type { BraiderDTO } from "@/db/queries";
-
-const PORTFOLIO = ["Knotless waist", "Jumbo box", "Feed-in", "Goddess", "Bohemian", "Stitch"];
+import styles from "./BraiderProfileClient.module.css";
 
 const ABOUT_FACTS: [string, string][] = [
   ["Experience", "9 years"],
@@ -45,7 +44,7 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px var(--gutter) 40px" }}>
+    <div className={styles.page}>
       {/* Back link */}
       <Link
         href="/find-braiders"
@@ -55,9 +54,9 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
         Back to braiders
       </Link>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32, alignItems: "start" }}>
+      <div className={styles.layout}>
         {/* Main column */}
-        <div>
+        <div className={styles.main}>
           {/* Header */}
           <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
             <Avatar name={braider.name} size="xl" ring />
@@ -98,11 +97,25 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
 
           {/* Portfolio */}
           {tab === "portfolio" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginTop: 22 }}>
-              {PORTFOLIO.map((label, i) => (
-                <Photo key={label} seed={i} label={label} aspect="1/1" radius="14px" />
-              ))}
-            </div>
+            braider.portfolio.length ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12, marginTop: 22 }}>
+                {braider.portfolio.map((media) => (
+                  <div key={media.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", borderRadius: 8, border: "1px solid var(--border-subtle)", background: "var(--bg-subtle)" }}>
+                    <Image
+                      src={media.url}
+                      alt={media.altText}
+                      fill
+                      sizes="(max-width: 700px) 50vw, 260px"
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ marginTop: 22, padding: 24, border: "1px dashed var(--border-strong)", borderRadius: 8, color: "var(--text-muted)", textAlign: "center" }}>
+                This braider has not added portfolio images yet.
+              </div>
+            )
           )}
 
           {/* About */}
@@ -143,7 +156,7 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
         </div>
 
         {/* Sticky booking card */}
-        <Card padded style={{ position: "sticky", top: 90 }}>
+        <Card padded className={styles.bookingCard}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--charcoal-900)" }}>
               {braider.price}

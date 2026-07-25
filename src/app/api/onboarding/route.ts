@@ -3,47 +3,61 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { users, salons, braiders } from "@/db/schema";
 
+type UserRole = typeof users.$inferInsert.role;
+
 export async function POST(req: NextRequest) {
   const clerkUser = await currentUser();
   if (!clerkUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { role } = await req.json();
-  if (!["salon_owner", "braider", "client"].includes(role)) {
+  const { role } = (await req.json()) as { role?: UserRole };
+  if (role !== "salon_owner" && role !== "braider" && role !== "client") {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
+
+  const email =
+    clerkUser.primaryEmailAddress?.emailAddress ??
+    clerkUser.emailAddresses[0]?.emailAddress ??
+    `${clerkUser.id}@no-email.braidel.invalid`;
+  const identity = {
+    role,
+    email,
+    firstName: clerkUser.firstName ?? "",
+    lastName: clerkUser.lastName ?? "",
+    avatarUrl: clerkUser.imageUrl,
+    deletedAt: null,
+    updatedAt: new Date(),
+  };
 
   const [user] = await db
     .insert(users)
     .values({
       clerkId: clerkUser.id,
-      role,
-      email: clerkUser.emailAddresses[0].emailAddress,
-      firstName: clerkUser.firstName ?? "",
-      lastName: clerkUser.lastName ?? "",
-      avatarUrl: clerkUser.imageUrl,
+      ...identity,
     })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: users.clerkId,
+      set: identity,
+    })
     .returning();
 
-  // Seed the role-specific profile row
-  if (role === "salon_owner" && user) {
+  if (role === "salon_owner") {
     await db
       .insert(salons)
       .values({
         ownerId: user.id,
-        name: `${clerkUser.firstName}'s Salon`,
+        name: clerkUser.firstName ? `${clerkUser.firstName}'s Salon` : "My Salon",
         slug: `${clerkUser.id}-salon`,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing({ target: salons.ownerId });
   }
 
-  if (role === "braider" && user) {
+  if (role === "braider") {
     await db
       .insert(braiders)
       .values({ userId: user.id, slug: `${clerkUser.id}-braider` })
-      .onConflictDoNothing();
+      .onConflictDoNothing({ target: braiders.userId });
   }
 
   return NextResponse.json({ ok: true });

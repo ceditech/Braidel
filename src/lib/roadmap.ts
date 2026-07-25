@@ -54,6 +54,9 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "braid_styles table", status: "done", priority: "high", phase: 1 },
       { title: "messages table", status: "done", priority: "high", phase: 1 },
       { title: "ratings table", status: "done", priority: "high", phase: 1 },
+      { title: "portfolio_media table", status: "done", priority: "high", phase: 1 },
+      { title: "notifications table", status: "done", priority: "high", phase: 1 },
+      { title: "notification_preferences table", status: "done", priority: "medium", phase: 1 },
     ],
   },
   {
@@ -67,7 +70,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Avatar, Rating, StatCard, Logo components", status: "done", priority: "high", phase: 1 },
       { title: "Form inputs (Input, Select, Switch, Checkbox, Textarea)", status: "done", priority: "high", phase: 1 },
       { title: "Tabs component", status: "done", priority: "medium", phase: 1 },
-      { title: "Alert, Modal components", status: "pending", priority: "medium", phase: 1 },
+      { title: "Alert, Modal components", status: "done", priority: "medium", phase: 1 },
     ],
   },
   {
@@ -99,7 +102,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Sign-up page (Clerk)", status: "done", priority: "high", phase: 1 },
       { title: "Onboarding role selection", status: "done", priority: "high", phase: 1 },
       { title: "Onboarding API (writes user to Neon)", status: "done", priority: "high", phase: 1 },
-      { title: "Clerk webhook → user sync", status: "pending", priority: "medium", phase: 1 },
+      { title: "Clerk webhook → user sync", status: "done", priority: "medium", phase: 1 },
     ],
   },
   {
@@ -112,6 +115,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Opportunities list", status: "done", priority: "high", phase: 1 },
       { title: "Post Opportunity form", status: "done", priority: "high", phase: 1 },
       { title: "Manage Applicants screen", status: "done", priority: "high", phase: 1 },
+      { title: "Applicant profile + portfolio drawer", status: "done", priority: "high", phase: 1 },
     ],
   },
   {
@@ -132,7 +136,7 @@ export const ROADMAP: RoadmapGroup[] = [
     description: "Cross-role features",
     items: [
       { title: "Messaging (DB-backed list + thread)", status: "done", priority: "high", phase: 1 },
-      { title: "Notifications page", status: "pending", priority: "medium", phase: 1 },
+      { title: "Notifications page", status: "done", priority: "medium", phase: 1 },
       { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
     ],
   },
@@ -152,6 +156,8 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Profile + settings DB persistence", status: "done", priority: "high", phase: 1 },
       { title: "Messaging DB persistence", status: "done", priority: "high", phase: 1 },
       { title: "Ratings read/write flows", status: "done", priority: "high", phase: 1 },
+      { title: "Portfolio media persistence", status: "done", priority: "high", phase: 1 },
+      { title: "Notifications persistence + event wiring", status: "done", priority: "high", phase: 1 },
     ],
   },
 ];

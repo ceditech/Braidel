@@ -50,6 +50,20 @@
       "when": 1784097688657,
       "tag": "0007_salty_the_hand",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784411158518,
+      "tag": "0008_sharp_jazinda",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784416658239,
+      "tag": "0009_striped_black_knight",
+      "breakpoints": true
     }
   ]
 }

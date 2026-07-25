@@ -2,7 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { applications, braiders, opportunities, users } from "@/db/schema";
+import { applications, braiders, opportunities, salons, users } from "@/db/schema";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const clerkUser = await currentUser();
@@ -17,7 +18,12 @@ export async function POST(req: NextRequest) {
   }
 
   const [user] = await db
-    .select({ id: users.id, role: users.role })
+    .select({
+      id: users.id,
+      role: users.role,
+      firstName: users.firstName,
+      lastName: users.lastName,
+    })
     .from(users)
     .where(eq(users.clerkId, clerkUser.id))
     .limit(1);
@@ -37,8 +43,14 @@ export async function POST(req: NextRequest) {
   }
 
   const [opportunity] = await db
-    .select({ id: opportunities.id, isActive: opportunities.isActive })
+    .select({
+      id: opportunities.id,
+      isActive: opportunities.isActive,
+      title: opportunities.title,
+      ownerId: salons.ownerId,
+    })
     .from(opportunities)
+    .innerJoin(salons, eq(opportunities.salonId, salons.id))
     .where(eq(opportunities.slug, opportunitySlug))
     .limit(1);
 
@@ -57,10 +69,23 @@ export async function POST(req: NextRequest) {
   }
 
   const coverNote = typeof body.coverNote === "string" ? body.coverNote.trim() || null : null;
-  await db.insert(applications).values({
-    opportunityId: opportunity.id,
-    braiderId: braider.id,
-    coverNote,
+  const [application] = await db
+    .insert(applications)
+    .values({
+      opportunityId: opportunity.id,
+      braiderId: braider.id,
+      coverNote,
+    })
+    .returning({ id: applications.id });
+
+  const applicantName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "A braider";
+  await createNotification({
+    userId: opportunity.ownerId,
+    type: "application",
+    title: "New application",
+    body: `${applicantName} applied for ${opportunity.title}.`,
+    href: "/dashboard/applicants",
+    eventKey: `application:${application.id}`,
   });
 
   return NextResponse.json({ ok: true });

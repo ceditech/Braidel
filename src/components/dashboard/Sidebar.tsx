@@ -4,12 +4,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { useRole, type Role } from "@/components/dashboard/RoleContext";
+import styles from "./Sidebar.module.css";
 
 const salonNav = [
   { href: "/dashboard",              label: "Dashboard",     icon: <GridIcon /> },
   { href: "/dashboard/opportunities",label: "Opportunities", icon: <BriefcaseIcon /> },
   { href: "/dashboard/applicants",   label: "Applicants",    icon: <UsersIcon /> },
   { href: "/dashboard/messages",     label: "Messages",      icon: <MessageIcon /> },
+  { href: "/dashboard/notifications",label: "Notifications", icon: <BellIcon /> },
   { href: "/dashboard/settings",     label: "Settings",      icon: <SettingsIcon /> },
 ];
 
@@ -18,6 +20,7 @@ const braiderNav = [
   { href: "/dashboard/find-work",   label: "Find work",    icon: <BriefcaseIcon /> },
   { href: "/dashboard/applications",label: "Applications", icon: <InboxIcon /> },
   { href: "/dashboard/messages",    label: "Messages",     icon: <MessageIcon /> },
+  { href: "/dashboard/notifications",label: "Notifications", icon: <BellIcon /> },
   { href: "/dashboard/settings",    label: "Settings",     icon: <SettingsIcon /> },
 ];
 
@@ -39,6 +42,7 @@ export function Sidebar() {
 
   return (
     <aside
+      className={styles.sidebar}
       style={{
         width: 248,
         flexShrink: 0,
@@ -54,6 +58,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div
+        className={styles.logo}
         style={{
           display: "flex",
           alignItems: "center",
@@ -66,6 +71,7 @@ export function Sidebar() {
 
       {/* Role pill */}
       <div
+        className={styles.roleSwitch}
         style={{
           margin: "0 16px 16px",
           background: "rgba(255,255,255,.06)",
@@ -99,7 +105,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav items */}
-      <nav style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>
+      <nav className={styles.primaryNav} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>
         {nav.map(({ href, label, icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
@@ -131,6 +137,7 @@ export function Sidebar() {
 
       {/* Build / internal section */}
       <div
+        className={styles.insightsLabel}
         style={{
           margin: "18px 24px 8px",
           fontFamily: "var(--font-mono)",
@@ -142,7 +149,7 @@ export function Sidebar() {
       >
         Insights
       </div>
-      <nav style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>
+      <nav className={styles.insightsNav} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>
         {buildNav.map(({ href, label, icon }) => {
           const active = pathname === href || pathname.startsWith(href);
           return (
@@ -174,6 +181,7 @@ export function Sidebar() {
 
       {/* User area */}
       <div
+        className={styles.userArea}
         style={{
           marginTop: "auto",
           padding: 16,
@@ -209,6 +217,9 @@ function UsersIcon() {
 }
 function MessageIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+}
+function BellIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>;
 }
 function InboxIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>;

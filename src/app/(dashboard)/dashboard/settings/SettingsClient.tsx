@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { Tag } from "@/components/ui/Tag";
 import { Avatar } from "@/components/ui/Avatar";
-import { Photo } from "@/components/ui/Photo";
+import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import type { SettingsProfileDTO } from "@/db/queries";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -115,9 +115,9 @@ function SalonSettings({
   const [phone, setPhone] = useState(salon?.phone ?? "");
   const [website, setWebsite] = useState(salon?.website ?? "");
   const [services, setServices] = useState<string[]>(salon?.services ?? []);
-  const [newApplicants, setNewApplicants] = useState(true);
-  const [messages, setMessages] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [newApplicants, setNewApplicants] = useState(profile.notificationPreferences.activity);
+  const [messages, setMessages] = useState(profile.notificationPreferences.messages);
+  const [weeklyDigest, setWeeklyDigest] = useState(profile.notificationPreferences.weeklyDigest);
   const [state, setState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -127,7 +127,16 @@ function SalonSettings({
     const res = await fetch("/api/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: "salon", name, city, bio, phone, website, services }),
+      body: JSON.stringify({
+        role: "salon",
+        name,
+        city,
+        bio,
+        phone,
+        website,
+        services,
+        notifications: { activity: newApplicants, messages, weeklyDigest },
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -197,9 +206,9 @@ function BraiderSettings({
   const [yearsExperience, setYearsExperience] = useState(braider?.yearsExperience?.toString() ?? "");
   const [specialties, setSpecialties] = useState<string[]>(braider?.specialties ?? []);
   const [isAvailable, setIsAvailable] = useState(braider?.isAvailable ?? true);
-  const [matchingJobs, setMatchingJobs] = useState(true);
-  const [messages, setMessages] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [matchingJobs, setMatchingJobs] = useState(profile.notificationPreferences.activity);
+  const [messages, setMessages] = useState(profile.notificationPreferences.messages);
+  const [weeklyDigest, setWeeklyDigest] = useState(profile.notificationPreferences.weeklyDigest);
   const [state, setState] = useState<SaveState>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -218,6 +227,7 @@ function BraiderSettings({
         yearsExperience,
         specialties,
         isAvailable,
+        notifications: { activity: matchingJobs, messages, weeklyDigest },
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -260,16 +270,7 @@ function BraiderSettings({
       </SettingsCard>
 
       <SettingsCard title="Portfolio">
-        <p style={{ margin: "0 0 14px", fontSize: 14, color: "var(--text-muted)" }}>
-          Portfolio media persistence is next after profile fields; existing placeholders remain visual only.
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} style={{ borderRadius: "var(--radius-md)", overflow: "hidden" }}>
-              <Photo seed={i} aspect="1/1" radius="var(--radius-md)" />
-            </div>
-          ))}
-        </div>
+        <PortfolioManager enabled={Boolean(braider)} initialMedia={braider?.portfolio ?? []} />
       </SettingsCard>
 
       <SettingsCard title="Availability & notifications">

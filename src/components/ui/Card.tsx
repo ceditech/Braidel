@@ -10,9 +10,10 @@ interface CardProps {
   style?: React.CSSProperties;
 }
 
-export function Card({ children, padded, interactive, onClick, style }: CardProps) {
+export function Card({ children, padded, interactive, onClick, className, style }: CardProps) {
   return (
     <div
+      className={className}
       onClick={onClick}
       style={{
         background: "var(--surface-card)",

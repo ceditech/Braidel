@@ -47,6 +47,8 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   avatarUrl: text("avatar_url"),
+  clerkUpdatedAt: timestamp("clerk_updated_at"),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -69,52 +71,88 @@ export const braidStyles = pgTable("braid_styles", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const salons = pgTable("salons", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  ownerId: uuid("owner_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  bio: text("bio"),
-  address: text("address"),
-  city: text("city"),
-  state: text("state"),
-  zip: text("zip"),
-  phone: text("phone"),
-  website: text("website"),
-  logoUrl: text("logo_url"),
-  services: text("services").array(),
-  ratingAvg: real("rating_avg"),
-  ratingCount: integer("rating_count").notNull().default(0),
-  openRoles: integer("open_roles").notNull().default(0),
-  isVerified: boolean("is_verified").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const salons = pgTable(
+  "salons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    bio: text("bio"),
+    address: text("address"),
+    city: text("city"),
+    state: text("state"),
+    zip: text("zip"),
+    phone: text("phone"),
+    website: text("website"),
+    logoUrl: text("logo_url"),
+    services: text("services").array(),
+    ratingAvg: real("rating_avg"),
+    ratingCount: integer("rating_count").notNull().default(0),
+    openRoles: integer("open_roles").notNull().default(0),
+    isVerified: boolean("is_verified").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("salons_owner_id_unique").on(table.ownerId)]
+);
 
 // ─── Braiders ─────────────────────────────────────────────────────────────────
 
-export const braiders = pgTable("braiders", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  slug: text("slug").notNull().unique(),
-  bio: text("bio"),
-  city: text("city"),
-  state: text("state"),
-  yearsExperience: integer("years_experience"),
-  specialties: text("specialties").array(),
-  priceRange: text("price_range"),
-  ratingAvg: real("rating_avg"),
-  ratingCount: integer("rating_count").notNull().default(0),
-  isAvailable: boolean("is_available").notNull().default(true),
-  isVerified: boolean("is_verified").notNull().default(false),
-  portfolioUrls: text("portfolio_urls").array(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const braiders = pgTable(
+  "braiders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull().unique(),
+    bio: text("bio"),
+    city: text("city"),
+    state: text("state"),
+    yearsExperience: integer("years_experience"),
+    specialties: text("specialties").array(),
+    priceRange: text("price_range"),
+    ratingAvg: real("rating_avg"),
+    ratingCount: integer("rating_count").notNull().default(0),
+    isAvailable: boolean("is_available").notNull().default(true),
+    isVerified: boolean("is_verified").notNull().default(false),
+    portfolioUrls: text("portfolio_urls").array(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("braiders_user_id_unique").on(table.userId)]
+);
+
+export const portfolioMedia = pgTable(
+  "portfolio_media",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    braiderId: uuid("braider_id")
+      .notNull()
+      .references(() => braiders.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    storageKey: text("storage_key").notNull(),
+    storageProvider: text("storage_provider").notNull(),
+    altText: text("alt_text").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("portfolio_media_braider_order_idx").on(table.braiderId, table.sortOrder),
+    uniqueIndex("portfolio_media_storage_key_unique").on(table.storageKey),
+    check(
+      "portfolio_media_provider_check",
+      sql`${table.storageProvider} in ('local', 'vercel_blob', 'seed')`
+    ),
+    check("portfolio_media_size_check", sql`${table.sizeBytes} > 0`),
+  ]
+);
 
 // ─── Opportunities ────────────────────────────────────────────────────────────
 
@@ -217,6 +255,42 @@ export const ratings = pgTable(
   ]
 );
 
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    href: text("href"),
+    eventKey: text("event_key"),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("notifications_user_created_idx").on(table.userId, table.createdAt),
+    index("notifications_user_read_idx").on(table.userId, table.readAt),
+    uniqueIndex("notifications_event_key_unique").on(table.eventKey),
+    check(
+      "notifications_type_check",
+      sql`${table.type} in ('application', 'application_status', 'message', 'review', 'portfolio', 'system')`
+    ),
+  ]
+);
+
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  activity: boolean("activity").notNull().default(true),
+  messages: boolean("messages").notNull().default(true),
+  weeklyDigest: boolean("weekly_digest").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -225,6 +299,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "recipient" }),
   ratingsGiven: many(ratings, { relationName: "reviewer" }),
+  notifications: many(notifications),
+  notificationPreferences: one(notificationPreferences, {
+    fields: [users.id],
+    references: [notificationPreferences.userId],
+  }),
 }));
 
 export const salonsRelations = relations(salons, ({ one, many }) => ({
@@ -237,6 +316,7 @@ export const braidersRelations = relations(braiders, ({ one, many }) => ({
   user: one(users, { fields: [braiders.userId], references: [users.id] }),
   applications: many(applications),
   ratings: many(ratings),
+  portfolioMedia: many(portfolioMedia),
 }));
 
 export const opportunitiesRelations = relations(
@@ -299,3 +379,27 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
     references: [salons.id],
   }),
 }));
+
+export const portfolioMediaRelations = relations(portfolioMedia, ({ one }) => ({
+  braider: one(braiders, {
+    fields: [portfolioMedia.braiderId],
+    references: [braiders.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notificationPreferences.userId],
+      references: [users.id],
+    }),
+  })
+);

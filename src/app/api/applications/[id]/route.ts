@@ -2,7 +2,8 @@ import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { applications, opportunities, salons, users } from "@/db/schema";
+import { applications, braiders, opportunities, salons, users } from "@/db/schema";
+import { createNotification } from "@/lib/notifications";
 
 type ApplicationStatus = "pending" | "reviewed" | "accepted" | "rejected";
 
@@ -49,10 +50,16 @@ export async function PATCH(
   }
 
   const [application] = await db
-    .select({ id: applications.id, ownerId: salons.ownerId })
+    .select({
+      id: applications.id,
+      ownerId: salons.ownerId,
+      braiderUserId: braiders.userId,
+      opportunityTitle: opportunities.title,
+    })
     .from(applications)
     .innerJoin(opportunities, eq(applications.opportunityId, opportunities.id))
     .innerJoin(salons, eq(opportunities.salonId, salons.id))
+    .innerJoin(braiders, eq(applications.braiderId, braiders.id))
     .where(eq(applications.id, id))
     .limit(1);
 
@@ -69,6 +76,34 @@ export async function PATCH(
     .update(applications)
     .set({ status: nextStatus, updatedAt: new Date() })
     .where(eq(applications.id, application.id));
+
+  const notificationCopy: Record<ApplicationStatus, { title: string; body: string }> = {
+    pending: {
+      title: "Application received",
+      body: `Your application for ${application.opportunityTitle} is awaiting review.`,
+    },
+    reviewed: {
+      title: "Application shortlisted",
+      body: `Your application for ${application.opportunityTitle} was shortlisted.`,
+    },
+    accepted: {
+      title: "You have a match",
+      body: `Your application for ${application.opportunityTitle} was accepted.`,
+    },
+    rejected: {
+      title: "Application update",
+      body: `Your application for ${application.opportunityTitle} was not selected.`,
+    },
+  };
+  const copy = notificationCopy[nextStatus];
+  await createNotification({
+    userId: application.braiderUserId,
+    type: "application_status",
+    title: copy.title,
+    body: copy.body,
+    href: "/dashboard/applications",
+    eventKey: `application-status:${application.id}:${nextStatus}`,
+  });
 
   return NextResponse.json({ ok: true, status: nextStatus });
 }

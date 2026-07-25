@@ -1,0 +1,137 @@
+.dialog {
+  box-sizing: border-box;
+  width: min(560px, 100vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  inset: 0 0 0 auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--bg-page);
+  color: var(--text-body);
+  box-shadow: -18px 0 50px rgba(35, 27, 21, 0.18);
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 180ms var(--ease-out), transform 240ms var(--ease-out), overlay 240ms allow-discrete, display 240ms allow-discrete;
+}
+
+.dialog[open] {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+.dialog::backdrop {
+  background: rgba(27, 22, 17, 0.48);
+  backdrop-filter: blur(2px);
+}
+
+.panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+.headingGroup {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.description {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.closeButton {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+.body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 24px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+
+@media (max-width: 640px) {
+  .dialog {
+    width: 100%;
+    max-width: 100%;
+    inset: 0;
+    margin: 0;
+    border-left: 0;
+  }
+
+  .header,
+  .body {
+    padding-inline: 18px;
+  }
+
+  .footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 14px 18px;
+  }
+
+  .footer > * {
+    width: 100%;
+  }
+
+  .footer > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog {
+    transition: none;
+  }
+}

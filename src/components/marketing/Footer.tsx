@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
+import styles from "./Footer.module.css";
 
 const cols = [
   {
@@ -38,18 +39,9 @@ const cols = [
 export function Footer() {
   return (
     <footer style={{ background: "var(--charcoal-900)", color: "var(--cream-100)", marginTop: 80 }}>
-      <div
-        style={{
-          maxWidth: "var(--container-max)",
-          margin: "0 auto",
-          padding: "56px var(--gutter) 40px",
-          display: "grid",
-          gridTemplateColumns: "1.4fr repeat(4, 1fr)",
-          gap: 32,
-        }}
-      >
+      <div className={styles.grid}>
         {/* Brand */}
-        <div>
+        <div className={styles.brand}>
           <BraidelLogo light size={26} />
           <p
             style={{
