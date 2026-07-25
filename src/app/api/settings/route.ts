@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { braiders, salons, users } from "@/db/schema";
+import { braiders, notificationPreferences, salons, users } from "@/db/schema";
 
 type SettingsRole = "salon" | "braider";
 
@@ -30,6 +30,25 @@ function parseYears(value: unknown): number | null {
   if (typeof value !== "string" || !value.trim()) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : null;
+}
+
+async function saveNotificationPreferences(userId: string, value: unknown) {
+  if (!value || typeof value !== "object") return;
+  const preferences = value as Record<string, unknown>;
+  const next = {
+    activity: preferences.activity !== false,
+    messages: preferences.messages !== false,
+    weeklyDigest: preferences.weeklyDigest === true,
+    updatedAt: new Date(),
+  };
+
+  await db
+    .insert(notificationPreferences)
+    .values({ userId, ...next })
+    .onConflictDoUpdate({
+      target: notificationPreferences.userId,
+      set: next,
+    });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -87,6 +106,8 @@ export async function PATCH(req: NextRequest) {
       })
       .where(eq(salons.id, salon.id));
 
+    await saveNotificationPreferences(user.id, body.notifications);
+
     return NextResponse.json({ ok: true });
   }
 
@@ -123,6 +144,8 @@ export async function PATCH(req: NextRequest) {
       updatedAt: new Date(),
     })
     .where(eq(braiders.id, braider.id));
+
+  await saveNotificationPreferences(user.id, body.notifications);
 
   return NextResponse.json({ ok: true });
 }

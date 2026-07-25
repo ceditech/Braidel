@@ -11,6 +11,7 @@ import {
   salons,
   users,
 } from "@/db/schema";
+import { createNotification } from "@/lib/notifications";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_COMMENT_LENGTH = 2_000;
@@ -140,6 +141,16 @@ export async function PUT(req: NextRequest) {
       },
     })
     .returning({ score: ratings.score, comment: ratings.comment });
+
+  const recipientId = target.braiderId ? application.braiderUserId : application.ownerId;
+  await createNotification({
+    userId: recipientId,
+    type: "review",
+    title: "New review",
+    body: `You received a ${score}-star review.`,
+    href: "/dashboard/settings",
+    eventKey: `review:${application.id}:${user.id}`,
+  });
 
   revalidatePath("/");
   revalidatePath("/braiders", "layout");

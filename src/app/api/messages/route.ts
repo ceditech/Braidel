@@ -3,6 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { applications, braiders, messages, opportunities, salons, users } from "@/db/schema";
+import { createNotification } from "@/lib/notifications";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_MESSAGE_LENGTH = 4_000;
@@ -106,6 +107,15 @@ export async function POST(req: NextRequest) {
       body: messages.body,
       createdAt: messages.createdAt,
     });
+
+  await createNotification({
+    userId: recipientId,
+    type: "message",
+    title: "New message",
+    body: "You received a new message about an application.",
+    href: `/dashboard/messages?application=${application.id}`,
+    eventKey: `message:${message.id}`,
+  });
 
   return NextResponse.json({
     message: {

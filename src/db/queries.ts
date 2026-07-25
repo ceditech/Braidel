@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import {
@@ -6,7 +6,10 @@ import {
   braiders,
   braidStyles,
   messages,
+  notificationPreferences,
+  notifications,
   opportunities,
+  portfolioMedia,
   ratings,
   salons,
   users,
@@ -25,6 +28,16 @@ export interface BraiderDTO {
   price: string;
   tone: number;
   bio: string;
+  portfolio: PortfolioMediaDTO[];
+}
+
+export interface PortfolioMediaDTO {
+  id: string;
+  url: string;
+  altText: string;
+  mimeType: string;
+  sizeBytes: number;
+  sortOrder: number;
 }
 
 /** Deterministic placeholder tone per braider so list and detail colors match. */
@@ -40,6 +53,7 @@ function deriveBadge(isVerified: boolean, ratingCount: number): BraiderDTO["badg
 }
 
 const SELECTION = {
+  braiderId: braiders.id,
   slug: braiders.slug,
   city: braiders.city,
   specialties: braiders.specialties,
@@ -53,6 +67,7 @@ const SELECTION = {
 } as const;
 
 type Row = {
+  braiderId: string;
   slug: string;
   city: string | null;
   specialties: string[] | null;
@@ -77,6 +92,7 @@ function mapRow(r: Row): BraiderDTO {
     price: r.priceRange ?? "",
     tone: toneFromSlug(r.slug),
     bio: r.bio ?? "",
+    portfolio: [],
   };
 }
 
@@ -84,7 +100,8 @@ export async function getBraiders(): Promise<BraiderDTO[]> {
   const rows = await db
     .select(SELECTION)
     .from(braiders)
-    .innerJoin(users, eq(braiders.userId, users.id));
+    .innerJoin(users, eq(braiders.userId, users.id))
+    .where(isNull(users.deletedAt));
   return rows.map(mapRow);
 }
 
@@ -93,9 +110,29 @@ export async function getBraiderBySlug(slug: string): Promise<BraiderDTO | null>
     .select(SELECTION)
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
-    .where(eq(braiders.slug, slug))
+    .where(and(eq(braiders.slug, slug), isNull(users.deletedAt)))
     .limit(1);
-  return rows.length ? mapRow(rows[0]) : null;
+  if (!rows.length) return null;
+
+  return {
+    ...mapRow(rows[0]),
+    portfolio: await getPortfolioMedia(rows[0].braiderId),
+  };
+}
+
+export async function getPortfolioMedia(braiderId: string): Promise<PortfolioMediaDTO[]> {
+  return db
+    .select({
+      id: portfolioMedia.id,
+      url: portfolioMedia.url,
+      altText: portfolioMedia.altText,
+      mimeType: portfolioMedia.mimeType,
+      sizeBytes: portfolioMedia.sizeBytes,
+      sortOrder: portfolioMedia.sortOrder,
+    })
+    .from(portfolioMedia)
+    .where(eq(portfolioMedia.braiderId, braiderId))
+    .orderBy(asc(portfolioMedia.sortOrder), asc(portfolioMedia.createdAt));
 }
 
 /* ── Salons ──────────────────────────────────────────────────────── */
@@ -149,7 +186,11 @@ function mapSalon(r: SalonRow): SalonDTO {
 }
 
 export async function getSalons(): Promise<SalonDTO[]> {
-  const rows = await db.select(SALON_SELECTION).from(salons);
+  const rows = await db
+    .select(SALON_SELECTION)
+    .from(salons)
+    .innerJoin(users, eq(salons.ownerId, users.id))
+    .where(isNull(users.deletedAt));
   return rows.map(mapSalon);
 }
 
@@ -157,7 +198,8 @@ export async function getSalonBySlug(slug: string): Promise<SalonDTO | null> {
   const rows = await db
     .select(SALON_SELECTION)
     .from(salons)
-    .where(eq(salons.slug, slug))
+    .innerJoin(users, eq(salons.ownerId, users.id))
+    .where(and(eq(salons.slug, slug), isNull(users.deletedAt)))
     .limit(1);
   return rows.length ? mapSalon(rows[0]) : null;
 }
@@ -212,6 +254,7 @@ export interface SettingsProfileDTO {
     website: string;
   } | null;
   braider: {
+    id: string;
     fullName: string;
     city: string;
     bio: string;
@@ -219,7 +262,13 @@ export interface SettingsProfileDTO {
     priceRange: string;
     yearsExperience: number | null;
     isAvailable: boolean;
+    portfolio: PortfolioMediaDTO[];
   } | null;
+  notificationPreferences: {
+    activity: boolean;
+    messages: boolean;
+    weeklyDigest: boolean;
+  };
 }
 
 export async function getSettingsProfile(clerkId: string): Promise<SettingsProfileDTO> {
@@ -235,7 +284,14 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
     .where(eq(users.clerkId, clerkId))
     .limit(1);
 
-  if (!userRows.length) return { user: null, salon: null, braider: null };
+  if (!userRows.length) {
+    return {
+      user: null,
+      salon: null,
+      braider: null,
+      notificationPreferences: { activity: true, messages: true, weeklyDigest: false },
+    };
+  }
 
   const user = userRows[0];
   const [salon] = await db
@@ -253,6 +309,7 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
 
   const [braider] = await db
     .select({
+      id: braiders.id,
       city: braiders.city,
       bio: braiders.bio,
       specialties: braiders.specialties,
@@ -262,6 +319,16 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
     })
     .from(braiders)
     .where(eq(braiders.userId, user.id))
+    .limit(1);
+
+  const [preferences] = await db
+    .select({
+      activity: notificationPreferences.activity,
+      messages: notificationPreferences.messages,
+      weeklyDigest: notificationPreferences.weeklyDigest,
+    })
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, user.id))
     .limit(1);
 
   return {
@@ -278,6 +345,7 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
       : null,
     braider: braider
       ? {
+          id: braider.id,
           fullName: `${user.firstName} ${user.lastName}`.replace(/\s*-$/, "").trim(),
           city: braider.city ?? "",
           bio: braider.bio ?? "",
@@ -285,9 +353,68 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
           priceRange: braider.priceRange ?? "",
           yearsExperience: braider.yearsExperience,
           isAvailable: braider.isAvailable,
+          portfolio: await getPortfolioMedia(braider.id),
         }
       : null,
+    notificationPreferences: preferences ?? {
+      activity: true,
+      messages: true,
+      weeklyDigest: false,
+    },
   };
+}
+
+export type NotificationType =
+  | "application"
+  | "application_status"
+  | "message"
+  | "review"
+  | "portfolio"
+  | "system";
+
+export interface NotificationDTO {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  href: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export async function getNotificationsForUser(clerkId: string): Promise<NotificationDTO[]> {
+  const rows = await db
+    .select({
+      id: notifications.id,
+      type: notifications.type,
+      title: notifications.title,
+      body: notifications.body,
+      href: notifications.href,
+      readAt: notifications.readAt,
+      createdAt: notifications.createdAt,
+    })
+    .from(notifications)
+    .innerJoin(users, eq(notifications.userId, users.id))
+    .where(eq(users.clerkId, clerkId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(100);
+
+  return rows.map((row) => ({
+    ...row,
+    type: row.type as NotificationType,
+    readAt: row.readAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
+export async function getUnreadNotificationCount(clerkId: string): Promise<number> {
+  const [row] = await db
+    .select({ total: count(notifications.id) })
+    .from(notifications)
+    .innerJoin(users, eq(notifications.userId, users.id))
+    .where(and(eq(users.clerkId, clerkId), isNull(notifications.readAt)));
+
+  return row?.total ?? 0;
 }
 
 /* ── Opportunities ───────────────────────────────────────────────────────── */
@@ -476,12 +603,22 @@ export interface ReviewDTO {
 export interface ApplicantDTO {
   id: string;
   name: string;
+  avatarUrl: string | null;
+  profileSlug: string;
+  city: string;
+  bio: string;
   experience: string;
+  yearsExperience: number | null;
+  priceRange: string;
+  isVerified: boolean;
   specs: string[];
   rate: number;
   rev: number;
   status: "New" | "Shortlisted" | "Matched" | "Declined";
   appliedFor: string;
+  appliedAt: string;
+  coverNote: string;
+  portfolio: PortfolioMediaDTO[];
   review: ReviewDTO | null;
 }
 
@@ -543,6 +680,82 @@ function applicantStatusLabel(status: string): ApplicantDTO["status"] {
   return labels[status] ?? "New";
 }
 
+type ApplicantRow = {
+  id: string;
+  braiderId: string;
+  status: string;
+  appliedFor: string;
+  createdAt: Date;
+  coverNote: string | null;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  profileSlug: string;
+  city: string | null;
+  state: string | null;
+  bio: string | null;
+  yearsExperience: number | null;
+  priceRange: string | null;
+  isVerified: boolean;
+  specialties: string[] | null;
+  ratingAvg: number | null;
+  ratingCount: number;
+};
+
+async function mapApplicantRows(rows: ApplicantRow[]): Promise<ApplicantDTO[]> {
+  if (!rows.length) return [];
+
+  const mediaRows = await db
+    .select({
+      braiderId: portfolioMedia.braiderId,
+      id: portfolioMedia.id,
+      url: portfolioMedia.url,
+      altText: portfolioMedia.altText,
+      mimeType: portfolioMedia.mimeType,
+      sizeBytes: portfolioMedia.sizeBytes,
+      sortOrder: portfolioMedia.sortOrder,
+    })
+    .from(portfolioMedia)
+    .where(inArray(portfolioMedia.braiderId, [...new Set(rows.map((row) => row.braiderId))]))
+    .orderBy(asc(portfolioMedia.sortOrder), asc(portfolioMedia.createdAt));
+
+  const mediaByBraider = new Map<string, PortfolioMediaDTO[]>();
+  for (const media of mediaRows) {
+    const current = mediaByBraider.get(media.braiderId) ?? [];
+    current.push({
+      id: media.id,
+      url: media.url,
+      altText: media.altText,
+      mimeType: media.mimeType,
+      sizeBytes: media.sizeBytes,
+      sortOrder: media.sortOrder,
+    });
+    mediaByBraider.set(media.braiderId, current);
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: `${row.firstName} ${row.lastName}`.replace(/\s*-$/, "").trim(),
+    avatarUrl: row.avatarUrl,
+    profileSlug: row.profileSlug,
+    city: [row.city, row.state].filter(Boolean).join(", "),
+    bio: row.bio ?? "",
+    experience: row.yearsExperience !== null ? `${row.yearsExperience} yrs` : "Experience TBD",
+    yearsExperience: row.yearsExperience,
+    priceRange: row.priceRange ?? "Pricing not added",
+    isVerified: row.isVerified,
+    specs: row.specialties ?? [],
+    rate: row.ratingAvg ?? 0,
+    rev: row.ratingCount,
+    status: applicantStatusLabel(row.status),
+    appliedFor: row.appliedFor,
+    appliedAt: `Applied ${postedLabel(row.createdAt)}`,
+    coverNote: row.coverNote ?? "",
+    portfolio: mediaByBraider.get(row.braiderId) ?? [],
+    review: null,
+  }));
+}
+
 export async function getApplicationsForBraider(clerkId: string): Promise<ApplicationDTO[]> {
   const [reviewer] = await db
     .select({ id: users.id })
@@ -592,11 +805,21 @@ export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantD
   const rows = await db
     .select({
       id: applications.id,
+      braiderId: braiders.id,
       status: applications.status,
       appliedFor: opportunities.title,
+      createdAt: applications.createdAt,
+      coverNote: applications.coverNote,
       firstName: users.firstName,
       lastName: users.lastName,
+      avatarUrl: users.avatarUrl,
+      profileSlug: braiders.slug,
+      city: braiders.city,
+      state: braiders.state,
+      bio: braiders.bio,
       yearsExperience: braiders.yearsExperience,
+      priceRange: braiders.priceRange,
+      isVerified: braiders.isVerified,
       specialties: braiders.specialties,
       ratingAvg: braiders.ratingAvg,
       ratingCount: braiders.ratingCount,
@@ -609,17 +832,7 @@ export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantD
     .where(eq(salons.ownerId, ownerRows[0].id))
     .orderBy(desc(applications.createdAt));
 
-  const mapped = rows.map((r) => ({
-    id: r.id,
-    name: `${r.firstName} ${r.lastName}`.trim(),
-    experience: r.yearsExperience ? `${r.yearsExperience} yrs` : "Experience TBD",
-    specs: r.specialties ?? [],
-    rate: r.ratingAvg ?? 0,
-    rev: r.ratingCount,
-    status: applicantStatusLabel(r.status),
-    appliedFor: r.appliedFor,
-    review: null,
-  }));
+  const mapped = await mapApplicantRows(rows);
   const visibleRows = includeDemoRows()
     ? uniqueById(mapped, await getApplicants())
     : mapped;
@@ -663,11 +876,21 @@ export async function getApplicants(): Promise<ApplicantDTO[]> {
   const rows = await db
     .select({
       id: applications.id,
+      braiderId: braiders.id,
       status: applications.status,
       appliedFor: opportunities.title,
+      createdAt: applications.createdAt,
+      coverNote: applications.coverNote,
       firstName: users.firstName,
       lastName: users.lastName,
+      avatarUrl: users.avatarUrl,
+      profileSlug: braiders.slug,
+      city: braiders.city,
+      state: braiders.state,
+      bio: braiders.bio,
       yearsExperience: braiders.yearsExperience,
+      priceRange: braiders.priceRange,
+      isVerified: braiders.isVerified,
       specialties: braiders.specialties,
       ratingAvg: braiders.ratingAvg,
       ratingCount: braiders.ratingCount,
@@ -678,17 +901,7 @@ export async function getApplicants(): Promise<ApplicantDTO[]> {
     .innerJoin(users, eq(braiders.userId, users.id))
     .orderBy(desc(applications.createdAt));
 
-  return rows.map((r) => ({
-    id: r.id,
-    name: `${r.firstName} ${r.lastName}`.trim(),
-    experience: r.yearsExperience ? `${r.yearsExperience} yrs` : "Experience TBD",
-    specs: r.specialties ?? [],
-    rate: r.ratingAvg ?? 0,
-    rev: r.ratingCount,
-    status: applicantStatusLabel(r.status),
-    appliedFor: r.appliedFor,
-    review: null,
-  }));
+  return mapApplicantRows(rows);
 }
 
 /* ─── Messages ─────────────────────────────────────────────────────────────── */

@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~86% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~93% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 51 / 59 | ~86% |
+| **Phase 1** | Workforce & Staffing | 60 / 65 | ~92% |
 | **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
 
 _Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
@@ -47,6 +47,9 @@ _Tables & relations in Neon_
 | ✅ | braid_styles table | High | 1 |
 | ✅ | messages table | High | 1 |
 | ✅ | ratings table | High | 1 |
+| ✅ | portfolio_media table | High | 1 |
+| ✅ | notifications table | High | 1 |
+| ✅ | notification_preferences table | Medium | 1 |
 
 ## Design System
 _Tokens & UI primitives_
@@ -59,7 +62,7 @@ _Tokens & UI primitives_
 | ✅ | Avatar, Rating, StatCard, Logo components | High | 1 |
 | ✅ | Form inputs (Input, Select, Switch, Checkbox, Textarea) | High | 1 |
 | ✅ | Tabs component | Medium | 1 |
-| ⬜ | Alert, Modal components | Medium | 1 |
+| ✅ | Alert, Modal components | Medium | 1 |
 
 ## Marketing Site
 _Public-facing pages_
@@ -89,7 +92,7 @@ _Account creation & role setup_
 | ✅ | Sign-up page (Clerk) | High | 1 |
 | ✅ | Onboarding role selection | High | 1 |
 | ✅ | Onboarding API (writes user to Neon) | High | 1 |
-| ⬜ | Clerk webhook → user sync | Medium | 1 |
+| ✅ | Clerk webhook → user sync | Medium | 1 |
 
 ## Salon Dashboard
 _Salon owner workflows_
@@ -101,6 +104,7 @@ _Salon owner workflows_
 | ✅ | Opportunities list | High | 1 |
 | ✅ | Post Opportunity form | High | 1 |
 | ✅ | Manage Applicants screen | High | 1 |
+| ✅ | Applicant profile + portfolio drawer | High | 1 |
 
 ## Braider Dashboard
 _Braider workflows_
@@ -119,7 +123,7 @@ _Cross-role features_
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
 | ✅ | Messaging (DB-backed list + thread) | High | 1 |
-| ⬜ | Notifications page | Medium | 1 |
+| ✅ | Notifications page | Medium | 1 |
 | ✅ | Settings page (role-aware) | Medium | 1 |
 
 ## Backend / API
@@ -138,6 +142,8 @@ _Data routes & business logic_
 | ✅ | Profile + settings DB persistence | High | 1 |
 | ✅ | Messaging DB persistence | High | 1 |
 | ✅ | Ratings read/write flows | High | 1 |
+| ✅ | Portfolio media persistence | High | 1 |
+| ✅ | Notifications persistence + event wiring | High | 1 |
 
 ---
 

@@ -1,0 +1,36 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px var(--gutter) 40px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+}
+
+.bookingCard {
+  position: sticky;
+  top: 90px;
+}
+
+@media (max-width: 800px) {
+  .page {
+    padding-top: 22px;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .bookingCard {
+    position: static;
+  }
+}

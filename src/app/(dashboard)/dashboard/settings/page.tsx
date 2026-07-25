@@ -7,7 +7,14 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const user = await currentUser();
   const [profile, styles] = await Promise.all([
-    user ? getSettingsProfile(user.id) : Promise.resolve({ user: null, salon: null, braider: null }),
+    user
+      ? getSettingsProfile(user.id)
+      : Promise.resolve({
+          user: null,
+          salon: null,
+          braider: null,
+          notificationPreferences: { activity: true, messages: true, weeklyDigest: false },
+        }),
     getBraidStyles(),
   ]);
 

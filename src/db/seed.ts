@@ -9,11 +9,44 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { sql } from "drizzle-orm";
 import * as schema from "./schema";
-import { applications, braiders, braidStyles, opportunities, salons, users } from "./schema";
+import {
+  applications,
+  braiders,
+  braidStyles,
+  notificationPreferences,
+  notifications,
+  opportunities,
+  portfolioMedia,
+  salons,
+  users,
+} from "./schema";
 import { BRAID_STYLES } from "../lib/braidStyles";
 import { APPLICATIONS, BRAIDERS, JOBS, SALONS } from "../lib/sampleData";
 
 const db = drizzle(neon(process.env.DATABASE_URL!), { schema });
+
+const PORTFOLIO_SEED_MEDIA = [
+  {
+    file: "knotless-box-braids.png",
+    altText: "Neat waist-length knotless box braids",
+    sizeBytes: 2_235_027,
+  },
+  {
+    file: "passion-twists.png",
+    altText: "Long textured passion twists",
+    sizeBytes: 2_433_384,
+  },
+  {
+    file: "feed-in-ponytail.png",
+    altText: "Sculpted feed-in braided ponytail",
+    sizeBytes: 2_436_875,
+  },
+  {
+    file: "braided-bob.png",
+    altText: "Precision braided bob with clean parting",
+    sizeBytes: 2_167_598,
+  },
+] as const;
 
 function splitName(name: string) {
   const [first, ...rest] = name.split(" ");
@@ -101,6 +134,29 @@ async function main() {
       })
       .returning();
 
+    await db.insert(notificationPreferences).values({ userId: u.id });
+    await db.insert(notifications).values({
+      userId: u.id,
+      type: "system",
+      title: "Welcome to your Braidel inbox",
+      body: "Application, message, review, and account updates will appear here.",
+      href: "/dashboard/notifications",
+      eventKey: `seed-welcome:${u.id}`,
+    });
+
+    await db.insert(portfolioMedia).values(
+      PORTFOLIO_SEED_MEDIA.map((media, index) => ({
+        braiderId: braider.id,
+        url: `/portfolio-seed/${media.file}`,
+        storageKey: `seed/${b.id}/${media.file}`,
+        storageProvider: "seed" as const,
+        altText: `${media.altText} by ${b.name}`,
+        mimeType: "image/png",
+        sizeBytes: media.sizeBytes,
+        sortOrder: index,
+      }))
+    );
+
     braiderIds.push(braider.id);
   }
 
@@ -131,6 +187,16 @@ async function main() {
         bio: `${s.name} is a braiding salon in ${s.city}.`,
       })
       .returning();
+
+    await db.insert(notificationPreferences).values({ userId: owner.id });
+    await db.insert(notifications).values({
+      userId: owner.id,
+      type: "system",
+      title: "Welcome to your Braidel inbox",
+      body: "Application, message, review, and account updates will appear here.",
+      href: "/dashboard/notifications",
+      eventKey: `seed-welcome:${owner.id}`,
+    });
 
     salonIdsByName.set(s.name, salon.id);
   }
@@ -176,7 +242,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${BRAID_STYLES.length} braid styles, ${BRAIDERS.length} braiders, ${SALONS.length} salons, ${opportunityIds.length} opportunities, and ${applicationCount} applications.`
+    `Seeded ${BRAID_STYLES.length} braid styles, ${BRAIDERS.length} braiders, ${PORTFOLIO_SEED_MEDIA.length * BRAIDERS.length} portfolio images, ${SALONS.length} salons, ${opportunityIds.length} opportunities, and ${applicationCount} applications.`
   );
 }
 

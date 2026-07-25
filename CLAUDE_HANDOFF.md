@@ -31,6 +31,7 @@ both message and rate each other.
 | Auth | **Clerk** (`@clerk/nextjs` v7) | multi-role via user metadata |
 | Database | **Neon** (serverless Postgres) | |
 | ORM | **Drizzle** | schema in `src/db/schema.ts` |
+| Media storage | **Vercel Blob** | local filesystem fallback in development |
 
 Stack rationale: best-of-breed and decoupled (Neon and Clerk are independently
 swappable) — chosen over Supabase/Firebase for a relational marketplace. Full
@@ -54,6 +55,7 @@ src/
 │   ├── sign-in / sign-up         # Clerk-hosted auth
 │   ├── onboarding/               # Role selection (Salon/Braider/Client)
 │   ├── api/onboarding/route.ts   # Writes user + role profile to Neon
+│   ├── api/webhooks/clerk/       # Verified Clerk identity lifecycle sync
 │   ├── layout.tsx                # Root — ClerkProvider, fonts
 │   └── globals.css               # ALL design tokens + Tailwind theme
 ├── components/
@@ -66,7 +68,7 @@ src/
 │                                 #   Salon/BraiderDashboardHome
 ├── db/
 │   ├── index.ts                  # Drizzle + Neon connection
-│   ├── schema.ts                 # 8 tables + relations
+│   ├── schema.ts                 # 11 tables + relations
 │   └── migrations/               # Drizzle-generated SQL
 ├── lib/
 │   ├── roadmap.ts                # Source of truth for /tracker
@@ -78,22 +80,32 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Eight tables, all migrated and live: `users`, `salons`, `braiders`,
-`opportunities`, `applications`, `braid_styles`, `messages`, `ratings`. Full definitions and
-relations in [`src/db/schema.ts`](src/db/schema.ts).
+Eleven tables, all migrated and live: `users`, `salons`, `braiders`,
+`opportunities`, `applications`, `braid_styles`, `messages`, `ratings`,
+`portfolio_media`, `notifications`, and `notification_preferences`. Full
+definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
 - Role-specific profile rows (`salons`, `braiders`) are seeded on onboarding.
+- Clerk identity updates are synchronized through a signed webhook. Deletions
+  tombstone the user, remove identity PII, and deactivate public marketplace
+  records without cascading away applications, messages, or ratings.
 
 ### Data strategy — backend wiring in progress
 
 **Current state:** Phase 1 screens were built on **mock data first**, and the
-backend wiring pass is now well underway. The database schema, migrations, seed
-script, read query layer, public marketplace reads, opportunity posting,
+backend wiring pass now covers the core Phase 1 workflows. The database schema,
+migrations, seed script, read query layer, public marketplace reads, opportunity posting,
 application creation, applicant review, dashboard summaries, and the braid style
 catalog, settings/profile persistence, and application-scoped messaging are
 DB-backed. Ratings and reviews are application-scoped, participant-authorized,
-and persisted in Neon with database-maintained aggregates.
+and persisted in Neon with database-maintained aggregates. Portfolio metadata,
+notification preferences, and in-app notifications are also persisted in Neon;
+portfolio binaries use Vercel Blob in production and `public/uploads/portfolio`
+only as a local-development fallback.
+Clerk `user.created`, `user.updated`, and `user.deleted` events now keep Neon
+identity fields aligned; onboarding remains the source of truth for the selected
+marketplace role and is idempotent when the webhook arrives first.
 
 Rules while this transition holds:
 - **All remaining mock data lives in [`src/lib/sampleData.ts`](src/lib/sampleData.ts)**.
@@ -118,6 +130,11 @@ Rules while this transition holds:
    persisted in Neon.
 10. ✅ Ratings are limited to matched applications, support one editable review
     per participant direction, and refresh salon/braider aggregates in Neon.
+11. ✅ Portfolio media upload/delete flows persist normalized metadata, enforce
+    ownership/type/size/count limits, and render on public braider profiles.
+12. ✅ Notifications persist with idempotent event keys for applications,
+    application status changes, messages, and reviews; read state and preferences
+    are DB-backed.
 
 ### Roles in the dashboard
 
@@ -136,6 +153,11 @@ is gated to the user's real role).
 **Environment** — copy `.env.example` to `.env.local` and fill in:
 - `DATABASE_URL` — Neon connection string
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — Clerk API keys
+- `CLERK_WEBHOOK_SIGNING_SECRET` — signing secret for `/api/webhooks/clerk`;
+  subscribe that endpoint to `user.created`, `user.updated`, and `user.deleted`
+- `BLOB_READ_WRITE_TOKEN` — required for portfolio uploads in production;
+  optional locally because the development adapter writes ignored files under
+  `public/uploads/portfolio`
 - Clerk redirect paths (already set; relative, so port-independent)
 
 **Commands:**
@@ -224,27 +246,32 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete and ~86% complete overall by the tracker.** Both
+**Phase 1 is UI-complete and ~92% complete by the tracker.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
-The remaining workforce work is concentrated in portfolio media and supporting
-polish:
+Portfolio media, notifications, messaging, ratings, and role-aware settings are
+now persistent. Remaining Phase 1 work is concentrated in operational readiness
+and public content:
 
 - **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
   Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants with
-  status actions, Messages, Settings.
+  a responsive profile/portfolio drawer and status actions, Messages, Settings.
 - **Braider app:** dashboard, Find Work + apply, Applications, Messages,
   Settings (profile editor).
 - **Shell:** role switch (salon/braider), internal Tracker + Market Study.
 
 **Remaining (highest value first):**
 
-1. **Portfolio media persistence** — replace placeholder portfolio tiles with
-   real upload/storage once storage is selected.
-2. **Notifications page** (shared) — last pending UI screen.
-3. Polish: Clerk webhook (user sync), CI/deploy, Alert/Modal primitives, legal
-   and content pages.
+1. **CI and deployment pipeline** — automate type checking, linting, build, and
+   migration safety; configure `BLOB_READ_WRITE_TOKEN` in production.
+2. **Legal and trust content** — Terms and Privacy are the launch-critical public
+   pages; Pricing and How It Works follow.
+3. **Secondary content** — About, Contact, Blog, and FAQ.
+
+Notification delivery is currently in-app. The activity/message/digest
+preferences are persisted for later email or push delivery, but no external
+delivery worker is implemented yet.
 
 Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
 [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md). Live dashboard: `/tracker`.

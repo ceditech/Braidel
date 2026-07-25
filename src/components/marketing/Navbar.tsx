@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { Button } from "@/components/ui/Button";
+import styles from "./Navbar.module.css";
 
 const links = [
   { href: "/find-braiders", label: "Find braiders" },
@@ -26,21 +27,12 @@ export function Navbar() {
         borderBottom: "1px solid var(--border-subtle)",
       }}
     >
-      <div
-        style={{
-          maxWidth: "var(--container-max)",
-          margin: "0 auto",
-          padding: "14px var(--gutter)",
-          display: "flex",
-          alignItems: "center",
-          gap: 28,
-        }}
-      >
+      <div className={styles.container}>
         <Link href="/">
           <BraidelLogo size={26} />
         </Link>
 
-        <nav style={{ display: "flex", gap: 4, marginLeft: 8 }}>
+        <nav className={styles.nav}>
           {links.map(({ href, label }) => (
             <Link
               key={href}
@@ -59,7 +51,7 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
+        <div className={styles.account}>
           {isSignedIn ? (
             <>
               <Link href="/dashboard">

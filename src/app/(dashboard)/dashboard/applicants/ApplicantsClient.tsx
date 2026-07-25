@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/dashboard/Topbar";
@@ -10,8 +11,11 @@ import { Button } from "@/components/ui/Button";
 import { Rating } from "@/components/ui/Rating";
 import { Tag } from "@/components/ui/Tag";
 import { Tabs } from "@/components/ui/Tabs";
+import { Alert } from "@/components/ui/Alert";
+import { Drawer } from "@/components/ui/Drawer";
 import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import type { ApplicantDTO } from "@/db/queries";
+import styles from "./ApplicantsClient.module.css";
 
 const STATUS_VARIANT: Record<ApplicantDTO["status"], "warning" | "info" | "success" | "danger"> = {
   New: "warning",
@@ -34,6 +38,8 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
   const [localApplicants, setLocalApplicants] = useState(applicants);
   const [filter, setFilter] = useState<Filter>("all");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<ApplicantStatus | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const counts = useMemo(() => {
@@ -51,35 +57,47 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
     [localApplicants, filter]
   );
 
+  const selectedApplicant = selectedId
+    ? localApplicants.find((applicant) => applicant.id === selectedId) ?? null
+    : null;
+
   async function updateStatus(applicant: ApplicantDTO, status: ApplicantStatus) {
     const previous = localApplicants;
     setPendingId(applicant.id);
+    setPendingStatus(status);
     setError(null);
     setLocalApplicants((current) => current.map((row) => (row.id === applicant.id ? { ...row, status } : row)));
 
-    const res = await fetch(`/api/applications/${applicant.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setPendingId(null);
+    try {
+      const res = await fetch(`/api/applications/${applicant.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setLocalApplicants(previous);
+        setError(data.error ?? "Could not update applicant status.");
+        return;
+      }
+
+      router.refresh();
+    } catch {
       setLocalApplicants(previous);
-      setError(data.error ?? "Could not update applicant status.");
-      return;
+      setError("Could not reach the server. Please try again.");
+    } finally {
+      setPendingId(null);
+      setPendingStatus(null);
     }
-
-    router.refresh();
   }
 
   return (
     <>
       <Topbar title="Applicants" subtitle="Review and shortlist braiders for your posts." />
 
-      <div style={{ padding: 32 }}>
-        <div style={{ marginBottom: 18 }}>
+      <main className={styles.page}>
+        <div className={styles.tabs}>
           <Tabs
             value={filter}
             onChange={(v) => setFilter(v as Filter)}
@@ -94,9 +112,7 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
         </div>
 
         {error && (
-          <div style={{ marginBottom: 14, color: "var(--danger)", fontSize: 14, fontWeight: 600 }}>
-            {error}
-          </div>
+          <div className={styles.pageAlert}><Alert variant="danger">{error}</Alert></div>
         )}
 
         {rows.length === 0 ? (
@@ -106,22 +122,33 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
             </p>
           </Card>
         ) : (
-          <Card>
-            {rows.map((a, i) => (
-              <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 22px", borderTop: i ? "1px solid var(--border-subtle)" : "none", flexWrap: "wrap" }}>
-                <Avatar name={a.name} size="md" />
-                <div style={{ width: 190 }}>
-                  <div style={{ fontWeight: 600, color: "var(--text-strong)" }}>{a.name}</div>
-                  <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{a.experience} · {a.appliedFor}</div>
-                </div>
-                <div style={{ display: "flex", gap: 6, flex: 1, minWidth: 120, flexWrap: "wrap" }}>
+          <Card className={styles.list}>
+            {rows.map((a) => (
+              <div key={a.id} className={styles.row}>
+                <button
+                  type="button"
+                  className={styles.profileTrigger}
+                  aria-label={`View ${a.name}'s applicant profile`}
+                  onClick={() => {
+                    setError(null);
+                    setSelectedId(a.id);
+                  }}
+                >
+                  <Avatar name={a.name} src={a.avatarUrl ?? undefined} size="md" />
+                  <span className={styles.identity}>
+                    <span className={styles.name}>{a.name}</span>
+                    <span className={styles.applicationMeta}>{a.experience} | {a.appliedFor}</span>
+                    <span className={styles.viewLabel}>View applicant <ArrowIcon /></span>
+                  </span>
+                </button>
+                <div className={styles.specialties}>
                   {a.specs.map((s) => <Tag key={s}>{s}</Tag>)}
                 </div>
-                <Rating value={a.rate} count={a.rev} size="0.9rem" />
-                <div style={{ width: 104, textAlign: "center" }}>
+                <div className={styles.reputation}><Rating value={a.rate} count={a.rev} size="0.9rem" /></div>
+                <div className={styles.status}>
                   <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className={styles.actions}>
                   <Link href={`/dashboard/messages?application=${a.id}`}>
                     <Button size="sm" variant="outline" iconLeft={<MessageIcon />}>Message</Button>
                   </Link>
@@ -149,9 +176,134 @@ export function ApplicantsClient({ applicants }: { applicants: ApplicantDTO[] })
             ))}
           </Card>
         )}
-      </div>
+      </main>
+
+      <Drawer
+        open={selectedApplicant !== null}
+        title="Applicant profile"
+        description={selectedApplicant ? `${selectedApplicant.appliedAt} for ${selectedApplicant.appliedFor}` : undefined}
+        closeDisabled={selectedApplicant ? pendingId === selectedApplicant.id : false}
+        onClose={() => setSelectedId(null)}
+        footer={selectedApplicant ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              iconLeft={<MessageIcon />}
+              onClick={() => router.push(`/dashboard/messages?application=${selectedApplicant.id}`)}
+            >
+              Message
+            </Button>
+            {ACTIONS.filter((action) => action.status !== selectedApplicant.status).map((action) => (
+              <Button
+                key={action.status}
+                type="button"
+                variant={action.variant}
+                disabled={pendingId === selectedApplicant.id}
+                onClick={() => updateStatus(selectedApplicant, action.status)}
+              >
+                {pendingId === selectedApplicant.id && pendingStatus === action.status ? "Updating..." : action.label}
+              </Button>
+            ))}
+          </>
+        ) : undefined}
+      >
+        {selectedApplicant && (
+          <ApplicantDetails applicant={selectedApplicant} error={error} />
+        )}
+      </Drawer>
     </>
   );
 }
 
+function ApplicantDetails({ applicant, error }: { applicant: ApplicantDTO; error: string | null }) {
+  return (
+    <div className={styles.drawerContent}>
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      <section className={styles.hero}>
+        <Avatar name={applicant.name} src={applicant.avatarUrl ?? undefined} size="xl" ring />
+        <div className={styles.heroText}>
+          <div className={styles.heroNameLine}>
+            <h3 className={styles.heroName}>{applicant.name}</h3>
+            {applicant.isVerified && <Badge variant="brand" dot>Verified</Badge>}
+          </div>
+          <div className={styles.heroLocation}><PinIcon /> {applicant.city || "Location not added"}</div>
+          <Rating value={applicant.rate} count={applicant.rev} size="0.95rem" />
+        </div>
+        <Badge variant={STATUS_VARIANT[applicant.status]} dot>{applicant.status}</Badge>
+      </section>
+
+      <div className={styles.facts}>
+        <ProfileFact label="Experience" value={applicant.experience} />
+        <ProfileFact label="Rate range" value={applicant.priceRange} />
+        <ProfileFact label="Applied for" value={applicant.appliedFor} />
+      </div>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeading}>
+          <h4>Professional profile</h4>
+          <Link href={`/find-braiders/${applicant.profileSlug}`} className={styles.profileLink}>
+            Public profile <ExternalIcon />
+          </Link>
+        </div>
+        <p className={styles.bio}>
+          {applicant.bio || `${applicant.name} has not added a professional bio yet.`}
+        </p>
+        <div className={styles.drawerTags}>
+          {applicant.specs.length
+            ? applicant.specs.map((specialty) => <Tag key={specialty}>{specialty}</Tag>)
+            : <span className={styles.muted}>No specialties added.</span>}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeading}>
+          <h4>Application note</h4>
+          <span>{applicant.appliedAt}</span>
+        </div>
+        <blockquote className={styles.coverNote}>
+          {applicant.coverNote || "No cover note was included with this application."}
+        </blockquote>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeading}>
+          <h4>Portfolio</h4>
+          <span>{applicant.portfolio.length} image{applicant.portfolio.length === 1 ? "" : "s"}</span>
+        </div>
+        {applicant.portfolio.length ? (
+          <div className={styles.portfolioGrid}>
+            {applicant.portfolio.map((media) => (
+              <div key={media.id} className={styles.portfolioItem}>
+                <Image
+                  src={media.url}
+                  alt={media.altText}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 240px"
+                  className={styles.portfolioImage}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.portfolioEmpty}>No portfolio images have been added yet.</div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ProfileFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={styles.fact}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
 function MessageIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>; }
+function ArrowIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>; }
+function PinIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>; }
+function ExternalIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>; }

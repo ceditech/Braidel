@@ -1,0 +1,46 @@
+@media (max-width: 760px) {
+  .sidebar {
+    position: fixed !important;
+    z-index: 30;
+    top: auto !important;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .logo,
+  .roleSwitch,
+  .insightsLabel,
+  .insightsNav,
+  .userArea {
+    display: none !important;
+  }
+
+  .primaryNav {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    padding: 6px 4px !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .primaryNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .primaryNav a {
+    min-width: 64px;
+    flex: 1 0 64px;
+    flex-direction: column;
+    gap: 3px !important;
+    padding: 7px 6px !important;
+    font-size: 10px !important;
+    line-height: 1.1;
+    text-align: center;
+  }
+}
