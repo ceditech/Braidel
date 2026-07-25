@@ -5,38 +5,38 @@
 
 /* ── Design tokens ────────────────────────────────────────────────── */
 :root {
-  /* Warm neutrals */
-  --cream-50:      #FBF7F1;
-  --cream-100:     #F5EEE3;
-  --cream-200:     #ECE1D2;
-  --sand-300:      #DECDB6;
-  --taupe-400:     #BCA384;
-  --brown-500:     #8B6B50;
-  --brown-600:     #6B4E38;
-  --espresso-700:  #4A3526;
-  --charcoal-800:  #2C2420;
-  --charcoal-900:  #1B1611;
+  /* Cool neutrals derived from the braid.el wordmark */
+  --cream-50:      #F7F7F5;
+  --cream-100:     #EFEFED;
+  --cream-200:     #E2E3E2;
+  --sand-300:      #D0D2D4;
+  --taupe-400:     #989CA1;
+  --brown-500:     #6B7076;
+  --brown-600:     #555A60;
+  --espresso-700:  #3B3E42;
+  --charcoal-800:  #202124;
+  --charcoal-900:  #0D0E10;
 
-  /* Brand: terracotta */
-  --terracotta-50:  #FBEDE6;
-  --terracotta-100: #F6D8C9;
-  --terracotta-200: #EEBBA3;
-  --terracotta-300: #E39E80;
-  --terracotta-400: #D77B58;
-  --terracotta-500: #C75D3F;
-  --terracotta-600: #B14A2E;
-  --terracotta-700: #8F3A22;
-  --terracotta-800: #6B2C1A;
+  /* Brand: muted rose */
+  --terracotta-50:  #FCF0F1;
+  --terracotta-100: #F7DCDD;
+  --terracotta-200: #EEBABC;
+  --terracotta-300: #E3979B;
+  --terracotta-400: #D4777D;
+  --terracotta-500: #C65D66;
+  --terracotta-600: #AF4D56;
+  --terracotta-700: #8E3F47;
+  --terracotta-800: #6C3036;
 
   /* Secondary: deep gold */
-  --gold-50:   #FBF3DE;
-  --gold-100:  #F6E8C4;
-  --gold-200:  #ECD193;
-  --gold-300:  #E0BB68;
-  --gold-400:  #D2A648;
-  --gold-500:  #C2922F;
-  --gold-600:  #A2781F;
-  --gold-700:  #7E5D17;
+  --gold-50:   #FAF5E9;
+  --gold-100:  #F2E4BF;
+  --gold-200:  #E4CD93;
+  --gold-300:  #D4B66D;
+  --gold-400:  #C39F52;
+  --gold-500:  #B58A42;
+  --gold-600:  #987035;
+  --gold-700:  #745429;
 
   /* Status */
   --sage-100:  #E4EDE0;
@@ -51,8 +51,11 @@
 
   /* Pure */
   --white:      #FFFFFF;
-  --warm-white: #FCFAF7;
-  --black:      #14100C;
+  --warm-white: #FAFAF9;
+  --black:      #090A0B;
+  --logo-ink:   #0D0E10;
+  --logo-on-dark: #F7F7F5;
+  --nav-glass: rgba(247,247,245,.9);
 
   /* Semantic surfaces */
   --bg-page:         var(--cream-50);
@@ -65,7 +68,7 @@
 
   /* Borders */
   --border-subtle:  var(--cream-200);
-  --border-default: #E6D9C8;
+  --border-default: #D9DADB;
   --border-strong:  var(--sand-300);
   --border-inverse: rgba(251,247,241,.16);
 
@@ -117,12 +120,12 @@
   --radius-pill: 999px;
 
   /* Shadows */
-  --shadow-xs:    0 1px 2px rgba(43,33,24,.06);
-  --shadow-sm:    0 1px 2px rgba(43,33,24,.05), 0 2px 6px -2px rgba(43,33,24,.08);
-  --shadow-md:    0 4px 10px -3px rgba(43,33,24,.10), 0 10px 24px -8px rgba(43,33,24,.12);
-  --shadow-lg:    0 8px 18px -6px rgba(43,33,24,.12), 0 24px 48px -16px rgba(43,33,24,.18);
-  --shadow-xl:    0 24px 70px -24px rgba(43,33,24,.28);
-  --shadow-focus: 0 0 0 3px rgba(199,93,63,.28);
+  --shadow-xs:    0 1px 2px rgba(9,10,11,.06);
+  --shadow-sm:    0 1px 2px rgba(9,10,11,.05), 0 2px 6px -2px rgba(9,10,11,.08);
+  --shadow-md:    0 4px 10px -3px rgba(9,10,11,.10), 0 10px 24px -8px rgba(9,10,11,.12);
+  --shadow-lg:    0 8px 18px -6px rgba(9,10,11,.12), 0 24px 48px -16px rgba(9,10,11,.18);
+  --shadow-xl:    0 24px 70px -24px rgba(9,10,11,.28);
+  --shadow-focus: 0 0 0 3px rgba(198,93,102,.28);
 
   /* Motion */
   --ease-out:    cubic-bezier(0.22,1,0.36,1);
@@ -135,6 +138,40 @@
   --gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
   --container-max:  1200px;
   --control-md: 44px;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-page: #0D0E10;
+  --bg-subtle: #15171A;
+  --bg-sunken: #090A0B;
+  --bg-inverse: #050607;
+  --surface-card: #15171A;
+  --surface-raised: #1B1D20;
+  --surface-overlay: #202226;
+  --border-subtle: #25282C;
+  --border-default: #34373C;
+  --border-strong: #4A4E54;
+  --text-strong: #F7F7F5;
+  --text-body: #D9DADC;
+  --text-muted: #A5A8AD;
+  --text-subtle: #7D8187;
+  --text-on-brand: #FFFFFF;
+  --text-link: #E3979B;
+  --brand-soft: #2D191D;
+  --brand-soft-border: #5F3036;
+  --brand-on: #FFFFFF;
+  --logo-ink: #F7F7F5;
+  --nav-glass: rgba(13,14,16,.9);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+  --shadow-md: 0 10px 28px rgba(0,0,0,.36);
+  --shadow-lg: 0 20px 50px rgba(0,0,0,.42);
+  --shadow-xl: 0 30px 80px rgba(0,0,0,.5);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 /* ── Tailwind v4 theme mapping ────────────────────────────────────── */
@@ -167,7 +204,11 @@
 /* ── Base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
 
 body {
   background: var(--bg-page);
@@ -176,6 +217,9 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   margin: 0;
+  transition:
+    background-color var(--dur-base),
+    color var(--dur-base);
 }
 
 a { text-decoration: none; }
@@ -200,4 +244,8 @@ a { text-decoration: none; }
 :focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }

@@ -42,7 +42,7 @@ export function SettingsClient({
 function SettingsCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card padded>
-      <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: "0 0 18px", color: "var(--charcoal-900)" }}>
+      <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: "0 0 18px", color: "var(--text-strong)" }}>
         {title}
       </h3>
       {children}

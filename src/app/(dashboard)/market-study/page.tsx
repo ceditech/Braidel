@@ -38,7 +38,7 @@ export default function MarketStudyPage() {
         {/* ── Executive thesis ──────────────────────────────────── */}
         <div
           style={{
-            background: "var(--charcoal-900)",
+            background: "var(--bg-inverse)",
             color: "var(--cream-50)",
             borderRadius: "var(--radius-xl)",
             padding: 36,
@@ -104,7 +104,7 @@ export default function MarketStudyPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 18 }}>
             {/* Pillars */}
             <Card padded>
-              <h4 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, margin: "0 0 16px", color: "var(--charcoal-900)" }}>
+              <h4 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, margin: "0 0 16px", color: "var(--text-strong)" }}>
                 Strengths
               </h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -122,7 +122,7 @@ export default function MarketStudyPage() {
 
             {/* Risks */}
             <Card padded>
-              <h4 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, margin: "0 0 16px", color: "var(--charcoal-900)" }}>
+              <h4 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, margin: "0 0 16px", color: "var(--text-strong)" }}>
                 Risks we&apos;re managing
               </h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -162,7 +162,7 @@ export default function MarketStudyPage() {
             {BENCHMARKS.map((b) => (
               <Card key={b.platform} padded>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--charcoal-900)" }}>{b.platform}</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>{b.platform}</span>
                   <Badge variant="gold">{b.outcome}</Badge>
                 </div>
                 <div style={{ fontSize: 13, color: "var(--brand)", fontWeight: 600, marginBottom: 8 }}>{b.why}</div>
@@ -185,7 +185,7 @@ export default function MarketStudyPage() {
                 <Mono key="o" strong>{m.som}</Mono>,
               ])}
               footer={[
-                <strong key="s" style={{ color: "var(--charcoal-900)" }}>{TAM_SAM_SOM_TOTAL.segment}</strong>,
+                <strong key="s" style={{ color: "var(--text-strong)" }}>{TAM_SAM_SOM_TOTAL.segment}</strong>,
                 <Mono key="t" strong>{TAM_SAM_SOM_TOTAL.tam}</Mono>,
                 <Mono key="a" strong>{TAM_SAM_SOM_TOTAL.sam}</Mono>,
                 <Mono key="o" strong>{TAM_SAM_SOM_TOTAL.som}</Mono>,
@@ -232,7 +232,7 @@ export default function MarketStudyPage() {
               }}
             >
               <div>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--charcoal-900)" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>
                   Overall viability
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Strong, with careful execution</div>
@@ -261,7 +261,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div>
-        <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, margin: 0, color: "var(--charcoal-900)" }}>{title}</h3>
+        <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, margin: 0, color: "var(--text-strong)" }}>{title}</h3>
         {subtitle && <p style={{ margin: "3px 0 0", fontSize: 14, color: "var(--text-muted)" }}>{subtitle}</p>}
       </div>
       {children}
@@ -341,7 +341,7 @@ function Table({
 
 function Mono({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
   return (
-    <span style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: strong ? 700 : 500, color: strong ? "var(--charcoal-900)" : "var(--text-body)" }}>
+    <span style={{ fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: strong ? 700 : 500, color: strong ? "var(--text-strong)" : "var(--text-body)" }}>
       {children}
     </span>
   );

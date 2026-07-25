@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~84% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~85% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 60 / 66 | ~91% |
+| **Phase 1** | Workforce & Staffing | 63 / 69 | ~91% |
 | **Phase 2** | Client Booking | 4 / 7 | ~57% |
 | **Phase 3** | Online Payments | 0 / 1 | 0% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
@@ -62,6 +62,8 @@ _Tokens & UI primitives_
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
 | ✅ | Design tokens (color, type, spacing, motion) | High | 1 |
+| ✅ | braid.el wordmark + rose/ink brand system | High | 1 |
+| ✅ | Persistent light/dark theme across shared app chrome | High | 1 |
 | ✅ | Brand fonts (Bricolage / Hanken / JetBrains) | High | 1 |
 | ✅ | Button, Card, Badge, Tag components | High | 1 |
 | ✅ | Avatar, Rating, StatCard, Logo components | High | 1 |
@@ -76,7 +78,8 @@ _Public-facing pages_
 |--------|------|----------|-------|
 | ✅ | Navbar (auth-aware) | High | 1 |
 | ✅ | Footer | High | 1 |
-| ✅ | Landing page | High | 1 |
+| ✅ | Editorial braid.el landing page | High | 1 |
+| ✅ | Marketplace landing preserved at `/marketplace` | High | 1 |
 | ✅ | Find Braiders page | High | 2 |
 | ✅ | Find Salons page | High | 2 |
 | ✅ | Salon detail page | High | 2 |

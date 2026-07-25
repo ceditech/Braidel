@@ -65,6 +65,8 @@ export const ROADMAP: RoadmapGroup[] = [
     description: "Tokens & UI primitives",
     items: [
       { title: "Design tokens (color, type, spacing, motion)", status: "done", priority: "high", phase: 1 },
+      { title: "braid.el wordmark + rose/ink brand system", status: "done", priority: "high", phase: 1 },
+      { title: "Persistent light/dark theme across shared app chrome", status: "done", priority: "high", phase: 1 },
       { title: "Brand fonts (Bricolage / Hanken / JetBrains)", status: "done", priority: "high", phase: 1 },
       { title: "Button, Card, Badge, Tag components", status: "done", priority: "high", phase: 1 },
       { title: "Avatar, Rating, StatCard, Logo components", status: "done", priority: "high", phase: 1 },
@@ -80,7 +82,8 @@ export const ROADMAP: RoadmapGroup[] = [
     items: [
       { title: "Navbar (auth-aware)", status: "done", priority: "high", phase: 1 },
       { title: "Footer", status: "done", priority: "high", phase: 1 },
-      { title: "Landing page", status: "done", priority: "high", phase: 1 },
+      { title: "Editorial braid.el landing page", status: "done", priority: "high", phase: 1 },
+      { title: "Marketplace landing preserved at /marketplace", status: "done", priority: "high", phase: 1 },
       { title: "Find Braiders page", status: "done", priority: "high", phase: 2 },
       { title: "Find Salons page", status: "done", priority: "high", phase: 2 },
       { title: "Salon detail page", status: "done", priority: "high", phase: 2 },

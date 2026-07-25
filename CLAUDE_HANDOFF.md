@@ -214,11 +214,13 @@ These cost time once already — don't repeat them.
 
 ## 7. Design System
 
-Sourced from the "Braidel Design System" kit (in repo root). All tokens are
-ported into `src/app/globals.css`:
+The shared implementation lives in `src/app/globals.css` and the primitives in
+`src/components/ui/`:
 
-- **Brand:** terracotta (`--brand` / `#C75D3F`), secondary deep gold.
-- **Neutrals:** warm cream → charcoal ramp. Page bg is `--bg-page` (cream).
+- **Brand:** the lowercase `braid.el` wordmark, muted rose
+  (`--brand` / `#C65D66`), ink black, and cool neutral surfaces.
+- **Themes:** persistent light/dark preference is stored under
+  `braidel-theme`; `ThemeToggle` is exposed in public and dashboard chrome.
 - **Fonts:** Bricolage Grotesque (display), Hanken Grotesk (body/UI),
   JetBrains Mono (eyebrows/data).
 - **Prefer semantic tokens** (`--brand`, `--text-body`, `--surface-card`) over
@@ -255,8 +257,9 @@ Portfolio media, notifications, messaging, ratings, and role-aware settings are
 now persistent. Remaining Phase 1 work is concentrated in operational readiness
 and public content:
 
-- **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
-  Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
+- **Public:** the editorial brand home is `/`; the previous marketplace landing
+  is preserved at public route `/marketplace`; Find Braiders (+ profile), Find
+  Salons (+ detail), and Job Opportunities (+ detail) remain wired to Neon.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants with
   a responsive profile/portfolio drawer and status actions, Messages, Settings.
 - **Braider app:** dashboard, Find Work + apply, Applications, Messages,

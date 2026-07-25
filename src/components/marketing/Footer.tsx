@@ -38,7 +38,7 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer style={{ background: "var(--charcoal-900)", color: "var(--cream-100)", marginTop: 80 }}>
+    <footer style={{ background: "var(--bg-inverse)", color: "var(--cream-100)", marginTop: 80 }}>
       <div className={styles.grid}>
         {/* Brand */}
         <div className={styles.brand}>
@@ -52,7 +52,7 @@ export function Footer() {
               lineHeight: 1.6,
             }}
           >
-            The marketplace built for the braiding industry — salons, braiders, and the clients who
+            The marketplace built for the braiding industry - salons, braiders, and the clients who
             love their work.
           </p>
         </div>
@@ -100,7 +100,7 @@ export function Footer() {
           color: "var(--taupe-400)",
         }}
       >
-        © 2026 Braidel. Made for the culture.
+        © 2026 braid.el. Made for the culture.
       </div>
     </footer>
   );

@@ -39,7 +39,7 @@ export default async function OpportunitiesPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 240 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--charcoal-900)" }}>
+                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>
                       {o.title}
                     </span>
                     <Badge variant={badge.variant} dot={o.status === "active"}>{badge.label}</Badge>

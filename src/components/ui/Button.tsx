@@ -37,7 +37,7 @@ const variantStyles: Record<Variant, React.CSSProperties> = {
     border: "none",
   },
   dark: {
-    background: "var(--charcoal-900)",
+    background: "var(--bg-inverse)",
     color: "var(--cream-50)",
     border: "none",
   },
@@ -81,7 +81,7 @@ export function Button({
       onMouseLeave={(e) => {
         const el = e.currentTarget;
         if (variant === "primary") el.style.background = "var(--brand)";
-        if (variant === "dark") el.style.background = "var(--charcoal-900)";
+        if (variant === "dark") el.style.background = "var(--bg-inverse)";
         if (variant === "outline") el.style.background = "transparent";
         props.onMouseLeave?.(e);
       }}

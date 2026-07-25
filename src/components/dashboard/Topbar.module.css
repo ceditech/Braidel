@@ -17,7 +17,7 @@
 
 .title {
   margin: 0;
-  color: var(--charcoal-900);
+  color: var(--text-strong);
   font-family: var(--font-display);
   font-size: 27px;
   font-weight: 700;

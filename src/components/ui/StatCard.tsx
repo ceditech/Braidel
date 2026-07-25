@@ -47,7 +47,7 @@ export function StatCard({ icon, label, value, delta, tone = "brand" }: StatCard
           fontFamily: "var(--font-display)",
           fontWeight: 700,
           fontSize: 30,
-          color: "var(--charcoal-900)",
+          color: "var(--text-strong)",
           marginTop: 14,
         }}
       >

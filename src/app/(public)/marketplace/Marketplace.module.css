@@ -1,0 +1,24 @@
+.hero,
+.valueProps,
+.featuredGrid,
+.stepsGrid {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 36px !important;
+    padding-top: 48px !important;
+  }
+
+  .heroPhotos {
+    display: none !important;
+  }
+
+  .valueProps,
+  .featuredGrid,
+  .stepsGrid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

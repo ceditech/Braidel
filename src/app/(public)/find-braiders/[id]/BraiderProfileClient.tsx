@@ -30,7 +30,7 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
   if (!braider) {
     return (
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px var(--gutter)", textAlign: "center" }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--charcoal-900)" }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--text-strong)" }}>
           Braider not found
         </h1>
         <p style={{ color: "var(--text-muted)", margin: "8px 0 24px" }}>
@@ -62,7 +62,7 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
             <Avatar name={braider.name} size="xl" ring />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,32px)", margin: 0, color: "var(--charcoal-900)" }}>
+                <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,32px)", margin: 0, color: "var(--text-strong)" }}>
                   {braider.name}
                 </h1>
                 {braider.badge === "Verified" && <Badge variant="brand" dot>Verified</Badge>}
@@ -158,7 +158,7 @@ export function BraiderProfileClient({ braider }: { braider: BraiderDTO | null }
         {/* Sticky booking card */}
         <Card padded className={styles.bookingCard}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--charcoal-900)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--text-strong)" }}>
               {braider.price}
             </span>
             <span style={{ color: "var(--text-muted)", fontSize: 14 }}>· per style</span>

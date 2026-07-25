@@ -46,7 +46,7 @@ export function Sidebar() {
       style={{
         width: 248,
         flexShrink: 0,
-        background: "var(--charcoal-900)",
+        background: "var(--bg-inverse)",
         color: "var(--cream-100)",
         display: "flex",
         flexDirection: "column",
