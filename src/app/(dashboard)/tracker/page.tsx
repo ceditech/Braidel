@@ -227,6 +227,9 @@ export default function TrackerPage() {
 /* ── Single roadmap row ──────────────────────────────────────────── */
 function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
   const meta = STATUS_META[item.status];
+  const phases = Array.isArray(item.phase) ? item.phase : [item.phase];
+  const phaseLabel =
+    phases.length === 1 ? `P${phases[0]}` : `P${phases[0]}-${phases[phases.length - 1]}`;
   return (
     <div
       style={{
@@ -257,18 +260,32 @@ function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
         )}
       </span>
 
-      {/* Title */}
-      <span
-        style={{
-          flex: 1,
-          fontSize: 15,
-          color: item.status === "done" ? "var(--text-muted)" : "var(--text-strong)",
-          textDecoration: item.status === "done" ? "line-through" : "none",
-          textDecorationColor: "var(--taupe-400)",
-        }}
-      >
-        {item.title}
-      </span>
+      {/* Title and implementation note */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 15,
+            color: item.status === "done" ? "var(--text-muted)" : "var(--text-strong)",
+            textDecoration: item.status === "done" ? "line-through" : "none",
+            textDecorationColor: "var(--taupe-400)",
+          }}
+        >
+          {item.title}
+        </div>
+        {item.note && (
+          <div
+            style={{
+              marginTop: 3,
+              maxWidth: 820,
+              fontSize: 13,
+              lineHeight: 1.45,
+              color: "var(--text-muted)",
+            }}
+          >
+            {item.note}
+          </div>
+        )}
+      </div>
 
       {/* Phase pill */}
       <span
@@ -281,7 +298,7 @@ function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
           background: "var(--bg-subtle)",
         }}
       >
-        P{item.phase}
+        {phaseLabel}
       </span>
 
       {/* Priority dot */}

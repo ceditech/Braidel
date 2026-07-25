@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~93% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~84% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,11 +14,16 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 60 / 65 | ~92% |
-| **Phase 2** | Client Booking (early discovery UI) | 4 / 4 | 100% |
+| **Phase 1** | Workforce & Staffing | 60 / 66 | ~91% |
+| **Phase 2** | Client Booking | 4 / 7 | ~57% |
+| **Phase 3** | Online Payments | 0 / 1 | 0% |
+| **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
+| **Phase 5** | Braidel Academy | 0 / 1 | 0% |
+| **Phase 6** | Braidel Supply | 0 / 1 | 0% |
+| **Phase 7** | Salon Franchise | 0 / 1 | 0% |
 
-_Phases 3–7 (payments, verification, academy, supply, franchise) are not yet
-scoped into tracked tasks._
+_Phases 3–7 are now represented as strategic workstreams. Each must be
+decomposed into implementation-sized tasks before coding begins._
 
 ---
 
@@ -111,7 +116,7 @@ _Braider workflows_
 
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
-| ✅ | Role switch (salon / braider) | High | 1 |
+| ✅ | Demo role switch (salon / braider) | High | 1 |
 | ✅ | Braider dashboard home | High | 1 |
 | ✅ | Find Work (search + apply) | High | 1 |
 | ✅ | Applications tracker | High | 1 |
@@ -144,6 +149,41 @@ _Data routes & business logic_
 | ✅ | Ratings read/write flows | High | 1 |
 | ✅ | Portfolio media persistence | High | 1 |
 | ✅ | Notifications persistence + event wiring | High | 1 |
+
+## Strategic Implementation Workstreams
+_Core gaps and next product phases, ordered for low-regression delivery_
+
+| # | Status | Workstream | Priority | Phase |
+|---|--------|------------|----------|-------|
+| 1 | ⬜ | Real role state + client account foundation | High | 1 |
+| 2 | ⬜ | Booking domain schema + migrations | High | 2 |
+| 3 | ⬜ | Booking APIs + appointments/calendar UI | High | 2 |
+| 4 | ⬜ | Booking-aware conversations, reviews + notifications | High | 2 |
+| 5 | ⬜ | Payments + monetization | High | 3 |
+| 6 | ⬜ | Trust, verification + marketplace administration | High | 4 |
+| 7 | ⬜ | Ecosystem expansion: Academy, Supply, Franchise + mobile | Medium | 5–7 |
+
+### Workstream scope
+
+1. **Real role state + client account foundation** — derive dashboard state
+   from the authenticated DB role, decide single-role versus multi-role
+   accounts, and add the client shell/profile foundation.
+2. **Booking domain schema + migrations** — model client profiles, service
+   offerings, availability, bookings, status history, timezone-aware scheduling,
+   and integer-cent pricing.
+3. **Booking APIs + appointments/calendar UI** — implement provider schedules,
+   booking requests, confirmations, rescheduling, cancellations, appointment
+   dashboards, and internal calendar workflows.
+4. **Booking-aware conversations, reviews + notifications** — generalize the
+   application-scoped features for booking participants and lifecycle events.
+5. **Payments + monetization** — finalize subscriptions and transaction fees,
+   then implement Stripe Connect, commissions, refunds, payouts, and idempotent
+   payment webhooks.
+6. **Trust, verification + marketplace administration** — add verification
+   evidence and audit history, moderation, reports, disputes, administrative
+   actions, and account restrictions.
+7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
+   mobile clients before implementing those phases.
 
 ---
 

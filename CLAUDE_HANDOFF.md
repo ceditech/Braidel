@@ -247,7 +247,8 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete and ~92% complete by the tracker.** Both
+**Phase 1 workforce workflows are mostly complete and ~91% complete by the
+tracker.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
 Portfolio media, notifications, messaging, ratings, and role-aware settings are
@@ -262,13 +263,19 @@ and public content:
   Settings (profile editor).
 - **Shell:** role switch (salon/braider), internal Tracker + Market Study.
 
-**Remaining (highest value first):**
+**Strategic implementation order:**
 
-1. **CI and deployment pipeline** — automate type checking, linting, build, and
-   migration safety; configure `BLOB_READ_WRITE_TOKEN` in production.
-2. **Legal and trust content** — Terms and Privacy are the launch-critical public
-   pages; Pricing and How It Works follow.
-3. **Secondary content** — About, Contact, Blog, and FAQ.
+1. **Real role state + client account foundation.**
+2. **Booking domain schema + migrations.**
+3. **Booking APIs + appointments/calendar UI.**
+4. **Booking-aware conversations, reviews, and notifications.**
+5. **Payments + monetization.**
+6. **Trust, verification, and marketplace administration.**
+7. **Ecosystem expansion:** Academy, Supply, Franchise, then mobile.
+
+CI/deployment, legal and trust content, Pricing, How It Works, and secondary
+public content remain parallel launch-readiness work. Clerk webhook activation
+remains deferred until a stable staging or production URL exists.
 
 Notification delivery is currently in-app. The activity/message/digest
 preferences are persisted for later email or push delivery, but no external

@@ -16,7 +16,7 @@ export interface RoadmapItem {
   title: string;
   status: Status;
   priority: Priority;
-  phase: number;
+  phase: number | number[];
   note?: string;
 }
 
@@ -123,7 +123,7 @@ export const ROADMAP: RoadmapGroup[] = [
     label: "Braider Dashboard",
     description: "Braider workflows",
     items: [
-      { title: "Role switch (salon / braider)", status: "done", priority: "high", phase: 1 },
+      { title: "Demo role switch (salon / braider)", status: "done", priority: "high", phase: 1 },
       { title: "Braider dashboard home", status: "done", priority: "high", phase: 1 },
       { title: "Find Work (search + apply)", status: "done", priority: "high", phase: 1 },
       { title: "Applications tracker", status: "done", priority: "high", phase: 1 },
@@ -158,6 +158,62 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Ratings read/write flows", status: "done", priority: "high", phase: 1 },
       { title: "Portfolio media persistence", status: "done", priority: "high", phase: 1 },
       { title: "Notifications persistence + event wiring", status: "done", priority: "high", phase: 1 },
+    ],
+  },
+  {
+    id: "strategic-workstreams",
+    label: "Strategic Implementation Workstreams",
+    description: "Core gaps and next product phases, ordered for low-regression delivery",
+    items: [
+      {
+        title: "1. Real role state + client account foundation",
+        status: "pending",
+        priority: "high",
+        phase: 1,
+        note: "Derive the dashboard from the authenticated DB role, decide single-role vs. multi-role accounts, and add the client shell/profile foundation.",
+      },
+      {
+        title: "2. Booking domain schema + migrations",
+        status: "pending",
+        priority: "high",
+        phase: 2,
+        note: "Model client profiles, service offerings, availability, bookings, status history, timezone-aware scheduling, and integer-cent pricing.",
+      },
+      {
+        title: "3. Booking APIs + appointments/calendar UI",
+        status: "pending",
+        priority: "high",
+        phase: 2,
+        note: "Implement provider schedule management, booking requests, confirmations, rescheduling, cancellations, appointment dashboards, and internal calendar workflows.",
+      },
+      {
+        title: "4. Booking-aware conversations, reviews + notifications",
+        status: "pending",
+        priority: "high",
+        phase: 2,
+        note: "Generalize application-scoped messaging, ratings, and notification events so they can safely support booking participants and lifecycle events.",
+      },
+      {
+        title: "5. Payments + monetization",
+        status: "pending",
+        priority: "high",
+        phase: 3,
+        note: "Finalize subscriptions and transaction fees, then implement Stripe Connect accounts, payments, commissions, refunds, payouts, and idempotent webhooks.",
+      },
+      {
+        title: "6. Trust, verification + marketplace administration",
+        status: "pending",
+        priority: "high",
+        phase: 4,
+        note: "Add verification evidence and audit history, moderation, reports, disputes, administrative actions, and account restrictions.",
+      },
+      {
+        title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",
+        status: "pending",
+        priority: "medium",
+        phase: [5, 6, 7],
+        note: "Scope each later PRD phase before implementation: learning and certification, wholesale commerce, franchise operations, then native mobile clients.",
+      },
     ],
   },
 ];
@@ -215,9 +271,12 @@ export interface PhaseProgress {
 export function phaseProgress(): PhaseProgress[] {
   const byPhase = new Map<number, RoadmapItem[]>();
   for (const item of allItems()) {
-    const list = byPhase.get(item.phase) ?? [];
-    list.push(item);
-    byPhase.set(item.phase, list);
+    const phases = Array.isArray(item.phase) ? item.phase : [item.phase];
+    for (const phase of phases) {
+      const list = byPhase.get(phase) ?? [];
+      list.push(item);
+      byPhase.set(phase, list);
+    }
   }
   return [...byPhase.entries()]
     .sort(([a], [b]) => a - b)
