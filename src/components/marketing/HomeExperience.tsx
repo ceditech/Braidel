@@ -78,17 +78,18 @@ const navItems = [
 export function HomeExperience() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [spotlightPaused, setSpotlightPaused] = useState(false);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reducedMotion.matches) return;
+    if (reducedMotion.matches || spotlightPaused) return;
 
     const timer = window.setInterval(() => {
       setActiveSlide((current) => (current + 1) % slides.length);
     }, 7000);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [spotlightPaused]);
 
   const slide = slides[activeSlide];
 
@@ -172,20 +173,51 @@ export function HomeExperience() {
             ))}
           </aside>
 
-          <div className={styles.stage}>
-            <div className={styles.stageCopy} key={`copy-${activeSlide}`}>
-              <div className={styles.eyebrow}>
-                <span aria-hidden="true" />
-                {slide.eyebrow}
+          <div
+            className={styles.stage}
+            onMouseEnter={() => setSpotlightPaused(true)}
+            onMouseLeave={() => setSpotlightPaused(false)}
+            onFocusCapture={() => setSpotlightPaused(true)}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setSpotlightPaused(false);
+              }
+            }}
+          >
+            <div className={styles.copyViewport} aria-live="polite" aria-atomic="true">
+              <div
+                className={styles.copyTrack}
+                style={{ transform: `translate3d(-${activeSlide * 100}%, 0, 0)` }}
+              >
+                {slides.map((item, index) => (
+                  <div
+                    key={item.marker}
+                    className={styles.stageCopy}
+                    aria-hidden={index !== activeSlide}
+                  >
+                    <div className={styles.eyebrow}>
+                      <span aria-hidden="true" />
+                      {item.eyebrow}
+                    </div>
+                    {index === activeSlide ? (
+                      <h1 id="home-title">{item.title}</h1>
+                    ) : (
+                      <div className={styles.stageTitle}>{item.title}</div>
+                    )}
+                    <p>{item.body}</p>
+                    <Link
+                      href={item.href}
+                      className={styles.stageCta}
+                      tabIndex={index === activeSlide ? undefined : -1}
+                    >
+                      {item.cta}
+                      <span aria-hidden="true">
+                        <ArrowRight />
+                      </span>
+                    </Link>
+                  </div>
+                ))}
               </div>
-              <h1 id="home-title">{slide.title}</h1>
-              <p>{slide.body}</p>
-              <Link href={slide.href} className={styles.stageCta}>
-                {slide.cta}
-                <span aria-hidden="true">
-                  <ArrowRight />
-                </span>
-              </Link>
             </div>
 
             <div className={styles.carousel}>
