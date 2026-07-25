@@ -1,7 +1,8 @@
 # Braidel — Claude Handoff
 
 A working brief for any Claude (or engineer) picking up this project. Read this
-first, then `AGENTS.md`, then the two docs in `docs/`.
+first, then `AGENTS.md`, the two docs in `docs/`, and
+[`PRE-PRODUCTION-RELEASE-CHECKS.md`](PRE-PRODUCTION-RELEASE-CHECKS.md).
 
 ---
 
@@ -275,6 +276,8 @@ delivery worker is implemented yet.
 
 Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
 [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md). Live dashboard: `/tracker`.
+Production gates and deferred activation work:
+[`PRE-PRODUCTION-RELEASE-CHECKS.md`](PRE-PRODUCTION-RELEASE-CHECKS.md).
 
 ---
 
@@ -288,3 +291,7 @@ Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
 - Reuse `src/components/ui/` primitives; don't re-implement buttons/cards.
 - Keep sample/mock data obvious and co-located until the API routes land.
 - Confirm outward-facing or hard-to-reverse actions before running them.
+- Treat `PRE-PRODUCTION-RELEASE-CHECKS.md` as a living release document. Update
+  it whenever work adds or changes production secrets, integrations, migrations,
+  webhooks, jobs, authorization boundaries, retention behavior, monitoring,
+  legal obligations, or rollback requirements.
