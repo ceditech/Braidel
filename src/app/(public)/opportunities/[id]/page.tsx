@@ -28,7 +28,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   if (!job) {
     return (
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px var(--gutter)", textAlign: "center" }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--charcoal-900)" }}>Opportunity not found</h1>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--text-strong)" }}>Opportunity not found</h1>
         <p style={{ color: "var(--text-muted)", margin: "8px 0 24px" }}>This opening may have been filled or removed.</p>
         <Link href="/opportunities"><Button>Back to opportunities</Button></Link>
       </div>
@@ -45,7 +45,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32, alignItems: "start" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,34px)", margin: 0, color: "var(--charcoal-900)" }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,34px)", margin: 0, color: "var(--text-strong)" }}>
               {job.title}
             </h1>
             <Badge variant="neutral">{job.type}</Badge>
@@ -78,7 +78,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         <Card padded style={{ position: "sticky", top: 90 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--charcoal-900)" }}>{job.pay}</div>
+          <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--text-strong)" }}>{job.pay}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>{job.type} · {job.city}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
             <Link href="/sign-up"><Button fullWidth size="lg" iconRight={<ArrowRight />}>Apply now</Button></Link>
@@ -100,7 +100,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: 28, maxWidth: 620 }}>
-      <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, margin: "0 0 12px", color: "var(--charcoal-900)" }}>{title}</h2>
+      <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, margin: "0 0 12px", color: "var(--text-strong)" }}>{title}</h2>
       {children}
     </div>
   );

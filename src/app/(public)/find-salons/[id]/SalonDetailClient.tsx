@@ -30,7 +30,7 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
   if (!salon) {
     return (
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px var(--gutter)", textAlign: "center" }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--charcoal-900)" }}>Salon not found</h1>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--text-strong)" }}>Salon not found</h1>
         <p style={{ color: "var(--text-muted)", margin: "8px 0 24px" }}>This salon may have moved or is no longer listed.</p>
         <Link href="/find-salons"><Button>Back to salons</Button></Link>
       </div>
@@ -56,7 +56,7 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
             <Avatar name={salon.name} size="xl" ring />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,32px)", margin: 0, color: "var(--charcoal-900)" }}>
+                <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,32px)", margin: 0, color: "var(--text-strong)" }}>
                   {salon.name}
                 </h1>
                 {salon.verified && <Badge variant="brand" dot>Verified</Badge>}

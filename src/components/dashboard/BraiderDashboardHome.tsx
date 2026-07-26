@@ -64,7 +64,7 @@ export function BraiderDashboardHome({
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 22 }}>
           <Card padded>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: 0, color: "var(--charcoal-900)" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: 0, color: "var(--text-strong)" }}>
                 Work near you
               </h3>
               <Link href="/dashboard/find-work" style={{ color: "var(--brand)", fontWeight: 600, fontSize: 14 }}>
@@ -93,7 +93,7 @@ export function BraiderDashboardHome({
           </Card>
 
           <Card padded>
-            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: "0 0 16px", color: "var(--charcoal-900)" }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: "0 0 16px", color: "var(--text-strong)" }}>
               Your applications
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

@@ -47,6 +47,7 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   avatarUrl: text("avatar_url"),
+  onboardedAt: timestamp("onboarded_at"),
   clerkUpdatedAt: timestamp("clerk_updated_at"),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

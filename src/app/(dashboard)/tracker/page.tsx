@@ -58,7 +58,7 @@ export default function TrackerPage() {
 
             {/* Status legend */}
             <div style={{ flex: 1, minWidth: 260 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "var(--charcoal-900)", marginBottom: 4 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "var(--text-strong)", marginBottom: 4 }}>
                 {pct}% complete
               </div>
               <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 18 }}>
@@ -114,7 +114,7 @@ export default function TrackerPage() {
                     {p.counts.done}/{p.counts.total}
                   </span>
                 </div>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--charcoal-900)", marginBottom: 10 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--text-strong)", marginBottom: 10 }}>
                   {p.label}
                 </div>
                 <div style={{ height: 8, borderRadius: 999, background: "var(--bg-sunken)", overflow: "hidden" }}>
@@ -148,8 +148,8 @@ export default function TrackerPage() {
                   gap: 7,
                   padding: "8px 14px",
                   borderRadius: "var(--radius-pill)",
-                  border: `1px solid ${active ? "var(--charcoal-900)" : "var(--border-default)"}`,
-                  background: active ? "var(--charcoal-900)" : "var(--surface-card)",
+                  border: `1px solid ${active ? "var(--bg-inverse)" : "var(--border-default)"}`,
+                  background: active ? "var(--bg-inverse)" : "var(--surface-card)",
                   color: active ? "var(--cream-100)" : "var(--text-body)",
                   fontFamily: "var(--font-sans)",
                   fontWeight: 600,
@@ -188,7 +188,7 @@ export default function TrackerPage() {
               {/* Group header */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, margin: 0, color: "var(--charcoal-900)" }}>
+                  <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, margin: 0, color: "var(--text-strong)" }}>
                     {group.label}
                   </h3>
                   <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--text-muted)" }}>{group.description}</p>
@@ -227,6 +227,9 @@ export default function TrackerPage() {
 /* ── Single roadmap row ──────────────────────────────────────────── */
 function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
   const meta = STATUS_META[item.status];
+  const phases = Array.isArray(item.phase) ? item.phase : [item.phase];
+  const phaseLabel =
+    phases.length === 1 ? `P${phases[0]}` : `P${phases[0]}-${phases[phases.length - 1]}`;
   return (
     <div
       style={{
@@ -257,18 +260,32 @@ function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
         )}
       </span>
 
-      {/* Title */}
-      <span
-        style={{
-          flex: 1,
-          fontSize: 15,
-          color: item.status === "done" ? "var(--text-muted)" : "var(--text-strong)",
-          textDecoration: item.status === "done" ? "line-through" : "none",
-          textDecorationColor: "var(--taupe-400)",
-        }}
-      >
-        {item.title}
-      </span>
+      {/* Title and implementation note */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 15,
+            color: item.status === "done" ? "var(--text-muted)" : "var(--text-strong)",
+            textDecoration: item.status === "done" ? "line-through" : "none",
+            textDecorationColor: "var(--taupe-400)",
+          }}
+        >
+          {item.title}
+        </div>
+        {item.note && (
+          <div
+            style={{
+              marginTop: 3,
+              maxWidth: 820,
+              fontSize: 13,
+              lineHeight: 1.45,
+              color: "var(--text-muted)",
+            }}
+          >
+            {item.note}
+          </div>
+        )}
+      </div>
 
       {/* Phase pill */}
       <span
@@ -281,7 +298,7 @@ function ItemRow({ item, first }: { item: RoadmapItem; first: boolean }) {
           background: "var(--bg-subtle)",
         }}
       >
-        P{item.phase}
+        {phaseLabel}
       </span>
 
       {/* Priority dot */}
@@ -339,7 +356,7 @@ function ProgressRing({ pct }: { pct: number }) {
           fontFamily: "var(--font-display)",
           fontWeight: 700,
           fontSize: 26,
-          color: "var(--charcoal-900)",
+          color: "var(--text-strong)",
         }}
       >
         {pct}%

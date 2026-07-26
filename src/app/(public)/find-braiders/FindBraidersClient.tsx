@@ -53,7 +53,7 @@ export function FindBraidersClient({
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
       {/* Header */}
-      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--charcoal-900)" }}>
+      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Find braiders
       </h1>
       <p style={{ color: "var(--text-muted)", marginTop: 6 }}>
@@ -131,7 +131,7 @@ export function FindBraidersClient({
                 </div>
                 <CardBody>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--charcoal-900)" }}>
+                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>
                       {b.name}
                     </span>
                     <Badge variant={b.badge === "New" ? "gold" : "brand"} dot={b.badge === "Verified"}>

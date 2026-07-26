@@ -82,7 +82,7 @@ export function FindWorkClient({ jobs }: { jobs: OpportunityDTO[] }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                       <div>
-                        <Link href={`/opportunities/${j.id}`} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "var(--charcoal-900)" }}>{j.title}</Link>
+                        <Link href={`/opportunities/${j.id}`} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "var(--text-strong)" }}>{j.title}</Link>
                         <div style={{ fontSize: 14, color: "var(--text-muted)" }}>{j.salon} · {j.city}</div>
                       </div>
                       <Badge variant="neutral">{j.type}</Badge>

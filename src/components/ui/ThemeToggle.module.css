@@ -1,0 +1,52 @@
+.toggle {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  cursor: pointer;
+  transition:
+    background var(--dur-base),
+    border-color var(--dur-base),
+    color var(--dur-base),
+    transform var(--dur-fast);
+}
+
+.toggle:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sunIcon,
+.moonIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.moonIcon {
+  display: none;
+}
+
+:global(html[data-theme="light"]) .sunIcon {
+  display: none;
+}
+
+:global(html[data-theme="light"]) .moonIcon {
+  display: block;
+}

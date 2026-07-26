@@ -4,9 +4,11 @@ import { usePathname } from "next/navigation";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import styles from "./Navbar.module.css";
 
 const links = [
+  { href: "/marketplace",   label: "Marketplace" },
   { href: "/find-braiders", label: "Find braiders" },
   { href: "/find-salons",   label: "Find salons" },
   { href: "/opportunities", label: "Job opportunities" },
@@ -21,7 +23,7 @@ export function Navbar() {
         position: "sticky",
         top: 0,
         zIndex: 20,
-        background: "rgba(251,247,241,.88)",
+        background: "var(--nav-glass)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
         borderBottom: "1px solid var(--border-subtle)",
@@ -52,6 +54,7 @@ export function Navbar() {
         </nav>
 
         <div className={styles.account}>
+          <ThemeToggle />
           {isSignedIn ? (
             <>
               <Link href="/dashboard">

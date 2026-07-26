@@ -21,9 +21,9 @@ export function Tag({ children, selected, onClick }: TagProps) {
         fontSize: 13,
         cursor: onClick ? "pointer" : "default",
         transition: `all var(--dur-fast) var(--ease-out)`,
-        background: selected ? "var(--charcoal-900)" : "var(--bg-subtle)",
+        background: selected ? "var(--bg-inverse)" : "var(--bg-subtle)",
         color: selected ? "var(--cream-100)" : "var(--text-muted)",
-        border: `1px solid ${selected ? "var(--charcoal-900)" : "var(--border-default)"}`,
+        border: `1px solid ${selected ? "var(--bg-inverse)" : "var(--border-default)"}`,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 import React from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import styles from "./Topbar.module.css";
 
 interface TopbarProps {
@@ -21,6 +22,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
       </div>
 
       <div className={styles.actions}>
+        <ThemeToggle />
         <NotificationBell />
         {action}
       </div>

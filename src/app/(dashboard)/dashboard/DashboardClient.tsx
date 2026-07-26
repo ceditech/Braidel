@@ -2,6 +2,7 @@
 import { useRole } from "@/components/dashboard/RoleContext";
 import { SalonDashboardHome } from "@/components/dashboard/SalonDashboardHome";
 import { BraiderDashboardHome } from "@/components/dashboard/BraiderDashboardHome";
+import { ClientDashboardHome } from "@/components/dashboard/ClientDashboardHome";
 import type { ApplicantDTO, ApplicationDTO, OpportunityDTO } from "@/db/queries";
 
 export function DashboardClient({
@@ -18,6 +19,10 @@ export function DashboardClient({
   braiderApplications: ApplicationDTO[];
 }) {
   const { role } = useRole();
+
+  if (role === "client") {
+    return <ClientDashboardHome firstName={firstName} />;
+  }
 
   return role === "braider" ? (
     <BraiderDashboardHome

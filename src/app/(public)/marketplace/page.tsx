@@ -6,6 +6,7 @@ import { Rating } from "@/components/ui/Rating";
 import { Tag } from "@/components/ui/Tag";
 import { Photo } from "@/components/ui/Photo";
 import { BRAIDERS } from "@/lib/sampleData";
+import styles from "./Marketplace.module.css";
 
 /* Featured braiders on the landing page = first three of the shared pool */
 const FEATURED = BRAIDERS.slice(0, 3);
@@ -17,11 +18,12 @@ const HOW = [
   { n: "03", title: "Match & connect",     body: "Message directly in-platform, review portfolios, and confirm arrangements — no middlemen, no fees on Phase 1.", tone: "sage" },
 ];
 
-export default function LandingPage() {
+export default function MarketplacePage() {
   return (
     <div>
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <section
+        className={styles.hero}
         style={{
           maxWidth: "var(--container-max)",
           margin: "0 auto",
@@ -54,8 +56,8 @@ export default function LandingPage() {
               fontWeight: 700,
               fontSize: "clamp(42px, 5vw, 68px)",
               lineHeight: 1.04,
-              letterSpacing: "-0.022em",
-              color: "var(--charcoal-900)",
+              letterSpacing: 0,
+              color: "var(--text-strong)",
               margin: 0,
             }}
           >
@@ -90,7 +92,7 @@ export default function LandingPage() {
           <div style={{ display: "flex", gap: 32, marginTop: 36 }}>
             {[["12k+", "braiders"], ["3.4k", "salons"], ["4.9★", "avg rating"]].map(([n, l]) => (
               <div key={l}>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--charcoal-900)" }}>{n}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--text-strong)" }}>{n}</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{l}</div>
               </div>
             ))}
@@ -98,7 +100,7 @@ export default function LandingPage() {
         </div>
 
         {/* Photo collage */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div className={styles.heroPhotos} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <Photo seed={4} aspect="3/4" radius="20px" />
           <div style={{ display: "grid", gap: 14 }}>
             <Photo seed={2} aspect="4/3" radius="20px" />
@@ -109,6 +111,7 @@ export default function LandingPage() {
 
       {/* ── Two-sided value props ─────────────────────────────────── */}
       <section
+        className={styles.valueProps}
         style={{
           maxWidth: "var(--container-max)",
           margin: "0 auto",
@@ -124,7 +127,7 @@ export default function LandingPage() {
             body: "Post staffing opportunities, review portfolios, and hire vetted braiders fast — fill your chairs without the guesswork.",
             cta: "Post an opportunity",
             href: "/sign-up",
-            bg: "var(--charcoal-900)",
+            bg: "var(--bg-inverse)",
             icon: <BriefcaseIcon />,
           },
           {
@@ -177,7 +180,7 @@ export default function LandingPage() {
                 style={{
                   marginTop: 24,
                   background: "var(--cream-50)",
-                  color: "var(--charcoal-900)",
+                  color: "var(--black)",
                   border: "none",
                   borderRadius: "var(--radius-md)",
                   height: 46,
@@ -222,7 +225,7 @@ export default function LandingPage() {
                 fontWeight: 700,
                 fontSize: 32,
                 margin: 0,
-                color: "var(--charcoal-900)",
+                color: "var(--text-strong)",
               }}
             >
               Featured braiders
@@ -246,7 +249,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 22 }}>
+        <div className={styles.featuredGrid} style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 22 }}>
           {FEATURED.map((b) => (
             <Link key={b.id} href={`/find-braiders/${b.id}`} style={{ textDecoration: "none" }}>
               <Card interactive>
@@ -258,7 +261,7 @@ export default function LandingPage() {
                         fontFamily: "var(--font-display)",
                         fontWeight: 700,
                         fontSize: 18,
-                        color: "var(--charcoal-900)",
+                        color: "var(--text-strong)",
                       }}
                     >
                       {b.name}
@@ -329,7 +332,7 @@ export default function LandingPage() {
                 fontFamily: "var(--font-display)",
                 fontWeight: 700,
                 fontSize: "clamp(28px,3vw,42px)",
-                color: "var(--charcoal-900)",
+                color: "var(--text-strong)",
                 margin: 0,
               }}
             >
@@ -337,7 +340,7 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 28 }}>
+          <div className={styles.stepsGrid} style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 28 }}>
             {HOW.map((step) => (
               <div
                 key={step.n}
@@ -365,7 +368,7 @@ export default function LandingPage() {
                     fontFamily: "var(--font-display)",
                     fontWeight: 700,
                     fontSize: 22,
-                    color: "var(--charcoal-900)",
+                    color: "var(--text-strong)",
                     margin: "0 0 12px",
                   }}
                 >
@@ -383,7 +386,7 @@ export default function LandingPage() {
       {/* ── CTA banner ────────────────────────────────────────────── */}
       <section
         style={{
-          background: "var(--charcoal-900)",
+          background: "var(--bg-inverse)",
           padding: "80px var(--gutter)",
           textAlign: "center",
         }}

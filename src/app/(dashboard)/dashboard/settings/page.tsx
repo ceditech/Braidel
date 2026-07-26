@@ -1,20 +1,13 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { getBraidStyles, getSettingsProfile } from "@/db/queries";
+import { requireOnboardedUser } from "@/lib/authenticated-user";
 import { SettingsClient } from "./SettingsClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const user = await currentUser();
+  const user = await requireOnboardedUser();
   const [profile, styles] = await Promise.all([
-    user
-      ? getSettingsProfile(user.id)
-      : Promise.resolve({
-          user: null,
-          salon: null,
-          braider: null,
-          notificationPreferences: { activity: true, messages: true, weeklyDigest: false },
-        }),
+    getSettingsProfile(user.clerkId),
     getBraidStyles(),
   ]);
 

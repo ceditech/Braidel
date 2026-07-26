@@ -49,7 +49,7 @@ export function FindSalonsClient({
 
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
-      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--charcoal-900)" }}>
+      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Find salons
       </h1>
       <p style={{ color: "var(--text-muted)", marginTop: 6 }}>
@@ -110,7 +110,7 @@ export function FindSalonsClient({
               <Photo seed={s.tone} aspect="4/3" />
               <CardBody>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--charcoal-900)" }}>{s.name}</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>{s.name}</span>
                   {s.verified && <Badge variant="brand" dot>Verified</Badge>}
                 </div>
                 <span style={{ fontSize: 14, color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 4 }}>

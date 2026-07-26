@@ -32,7 +32,7 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
 
   return (
     <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
-      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--charcoal-900)" }}>
+      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Job opportunities
       </h1>
       <p style={{ color: "var(--text-muted)", marginTop: 6 }}>
@@ -66,7 +66,7 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
-                      <Link href={`/opportunities/${j.id}`} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "var(--charcoal-900)" }}>{j.title}</Link>
+                      <Link href={`/opportunities/${j.id}`} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "var(--text-strong)" }}>{j.title}</Link>
                       <div style={{ fontSize: 14, color: "var(--text-muted)" }}>{j.salon} · {j.city}</div>
                     </div>
                     <Badge variant="neutral">{j.type}</Badge>

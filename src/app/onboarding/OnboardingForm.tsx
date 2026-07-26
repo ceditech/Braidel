@@ -26,17 +26,34 @@ type Role = (typeof roles)[number]["value"];
 export default function OnboardingForm() {
   const [selected, setSelected] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleSubmit() {
     if (!selected) return;
     setLoading(true);
-    await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: selected }),
-    });
-    router.push("/dashboard");
+    setError(null);
+
+    try {
+      const response = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selected }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data.error ?? "Could not finish setting up your account.");
+        return;
+      }
+
+      router.replace("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Could not finish setting up your account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -55,6 +72,11 @@ export default function OnboardingForm() {
           <div className="text-sm text-gray-500 mt-0.5">{role.description}</div>
         </button>
       ))}
+      {error && (
+        <p role="alert" className="text-sm font-medium text-red-700">
+          {error}
+        </p>
+      )}
       <button
         disabled={!selected || loading}
         onClick={handleSubmit}

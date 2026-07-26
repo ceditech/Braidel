@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Card } from "@/components/ui/Card";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import { getApplicationsForBraider, type ApplicationDTO } from "@/db/queries";
+import { requireDashboardRole } from "@/lib/authenticated-user";
 
 const STATUS_VARIANT: Record<ApplicationDTO["status"], "info" | "warning" | "danger" | "success"> = {
   Shortlisted: "info",
@@ -18,8 +18,8 @@ const STATUS_VARIANT: Record<ApplicationDTO["status"], "info" | "warning" | "dan
 export const dynamic = "force-dynamic";
 
 export default async function ApplicationsPage() {
-  const user = await currentUser();
-  const applications = user ? await getApplicationsForBraider(user.id) : [];
+  const user = await requireDashboardRole("braider");
+  const applications = await getApplicationsForBraider(user.clerkId);
 
   return (
     <>

@@ -1,5 +1,5 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { getConversationsForUser } from "@/db/queries";
+import { requireDashboardRole } from "@/lib/authenticated-user";
 import { MessagesClient } from "./MessagesClient";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +9,11 @@ interface MessagesPageProps {
 }
 
 export default async function MessagesPage({ searchParams }: MessagesPageProps) {
-  const [clerkUser, params] = await Promise.all([currentUser(), searchParams]);
-  const conversations = clerkUser ? await getConversationsForUser(clerkUser.id) : [];
+  const [user, params] = await Promise.all([
+    requireDashboardRole("salon_owner", "braider"),
+    searchParams,
+  ]);
+  const conversations = await getConversationsForUser(user.clerkId);
   const requestedApplication = Array.isArray(params.application)
     ? params.application[0]
     : params.application;

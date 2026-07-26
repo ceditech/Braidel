@@ -137,7 +137,7 @@ export function MessagesClient({
     >
       <aside className={styles.conversationList} style={{ borderRight: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", background: "var(--surface-card)", minWidth: 0 }}>
         <div style={{ padding: "18px 18px 12px" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, margin: "0 0 12px", color: "var(--charcoal-900)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, margin: "0 0 12px", color: "var(--text-strong)" }}>
             Messages
           </h2>
           <Input

@@ -1,7 +1,8 @@
 # Braidel — Claude Handoff
 
 A working brief for any Claude (or engineer) picking up this project. Read this
-first, then `AGENTS.md`, then the two docs in `docs/`.
+first, then `AGENTS.md`, the two docs in `docs/`, and
+[`PRE-PRODUCTION-RELEASE-CHECKS.md`](PRE-PRODUCTION-RELEASE-CHECKS.md).
 
 ---
 
@@ -76,6 +77,17 @@ src/
 └── proxy.ts                      # Clerk route protection (NOT middleware.ts — see §6)
 ```
 
+### Current public route split
+
+- [`src/app/(home)/page.tsx`](<src/app/(home)/page.tsx>) owns the editorial brand
+  homepage at `/` and renders
+  [`HomeExperience`](src/components/marketing/HomeExperience.tsx).
+- [`src/app/(public)/marketplace/page.tsx`](<src/app/(public)/marketplace/page.tsx>)
+  preserves the previous marketplace landing experience at `/marketplace`.
+- The remaining `(public)` routes continue to use the shared public navigation
+  and footer layout. The editorial homepage intentionally owns its own immersive
+  header, content sections, and footer.
+
 ---
 
 ## 4. Database Schema (Neon)
@@ -86,6 +98,9 @@ Eleven tables, all migrated and live: `users`, `salons`, `braiders`,
 definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
+- `users.onboardedAt` distinguishes identity rows created by Clerk sync from
+  accounts that have explicitly completed role selection. Migration `0010`
+  backfills existing accounts and leaves future pre-onboarding rows nullable.
 - Role-specific profile rows (`salons`, `braiders`) are seeded on onboarding.
 - Clerk identity updates are synchronized through a signed webhook. Deletions
   tombstone the user, remove identity PII, and deactivate public marketplace
@@ -135,16 +150,23 @@ Rules while this transition holds:
 12. ✅ Notifications persist with idempotent event keys for applications,
     application status changes, messages, and reviews; read state and preferences
     are DB-backed.
+13. ✅ Dashboard role state is derived from the authenticated Neon user;
+    incompatible role pages redirect server-side, onboarding completion is
+    explicit, and Client dashboard/settings foundations are available.
 
 ### Roles in the dashboard
 
-The dashboard shell serves both **salon** and **braider** roles from one layout.
-Role is held in a client context — [`RoleContext`](src/components/dashboard/RoleContext.tsx)
-— toggled from the sidebar pill, defaulting to `salon`. The sidebar swaps its nav
-set and `/dashboard` renders `SalonDashboardHome` or `BraiderDashboardHome`
-accordingly. **When the backend pass lands, seed the initial role from the
-signed-in user's `users.role`** and the toggle becomes a dev/demo affordance (or
-is gated to the user's real role).
+The dashboard shell serves **salon**, **braider**, and **client** roles from one
+layout. [`src/app/(dashboard)/layout.tsx`](<src/app/(dashboard)/layout.tsx>)
+resolves the signed-in, onboarded Neon user on the server and seeds the read-only
+[`RoleContext`](src/components/dashboard/RoleContext.tsx). The sidebar no longer
+simulates another identity: it displays the authenticated account role and swaps
+only the role-compatible navigation set.
+
+The account model is intentionally **single-role** for this phase. `users.role`
+is the authorization source of truth; client context controls presentation only.
+Role-specific pages call `requireDashboardRole()` and redirect incompatible
+accounts to `/dashboard`. Changing account roles is not a self-service action.
 
 ---
 
@@ -213,11 +235,13 @@ These cost time once already — don't repeat them.
 
 ## 7. Design System
 
-Sourced from the "Braidel Design System" kit (in repo root). All tokens are
-ported into `src/app/globals.css`:
+The shared implementation lives in `src/app/globals.css` and the primitives in
+`src/components/ui/`:
 
-- **Brand:** terracotta (`--brand` / `#C75D3F`), secondary deep gold.
-- **Neutrals:** warm cream → charcoal ramp. Page bg is `--bg-page` (cream).
+- **Brand:** the lowercase `braid.el` wordmark, muted rose
+  (`--brand` / `#C65D66`), ink black, and cool neutral surfaces.
+- **Themes:** persistent light/dark preference is stored under
+  `braidel-theme`; `ThemeToggle` is exposed in public and dashboard chrome.
 - **Fonts:** Bricolage Grotesque (display), Hanken Grotesk (body/UI),
   JetBrains Mono (eyebrows/data).
 - **Prefer semantic tokens** (`--brand`, `--text-body`, `--surface-card`) over
@@ -226,6 +250,38 @@ ported into `src/app/globals.css`:
 The `Braidel Design System/` folder contains the original JSX reference kits
 (marketing + app). They are **reference only** — the shipped components in
 `src/components/` are the real implementation.
+
+### Editorial homepage UI
+
+The redesigned homepage at `/` is a responsive, image-led editorial experience:
+
+- **Implementation:** [`HomeExperience.tsx`](src/components/marketing/HomeExperience.tsx)
+  with scoped styles in
+  [`HomeExperience.module.css`](src/components/marketing/HomeExperience.module.css).
+  It is intentionally separate from the shared marketplace `Navbar` and
+  `Footer`.
+- **Primary navigation:** the `braid.el` wordmark returns home, `Marketplace`
+  routes to `/marketplace`, and About, How It Works, Pricing, Blog, and Contact
+  use anchored homepage sections. The responsive mobile menu exposes the same
+  destinations.
+- **Discovery pathways:** three image cards link directly to Find Braiders,
+  Find Salons, and Job Opportunities. Their generated imagery lives under
+  `public/images/home/`.
+- **Spotlight:** three synchronized copy-and-image slides rotate every seven
+  seconds, pause during pointer or keyboard interaction, support direct slide
+  selection, preserve stable layout dimensions, and disable transitions when
+  reduced motion is requested.
+- **Supporting content:** About, How It Works, introductory Pricing, Journal,
+  contact, and sign-up calls to action are present below the first viewport.
+- **Theme behavior:** the light header uses the CSS-module rule
+  `:global(html[data-theme="light"]) .header` with a white-to-`#733831`
+  gradient and explicit high-contrast navigation controls. Dark mode retains
+  its solid near-black header. The spotlight subtitle uses the rose brand
+  accent, and the persistent theme preference still uses `braidel-theme`.
+- **Responsive behavior:** the desktop two-column experience becomes a stacked
+  layout with horizontally scrollable pathway cards and compact navigation at
+  tablet/mobile breakpoints. Keep header contrast, stable spotlight geometry,
+  and overflow checks in the regression checklist for future homepage edits.
 
 ---
 
@@ -246,28 +302,59 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 is UI-complete and ~92% complete by the tracker.** Both
+**Phase 1 workforce workflows are mostly complete and ~93% complete by the
+tracker.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
 Portfolio media, notifications, messaging, ratings, and role-aware settings are
 now persistent. Remaining Phase 1 work is concentrated in operational readiness
 and public content:
 
-- **Public:** landing, Find Braiders (+ profile), Find Salons (+ detail),
-  Job Opportunities (+ detail). Discovery filters and jobs are wired to Neon.
+- **Public:** the editorial brand home is `/`; the previous marketplace landing
+  is preserved at public route `/marketplace`; Find Braiders (+ profile), Find
+  Salons (+ detail), and Job Opportunities (+ detail) remain wired to Neon.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants with
   a responsive profile/portfolio drawer and status actions, Messages, Settings.
 - **Braider app:** dashboard, Find Work + apply, Applications, Messages,
   Settings (profile editor).
-- **Shell:** role switch (salon/braider), internal Tracker + Market Study.
+- **Client app:** role-aware dashboard, public Braider/Salon discovery links,
+  Notifications, and account/notification Settings foundation.
+- **Shell:** server-owned Salon/Braider/Client role state, role-compatible
+  navigation, internal Tracker + Market Study.
 
-**Remaining (highest value first):**
+**Strategic implementation order:**
 
-1. **CI and deployment pipeline** — automate type checking, linting, build, and
-   migration safety; configure `BLOB_READ_WRITE_TOKEN` in production.
-2. **Legal and trust content** — Terms and Privacy are the launch-critical public
-   pages; Pricing and How It Works follow.
-3. **Secondary content** — About, Contact, Blog, and FAQ.
+1. **Real role state + client account foundation.**
+2. **Booking domain schema + migrations.**
+3. **Booking APIs + appointments/calendar UI.**
+4. **Booking-aware conversations, reviews, and notifications.**
+5. **Payments + monetization.**
+6. **Trust, verification, and marketplace administration.**
+7. **Ecosystem expansion:** Academy, Supply, Franchise, then mobile.
+
+### Completed: workstream 1/7
+
+**Real role state + client account foundation** is complete:
+
+1. Single-role accounts are the documented current policy.
+2. The dashboard layout resolves `users.role` on the server through
+   [`authenticated-user.ts`](src/lib/authenticated-user.ts).
+3. `RoleContext` is read-only and no longer defaults to or toggles Salon.
+4. Role-specific dashboard pages redirect incompatible accounts server-side;
+   API authorization continues to independently enforce `users.role`.
+5. Client accounts have dedicated navigation, dashboard discovery, account
+   settings, and notification preferences.
+6. Migration `0010_violet_bloodstrike.sql` adds and backfills
+   `users.onboarded_at`; onboarding is idempotent and prevents silent role
+   replacement after completion.
+
+**Immediate next strategic focus:** workstream `2/7`, Booking domain schema +
+migrations. Define the booking aggregate and invariants before adding APIs or
+calendar UI.
+
+CI/deployment, legal and trust content, Pricing, How It Works, and secondary
+public content remain parallel launch-readiness work. Clerk webhook activation
+remains deferred until a stable staging or production URL exists.
 
 Notification delivery is currently in-app. The activity/message/digest
 preferences are persisted for later email or push delivery, but no external
@@ -275,6 +362,8 @@ delivery worker is implemented yet.
 
 Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
 [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md). Live dashboard: `/tracker`.
+Production gates and deferred activation work:
+[`PRE-PRODUCTION-RELEASE-CHECKS.md`](PRE-PRODUCTION-RELEASE-CHECKS.md).
 
 ---
 
@@ -288,3 +377,7 @@ Source of truth: [`src/lib/roadmap.ts`](src/lib/roadmap.ts). Snapshot:
 - Reuse `src/components/ui/` primitives; don't re-implement buttons/cards.
 - Keep sample/mock data obvious and co-located until the API routes land.
 - Confirm outward-facing or hard-to-reverse actions before running them.
+- Treat `PRE-PRODUCTION-RELEASE-CHECKS.md` as a living release document. Update
+  it whenever work adds or changes production secrets, integrations, migrations,
+  webhooks, jobs, authorization boundaries, retention behavior, monitoring,
+  legal obligations, or rollback requirements.
