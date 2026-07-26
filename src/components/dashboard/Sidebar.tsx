@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { useRole, type Role } from "@/components/dashboard/RoleContext";
@@ -24,6 +24,20 @@ const braiderNav = [
   { href: "/dashboard/settings",    label: "Settings",     icon: <SettingsIcon /> },
 ];
 
+const clientNav = [
+  { href: "/dashboard",               label: "Dashboard",     icon: <GridIcon /> },
+  { href: "/find-braiders",           label: "Find braiders", icon: <UsersIcon /> },
+  { href: "/find-salons",             label: "Find salons",   icon: <BriefcaseIcon /> },
+  { href: "/dashboard/notifications", label: "Notifications", icon: <BellIcon /> },
+  { href: "/dashboard/settings",      label: "Settings",      icon: <SettingsIcon /> },
+];
+
+const roleLabels: Record<Role, string> = {
+  salon: "Salon owner",
+  braider: "Braider",
+  client: "Client",
+};
+
 const buildNav = [
   { href: "/tracker",      label: "Project Tracker", icon: <TrackerIcon /> },
   { href: "/market-study", label: "Market Study",    icon: <ChartIcon /> },
@@ -31,14 +45,8 @@ const buildNav = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { role, setRole } = useRole();
-  const nav = role === "braider" ? braiderNav : salonNav;
-
-  const switchRole = (next: Role) => {
-    setRole(next);
-    router.push("/dashboard"); // return to the role-aware home on switch
-  };
+  const { role } = useRole();
+  const nav = role === "salon" ? salonNav : role === "braider" ? braiderNav : clientNav;
 
   return (
     <aside
@@ -69,39 +77,23 @@ export function Sidebar() {
         <BraidelLogo light size={24} />
       </div>
 
-      {/* Role pill */}
+      {/* Authenticated account role */}
       <div
         className={styles.roleSwitch}
         style={{
           margin: "0 16px 16px",
           background: "rgba(255,255,255,.06)",
           borderRadius: "var(--radius-pill)",
-          padding: 4,
+          padding: "10px 12px",
           display: "flex",
-          gap: 4,
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--cream-100)",
+          fontSize: 13,
+          fontWeight: 600,
         }}
       >
-        {(["salon", "braider"] as const).map((r) => (
-          <button
-            key={r}
-            onClick={() => switchRole(r)}
-            style={{
-              flex: 1,
-              textAlign: "center",
-              border: "none",
-              borderRadius: "var(--radius-pill)",
-              padding: "7px 0",
-              fontFamily: "var(--font-sans)",
-              fontWeight: 600,
-              fontSize: 13,
-              background: role === r ? "var(--terracotta-500)" : "transparent",
-              color: role === r ? "#fff" : "var(--taupe-400)",
-              cursor: "pointer",
-            }}
-          >
-            {r.charAt(0).toUpperCase() + r.slice(1)}
-          </button>
-        ))}
+        {roleLabels[role]}
       </div>
 
       {/* Nav items */}
@@ -197,7 +189,7 @@ export function Sidebar() {
             My account
           </div>
           <div style={{ fontSize: 12, color: "var(--taupe-400)" }}>
-            {role === "salon" ? "Salon owner" : "Braider"}
+            {roleLabels[role]}
           </div>
         </div>
       </div>

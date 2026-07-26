@@ -170,10 +170,10 @@ export const ROADMAP: RoadmapGroup[] = [
     items: [
       {
         title: "1. Real role state + client account foundation",
-        status: "pending",
+        status: "done",
         priority: "high",
         phase: 1,
-        note: "Derive the dashboard from the authenticated DB role, decide single-role vs. multi-role accounts, and add the client shell/profile foundation.",
+        note: "Single-role accounts now derive dashboard state from the authenticated Neon user, onboarding completion is explicit, incompatible role routes redirect server-side, and clients have dashboard and settings foundations.",
       },
       {
         title: "2. Booking domain schema + migrations",

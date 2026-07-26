@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users, salons, braiders } from "@/db/schema";
 
@@ -16,6 +17,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
+  const [existing] = await db
+    .select({
+      role: users.role,
+      onboardedAt: users.onboardedAt,
+    })
+    .from(users)
+    .where(eq(users.clerkId, clerkUser.id))
+    .limit(1);
+
+  if (existing?.onboardedAt && existing.role !== role) {
+    return NextResponse.json(
+      { error: "This account already has a role. Contact support to change it." },
+      { status: 409 }
+    );
+  }
+
   const email =
     clerkUser.primaryEmailAddress?.emailAddress ??
     clerkUser.emailAddresses[0]?.emailAddress ??
@@ -26,6 +43,7 @@ export async function POST(req: NextRequest) {
     firstName: clerkUser.firstName ?? "",
     lastName: clerkUser.lastName ?? "",
     avatarUrl: clerkUser.imageUrl,
+    onboardedAt: existing?.onboardedAt ?? new Date(),
     deletedAt: null,
     updatedAt: new Date(),
   };

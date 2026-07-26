@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { braiders, notificationPreferences, salons, users } from "@/db/schema";
 
-type SettingsRole = "salon" | "braider";
+type SettingsRole = "salon" | "braider" | "client";
 
 function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -58,7 +58,10 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const role = body.role === "salon" || body.role === "braider" ? (body.role as SettingsRole) : null;
+  const role =
+    body.role === "salon" || body.role === "braider" || body.role === "client"
+      ? (body.role as SettingsRole)
+      : null;
   if (!role) {
     return NextResponse.json({ error: "Invalid settings role" }, { status: 400 });
   }
@@ -71,6 +74,33 @@ export async function PATCH(req: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+  }
+
+  if (role === "client") {
+    if (user.role !== "client") {
+      return NextResponse.json(
+        { error: "Only client accounts can update client settings" },
+        { status: 403 }
+      );
+    }
+
+    const firstName = stringValue(body.firstName);
+    const lastName = stringValue(body.lastName);
+    if (!firstName) {
+      return NextResponse.json({ error: "First name is required" }, { status: 400 });
+    }
+
+    await db
+      .update(users)
+      .set({
+        firstName,
+        lastName,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id));
+
+    await saveNotificationPreferences(user.id, body.notifications);
+    return NextResponse.json({ ok: true });
   }
 
   if (role === "salon") {

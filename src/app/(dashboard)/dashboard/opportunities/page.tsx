@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Card } from "@/components/ui/Card";
@@ -6,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { getOpportunitiesForSalon, type OpportunityStatus } from "@/db/queries";
+import { requireDashboardRole } from "@/lib/authenticated-user";
 
 const STATUS_BADGE: Record<OpportunityStatus, { label: string; variant: "success" | "neutral" | "danger" }> = {
   active: { label: "Active", variant: "success" },
@@ -16,8 +16,8 @@ const STATUS_BADGE: Record<OpportunityStatus, { label: string; variant: "success
 export const dynamic = "force-dynamic";
 
 export default async function OpportunitiesPage() {
-  const user = await currentUser();
-  const opportunities = user ? await getOpportunitiesForSalon(user.id) : [];
+  const user = await requireDashboardRole("salon_owner");
+  const opportunities = await getOpportunitiesForSalon(user.clerkId);
 
   return (
     <>

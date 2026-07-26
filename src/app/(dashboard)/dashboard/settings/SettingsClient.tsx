@@ -23,18 +23,117 @@ export function SettingsClient({
   styleOptions: string[];
 }) {
   const { role } = useRole();
-  const title = role === "salon" ? "Manage your salon account." : "Manage your braider profile and account.";
+  const title =
+    role === "salon"
+      ? "Manage your salon account."
+      : role === "braider"
+        ? "Manage your braider profile and account."
+        : "Manage your client account and preferences.";
 
   return (
     <>
       <Topbar title="Settings" subtitle={title} />
       <div style={{ padding: 32, maxWidth: 820, display: "flex", flexDirection: "column", gap: 20 }}>
-        {role === "braider" ? (
+        {role === "client" ? (
+          <ClientSettings profile={profile} />
+        ) : role === "braider" ? (
           <BraiderSettings profile={profile} styleOptions={styleOptions} />
         ) : (
           <SalonSettings profile={profile} styleOptions={styleOptions} />
         )}
       </div>
+    </>
+  );
+}
+
+function ClientSettings({ profile }: { profile: SettingsProfileDTO }) {
+  const router = useRouter();
+  const [firstName, setFirstName] = useState(profile.user?.firstName ?? "");
+  const [lastName, setLastName] = useState(profile.user?.lastName ?? "");
+  const [activity, setActivity] = useState(profile.notificationPreferences.activity);
+  const [messages, setMessages] = useState(profile.notificationPreferences.messages);
+  const [weeklyDigest, setWeeklyDigest] = useState(
+    profile.notificationPreferences.weeklyDigest
+  );
+  const [state, setState] = useState<SaveState>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setState("saving");
+    setError(null);
+
+    const res = await fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: "client",
+        firstName,
+        lastName,
+        notifications: { activity, messages, weeklyDigest },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setState("error");
+      setError(data.error ?? "Could not save client settings.");
+      return;
+    }
+
+    setState("saved");
+    router.refresh();
+  }
+
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  return (
+    <>
+      <SettingsCard title="Client account">
+        <div style={{ display: "flex", gap: 18, alignItems: "center", marginBottom: 20 }}>
+          <Avatar name={fullName || "Client"} size="xl" ring />
+          <div>
+            <div style={{ color: "var(--text-strong)", fontWeight: 700 }}>
+              {fullName || "Your profile"}
+            </div>
+            <div style={{ marginTop: 3, color: "var(--text-muted)", fontSize: 13 }}>
+              {profile.user?.email}
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
+            gap: 16,
+          }}
+        >
+          <Input
+            label="First name"
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            required
+          />
+          <Input
+            label="Last name"
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+          />
+        </div>
+      </SettingsCard>
+
+      <SettingsCard title="Notifications">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <ToggleRow label="Account activity" checked={activity} onChange={setActivity} />
+          <ToggleRow label="Messages" checked={messages} onChange={setMessages} />
+          <ToggleRow
+            label="Weekly discovery digest"
+            checked={weeklyDigest}
+            onChange={setWeeklyDigest}
+          />
+        </div>
+      </SettingsCard>
+
+      <SaveBar state={state} error={error} onSave={save} />
     </>
   );
 }

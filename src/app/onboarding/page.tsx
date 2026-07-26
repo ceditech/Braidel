@@ -1,10 +1,14 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
+import { getDbUserByClerkId } from "@/lib/authenticated-user";
 import OnboardingForm from "./OnboardingForm";
 
 export default async function OnboardingPage() {
   const user = await currentUser();
   if (!user) redirect("/sign-in");
+
+  const dbUser = await getDbUserByClerkId(user.id);
+  if (dbUser?.onboardedAt) redirect("/dashboard");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

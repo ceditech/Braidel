@@ -64,6 +64,13 @@
       "when": 1784416658239,
       "tag": "0009_striped_black_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784964340837,
+      "tag": "0010_violet_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

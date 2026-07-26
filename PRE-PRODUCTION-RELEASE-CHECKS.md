@@ -4,7 +4,7 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** July 24, 2026
+> **Last reviewed:** July 25, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
@@ -73,6 +73,10 @@ Production must not launch until every item in this section is complete.
       production-equivalent environment.
 - [ ] Apply migration `0009_striped_black_knight.sql` to the production database
       before activating Clerk synchronization.
+- [ ] Apply migration `0010_violet_bloodstrike.sql` before releasing the
+      server-owned dashboard role flow.
+- [ ] Verify migration `0010` backfills `users.onboarded_at` for every existing
+      account while future Clerk-created, pre-onboarding users remain null.
 - [ ] Review every pending migration for destructive or locking operations.
 - [ ] Capture and verify a pre-launch backup or restorable Neon branch.
 - [ ] Document database rollback and forward-fix procedures.
@@ -86,6 +90,10 @@ Production must not launch until every item in this section is complete.
 - [ ] Configure and test the Clerk Production instance.
 - [ ] Verify production sign-up, sign-in, sign-out, session expiry, and onboarding.
 - [ ] Verify each real role can access only its authorized workflows.
+- [ ] Verify direct navigation to a dashboard route for another role redirects
+      to the signed-in account's dashboard without exposing role-specific data.
+- [ ] Verify new Clerk identities cannot enter the dashboard until onboarding
+      has explicitly selected a role and populated `users.onboarded_at`.
 - [ ] Verify salon owners cannot mutate another salon's opportunities,
       applications, messages, settings, or ratings.
 - [ ] Verify braiders cannot mutate another braider's applications, portfolio,
@@ -115,8 +123,12 @@ events otherwise will not automatically synchronize to Neon.
       marketplace history.
 - [x] Deleted braider profiles and salon opportunities are deactivated.
 - [x] Onboarding remains safe when the webhook creates the local user first.
+- [x] Explicit onboarding completion prevents a webhook-created default Client
+      identity from bypassing role selection.
 - [x] Required lifecycle columns and one-profile-per-user constraints are
       represented by migration `0009_striped_black_knight.sql`.
+- [x] `users.onboarded_at` and its existing-account backfill are represented by
+      migration `0010_violet_bloodstrike.sql`.
 
 ### Staging Activation
 
@@ -169,7 +181,8 @@ events otherwise will not automatically synchronize to Neon.
 - [ ] Complete production-critical Terms of Service and Privacy Policy pages.
 - [ ] Ensure consent, deletion, retention, and contact language match actual app
       behavior.
-- [ ] Complete critical end-to-end tests for salon and braider workflows.
+- [ ] Complete critical end-to-end tests for salon, braider, and client
+      workflows.
 - [ ] Test empty, loading, error, unauthorized, and stale-data states.
 - [ ] Verify responsive behavior on supported mobile and desktop viewports.
 - [ ] Complete keyboard, focus, form-label, contrast, and screen-reader checks.
@@ -222,4 +235,10 @@ Add dated entries here as production gates are verified.
   lifecycle schema, and migration `0009_striped_black_knight.sql` were
   implemented. TypeScript, focused lint, and production build passed locally.
   External Clerk endpoint activation remains deferred.
-
+- **July 25, 2026:** Server-owned single-role dashboard state, explicit
+  onboarding completion, Client dashboard/settings foundations, and
+  role-compatible page redirects were implemented. Migration
+  `0010_violet_bloodstrike.sql` was applied to the configured development Neon
+  database and all 13 existing user rows were verified as backfilled;
+  TypeScript, focused lint, and the production build passed. Staging three-role
+  acceptance testing remains required.

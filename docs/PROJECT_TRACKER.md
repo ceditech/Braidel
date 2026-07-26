@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~85% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~86% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -14,7 +14,7 @@
 
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 63 / 69 | ~91% |
+| **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
 | **Phase 2** | Client Booking | 4 / 7 | ~57% |
 | **Phase 3** | Online Payments | 0 / 1 | 0% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
@@ -158,7 +158,7 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 
 | # | Status | Workstream | Priority | Phase |
 |---|--------|------------|----------|-------|
-| 1 | ⬜ | Real role state + client account foundation | High | 1 |
+| 1 | ✅ | Real role state + client account foundation | High | 1 |
 | 2 | ⬜ | Booking domain schema + migrations | High | 2 |
 | 3 | ⬜ | Booking APIs + appointments/calendar UI | High | 2 |
 | 4 | ⬜ | Booking-aware conversations, reviews + notifications | High | 2 |
@@ -168,9 +168,9 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 
 ### Workstream scope
 
-1. **Real role state + client account foundation** — derive dashboard state
-   from the authenticated DB role, decide single-role versus multi-role
-   accounts, and add the client shell/profile foundation.
+1. **Real role state + client account foundation** — completed with a
+   server-owned single-role contract, explicit onboarding completion,
+   role-compatible server redirects, and Client dashboard/settings foundations.
 2. **Booking domain schema + migrations** — model client profiles, service
    offerings, availability, bookings, status history, timezone-aware scheduling,
    and integer-cent pricing.

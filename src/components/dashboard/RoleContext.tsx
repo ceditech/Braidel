@@ -1,29 +1,29 @@
 "use client";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
+import type { DashboardRole } from "@/lib/roles";
 
-export type Role = "salon" | "braider";
+export type Role = DashboardRole;
 
 interface RoleContextValue {
   role: Role;
-  setRole: (role: Role) => void;
 }
 
-const RoleContext = createContext<RoleContextValue>({
-  role: "salon",
-  setRole: () => {},
-});
+const RoleContext = createContext<RoleContextValue | null>(null);
 
-/**
- * Client-side role state for the dashboard shell. For now it defaults to
- * "salon" and is toggled from the sidebar so the app is demoable from both
- * sides. When the backend wiring pass lands, seed the initial value from the
- * signed-in user's `role` (see CLAUDE_HANDOFF §4).
- */
-export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role>("salon");
-  return <RoleContext.Provider value={{ role, setRole }}>{children}</RoleContext.Provider>;
+export function RoleProvider({
+  children,
+  initialRole,
+}: {
+  children: React.ReactNode;
+  initialRole: Role;
+}) {
+  return <RoleContext.Provider value={{ role: initialRole }}>{children}</RoleContext.Provider>;
 }
 
 export function useRole() {
-  return useContext(RoleContext);
+  const context = useContext(RoleContext);
+  if (!context) {
+    throw new Error("useRole must be used within a RoleProvider");
+  }
+  return context;
 }

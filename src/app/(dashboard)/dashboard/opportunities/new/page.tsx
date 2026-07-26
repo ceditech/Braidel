@@ -1,13 +1,13 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { getBraidStyles, getOpportunitiesForSalon } from "@/db/queries";
+import { requireDashboardRole } from "@/lib/authenticated-user";
 import { NewOpportunityClient } from "./NewOpportunityClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewOpportunityPage() {
-  const user = await currentUser();
+  const user = await requireDashboardRole("salon_owner");
   const [opportunities, styles] = await Promise.all([
-    user ? getOpportunitiesForSalon(user.id) : [],
+    getOpportunitiesForSalon(user.clerkId),
     getBraidStyles(),
   ]);
 
