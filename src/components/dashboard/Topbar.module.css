@@ -7,8 +7,9 @@
   gap: 16px;
   padding: 24px 32px 18px;
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(251, 247, 241, 0.9);
+  background: var(--nav-glass);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .titleGroup {

@@ -283,6 +283,21 @@ The redesigned homepage at `/` is a responsive, image-led editorial experience:
   tablet/mobile breakpoints. Keep header contrast, stable spotlight geometry,
   and overflow checks in the regression checklist for future homepage edits.
 
+### Dashboard shell responsive polish
+
+The authenticated dashboard shell has been tightened for mobile and dark mode:
+
+- **Mobile layout:** the desktop sidebar collapses into a bottom navigation with
+  a More drawer for secondary routes, while dashboard cards, lists, and booking
+  views stack into single-column layouts at small breakpoints.
+- **Dark theme header:** [`Topbar.module.css`](src/components/dashboard/Topbar.module.css)
+  uses the semantic `--nav-glass` token so the header resolves to a dark glass
+  surface in dark mode instead of the old light backdrop. Notification bell icon
+  color follows `--text-muted` for contrast across both themes.
+- **Verification:** rerun responsive checks for `/dashboard`, role dashboards,
+  `/dashboard/appointments`, and the public homepage whenever dashboard shell or
+  theme tokens change.
+
 ---
 
 ## 8. Internal Dashboard Tools

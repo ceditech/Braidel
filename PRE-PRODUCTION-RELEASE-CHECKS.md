@@ -4,7 +4,7 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** July 26, 2026
+> **Last reviewed:** July 27, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
@@ -207,6 +207,10 @@ events otherwise will not automatically synchronize to Neon.
       workflows.
 - [ ] Test empty, loading, error, unauthorized, and stale-data states.
 - [ ] Verify responsive behavior on supported mobile and desktop viewports.
+- [ ] Verify dashboard shell mobile behavior: bottom navigation, More drawer,
+      role-specific actions, and no horizontal overflow on supported widths.
+- [ ] Verify dashboard header contrast in light and dark themes, including
+      notification controls and primary action buttons.
 - [ ] Complete keyboard, focus, form-label, contrast, and screen-reader checks.
 - [ ] Verify notification counts, deep links, read state, and preferences.
 - [ ] Verify messaging participant authorization and unread-state behavior.
@@ -280,3 +284,9 @@ Add dated entries here as production gates are verified.
   production build, and the reversible `npm run verify:booking` lifecycle smoke
   passed locally. Staging concurrency, runtime, timezone, and three-role
   acceptance checks remain launch gates.
+- **July 27, 2026:** Public and dashboard mobile responsiveness were tightened,
+  including dashboard bottom navigation, More drawer behavior, public mobile
+  navigation, and directory/detail stacking. Dashboard dark-mode topbar styling
+  now uses semantic navigation tokens so header contrast follows the active
+  theme. TypeScript, focused lint, production build, and whitespace checks passed
+  locally; authenticated visual verification should still be repeated in staging.
