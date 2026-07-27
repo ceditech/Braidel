@@ -1,8 +1,10 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
+import { Drawer } from "@/components/ui/Drawer";
 import { useRole, type Role } from "@/components/dashboard/RoleContext";
 import styles from "./Sidebar.module.css";
 
@@ -49,24 +51,28 @@ const buildNav = [
 export function Sidebar() {
   const pathname = usePathname();
   const { role } = useRole();
+  const [moreOpen, setMoreOpen] = useState(false);
   const nav = role === "salon" ? salonNav : role === "braider" ? braiderNav : clientNav;
+  const mobilePrimary = nav.slice(0, 4);
+  const mobileMore = nav.slice(4);
 
   return (
-    <aside
-      className={styles.sidebar}
-      style={{
-        width: 248,
-        flexShrink: 0,
-        background: "var(--bg-inverse)",
-        color: "var(--cream-100)",
-        display: "flex",
-        flexDirection: "column",
-        position: "sticky",
-        top: 0,
-        height: "100vh",
-        overflowY: "auto",
-      }}
-    >
+    <>
+      <aside
+        className={styles.sidebar}
+        style={{
+          width: 248,
+          flexShrink: 0,
+          background: "var(--bg-inverse)",
+          color: "var(--cream-100)",
+          display: "flex",
+          flexDirection: "column",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          overflowY: "auto",
+        }}
+      >
       {/* Logo */}
       <div
         className={styles.logo}
@@ -174,30 +180,120 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User area */}
-      <div
-        className={styles.userArea}
-        style={{
-          marginTop: "auto",
-          padding: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          borderTop: "1px solid rgba(255,255,255,.08)",
-        }}
-      >
-        <UserButton />
-        <div style={{ lineHeight: 1.2, overflow: "hidden" }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--cream-100)", whiteSpace: "nowrap" }}>
-            My account
-          </div>
-          <div style={{ fontSize: 12, color: "var(--taupe-400)" }}>
-            {roleLabels[role]}
+        {/* User area */}
+        <div
+          className={styles.userArea}
+          style={{
+            marginTop: "auto",
+            padding: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            borderTop: "1px solid rgba(255,255,255,.08)",
+          }}
+        >
+          <UserButton />
+          <div style={{ lineHeight: 1.2, overflow: "hidden" }}>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "var(--cream-100)", whiteSpace: "nowrap" }}>
+              My account
+            </div>
+            <div style={{ fontSize: 12, color: "var(--taupe-400)" }}>
+              {roleLabels[role]}
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+
+        <nav className={styles.mobilePrimaryNav} aria-label="Mobile dashboard navigation">
+          {mobilePrimary.map(({ href, label, icon }) => {
+            const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={active ? styles.mobileItemActive : undefined}
+                onClick={() => setMoreOpen(false)}
+              >
+                <span aria-hidden="true">{icon}</span>
+                <span>{shortMobileLabel(label)}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            className={moreOpen ? styles.mobileItemActive : undefined}
+            aria-label="Open more dashboard navigation"
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen(true)}
+          >
+            <span aria-hidden="true"><MoreIcon /></span>
+            <span>More</span>
+          </button>
+        </nav>
+      </aside>
+
+      <Drawer
+        open={moreOpen}
+        title="More"
+        description={`${roleLabels[role]} navigation and account`}
+        onClose={() => setMoreOpen(false)}
+      >
+        <div className={styles.moreMenu}>
+          <div className={styles.moreSection}>
+            <p className={styles.moreLabel}>Workspace</p>
+            {mobileMore.map(({ href, label, icon }) => {
+              const active = pathname === href || pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${styles.moreLink} ${active ? styles.moreLinkActive : ""}`}
+                  onClick={() => setMoreOpen(false)}
+                >
+                  {icon}
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className={styles.moreSection}>
+            <p className={styles.moreLabel}>Insights</p>
+            {buildNav.map(({ href, label, icon }) => {
+              const active = pathname === href || pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${styles.moreLink} ${active ? styles.moreLinkActive : ""}`}
+                  onClick={() => setMoreOpen(false)}
+                >
+                  {icon}
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className={styles.mobileAccount}>
+            <UserButton />
+            <div className={styles.mobileAccountText}>
+              <strong>My account</strong>
+              <span>{roleLabels[role]}</span>
+            </div>
+          </div>
+        </div>
+      </Drawer>
+    </>
   );
+}
+
+function shortMobileLabel(label: string) {
+  if (label === "Opportunities") return "Jobs";
+  if (label === "Appointments") return "Bookings";
+  if (label === "Applications") return "Applied";
+  if (label === "Find braiders") return "Braiders";
+  if (label === "Find salons") return "Salons";
+  return label;
 }
 
 /* Icons */
@@ -230,4 +326,7 @@ function TrackerIcon() {
 }
 function ChartIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+}
+function MoreIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>;
 }

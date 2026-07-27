@@ -12,6 +12,7 @@ import { Tag } from "@/components/ui/Tag";
 import { Avatar } from "@/components/ui/Avatar";
 import { PortfolioManager } from "@/components/portfolio/PortfolioManager";
 import type { SettingsProfileDTO } from "@/db/queries";
+import styles from "../DashboardPages.module.css";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -33,7 +34,7 @@ export function SettingsClient({
   return (
     <>
       <Topbar title="Settings" subtitle={title} />
-      <div style={{ padding: 32, maxWidth: 820, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className={`${styles.narrowPage} ${styles.settingsStack}`}>
         {role === "client" ? (
           <ClientSettings profile={profile} />
         ) : role === "braider" ? (
@@ -186,7 +187,7 @@ function SaveBar({
   onSave: () => void;
 }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+    <div className={styles.saveBar}>
       <StatusMessage state={state} error={error} />
       <Button onClick={onSave} disabled={state === "saving"}>
         {state === "saving" ? "Saving..." : "Save changes"}
@@ -255,7 +256,7 @@ function SalonSettings({
           <Avatar name={name || "Salon"} size="xl" ring />
           <Button variant="outline" size="sm" disabled>Logo upload later</Button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className={styles.formGrid}>
           <Input label="Salon name" value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label="City" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Atlanta, GA" />
           <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(404) 555-0199" />
@@ -347,7 +348,7 @@ function BraiderSettings({
           <Avatar name={fullName || "Braider"} size="xl" ring />
           <Button variant="outline" size="sm" disabled>Photo upload later</Button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className={styles.formGrid}>
           <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           <Input label="City" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Atlanta, GA" />
           <Input label="Price range" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="$160-$280" />

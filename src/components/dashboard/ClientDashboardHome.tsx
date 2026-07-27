@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import styles from "./DashboardHome.module.css";
 
 const discoveryOptions = [
   {
@@ -41,7 +42,7 @@ export function ClientDashboardHome({ firstName }: { firstName: string }) {
         }
       />
 
-      <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className={styles.body}>
         <section>
           <p
             style={{
@@ -54,13 +55,7 @@ export function ClientDashboardHome({ firstName }: { firstName: string }) {
           >
             Start exploring
           </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-              gap: 18,
-            }}
-          >
+          <div className={styles.clientGrid}>
             {discoveryOptions.map((option) => (
               <Card key={option.href} padded>
                 <h2
@@ -93,13 +88,7 @@ export function ClientDashboardHome({ firstName }: { firstName: string }) {
           </div>
         </section>
 
-        <section
-          style={{
-            padding: "24px 26px",
-            border: "1px solid var(--border-subtle)",
-            background: "var(--bg-subtle)",
-          }}
-        >
+        <section className={styles.clientCallout}>
           <p style={{ margin: 0, color: "var(--brand)", fontSize: 13, fontWeight: 700 }}>
             Booking is live
           </p>

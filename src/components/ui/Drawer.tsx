@@ -59,7 +59,7 @@ export function Drawer({
           <button
             type="button"
             className={styles.closeButton}
-            aria-label="Close applicant details"
+            aria-label="Close drawer"
             title="Close"
             disabled={closeDisabled}
             onClick={onClose}

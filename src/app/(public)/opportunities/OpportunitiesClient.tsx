@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { Tag } from "@/components/ui/Tag";
 import { Photo } from "@/components/ui/Photo";
 import type { OpportunityDTO } from "@/db/queries";
+import layoutStyles from "../Directory.module.css";
 
 const TYPES = ["Any type", "Part-time", "Full-time", "Single event", "Booth rental", "Commission"];
 
@@ -31,7 +32,7 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
   }, [jobs, query, type]);
 
   return (
-    <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
+    <div className={layoutStyles.page}>
       <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Job opportunities
       </h1>
@@ -39,11 +40,11 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
         Braiding roles at salons hiring now. Showing {results.length} openings.
       </p>
 
-      <div style={{ display: "flex", gap: 12, marginTop: 22, padding: 14, background: "var(--surface-card)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", position: "sticky", top: 74, zIndex: 10, flexWrap: "wrap" }}>
-        <div style={{ flex: "2 1 260px" }}>
+      <div className={layoutStyles.filterBar}>
+        <div className={layoutStyles.searchField}>
           <Input placeholder="Role, salon, city or style" iconLeft={<SearchIcon />} value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <div style={{ flex: "1 1 180px" }}>
+        <div className={layoutStyles.sortField}>
           <Select options={TYPES} value={type} onChange={(e) => setType(e.target.value)} />
         </div>
       </div>
@@ -56,7 +57,7 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
           <Button onClick={() => { setQuery(""); setType("Any type"); }}>Reset filters</Button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, margin: "24px 0", paddingBottom: 20 }}>
+        <div className={layoutStyles.resultGridTwo}>
           {results.map((j, i) => (
             <Card key={j.id} padded>
               <div style={{ display: "flex", gap: 14 }}>
@@ -64,7 +65,7 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
                   <Photo seed={i} aspect="1/1" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <div className={layoutStyles.jobHeader}>
                     <div>
                       <Link href={`/opportunities/${j.id}`} style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "var(--text-strong)" }}>{j.title}</Link>
                       <div style={{ fontSize: 14, color: "var(--text-muted)" }}>{j.salon} · {j.city}</div>
@@ -76,8 +77,8 @@ export function OpportunitiesClient({ jobs }: { jobs: OpportunityDTO[] }) {
               <div style={{ display: "flex", gap: 6, margin: "14px 0", flexWrap: "wrap" }}>
                 {j.specs.map((s) => <Tag key={s}>{s}</Tag>)}
               </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: "1px solid var(--border-subtle)" }}>
-                <div style={{ display: "flex", gap: 14, fontSize: 13, color: "var(--text-muted)", alignItems: "center" }}>
+              <div className={layoutStyles.jobFooter}>
+                <div className={layoutStyles.jobMeta}>
                   <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-strong)" }}>{j.pay}</span>
                   <span>{j.posted}</span>
                 </div>

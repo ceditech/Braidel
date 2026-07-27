@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
+import detailStyles from "../../PublicDetail.module.css";
 
 const RESPONSIBILITIES = [
   "Deliver high-quality braiding styles to a steady flow of clients",
@@ -36,14 +37,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px var(--gutter) 40px" }}>
+    <div className={detailStyles.page}>
       <Link href="/opportunities" style={{ color: "var(--text-muted)", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 18 }}>
         <span style={{ transform: "rotate(180deg)", display: "inline-flex" }}><ChevronIcon /></span>
         Back to opportunities
       </Link>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32, alignItems: "start" }}>
-        <div>
+      <div className={detailStyles.layout}>
+        <div className={detailStyles.main}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(26px,3vw,34px)", margin: 0, color: "var(--text-strong)" }}>
               {job.title}
@@ -77,7 +78,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           </Section>
         </div>
 
-        <Card padded style={{ position: "sticky", top: 90 }}>
+        <Card padded className={detailStyles.actionCard}>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, color: "var(--text-strong)" }}>{job.pay}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>{job.type} · {job.city}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>

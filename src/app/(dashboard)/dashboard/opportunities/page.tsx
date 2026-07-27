@@ -6,6 +6,7 @@ import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { getOpportunitiesForSalon, type OpportunityStatus } from "@/db/queries";
 import { requireDashboardRole } from "@/lib/authenticated-user";
+import styles from "../DashboardPages.module.css";
 
 const STATUS_BADGE: Record<OpportunityStatus, { label: string; variant: "success" | "neutral" | "danger" }> = {
   active: { label: "Active", variant: "success" },
@@ -31,13 +32,13 @@ export default async function OpportunitiesPage() {
         }
       />
 
-      <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className={`${styles.page} ${styles.stack}`}>
         {opportunities.map((o) => {
           const badge = STATUS_BADGE[o.status];
           return (
             <Card key={o.id} padded>
               <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 240 }}>
+                <div className={styles.opportunityBody} style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                     <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>
                       {o.title}
@@ -64,7 +65,7 @@ export default async function OpportunitiesPage() {
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>applicants</div>
                 </div>
 
-                <Link href="/dashboard/applicants">
+                <Link href="/dashboard/applicants" className={styles.cardActions}>
                   <Button size="sm" variant="outline" iconRight={<ChevronIcon />}>
                     {o.status === "draft" ? "Edit draft" : "View applicants"}
                   </Button>

@@ -1,0 +1,186 @@
+.page {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 34px var(--gutter) 40px;
+}
+
+.filterBar {
+  position: sticky;
+  top: 82px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-card) 96%, transparent);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+}
+
+.searchField {
+  min-width: 0;
+  flex: 2 1 260px;
+}
+
+.sortField {
+  min-width: 0;
+  flex: 1 1 190px;
+}
+
+.chipRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 4px;
+}
+
+.resultGridThree,
+.resultGridTwo {
+  display: grid;
+  gap: 22px;
+  margin: 24px 0;
+  padding-bottom: 20px;
+}
+
+.resultGridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.resultGridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.resultLink {
+  min-width: 0;
+  text-decoration: none;
+}
+
+.cardHeader,
+.jobHeader,
+.jobFooter,
+.jobMeta {
+  display: flex;
+  align-items: center;
+}
+
+.cardHeader {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.jobHeader {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.jobFooter {
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.jobMeta {
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 1040px) {
+  .resultGridThree {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-top: 26px;
+  }
+
+  .filterBar {
+    top: 72px;
+  }
+
+  .resultGridThree,
+  .resultGridTwo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chipRail {
+    width: calc(100% + (2 * var(--gutter)));
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-right: calc(-1 * var(--gutter));
+    margin-left: calc(-1 * var(--gutter));
+    padding: 2px var(--gutter) 8px;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .chipRail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chipRail > * {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 24px 16px 32px;
+  }
+
+  .filterBar {
+    top: 70px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+  }
+
+  .searchField,
+  .sortField {
+    width: 100%;
+  }
+
+  .chipRail {
+    width: calc(100% + 32px);
+    margin: 16px -16px 2px;
+    padding: 2px 16px 8px;
+    scroll-padding-inline: 16px;
+  }
+
+  .resultGridThree,
+  .resultGridTwo {
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .cardHeader,
+  .jobHeader {
+    align-items: flex-start;
+  }
+
+  .jobFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .jobFooter > a,
+  .jobFooter > a > button {
+    width: 100%;
+  }
+
+  .jobMeta {
+    justify-content: space-between;
+  }
+}

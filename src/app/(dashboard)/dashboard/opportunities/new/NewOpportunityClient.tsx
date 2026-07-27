@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Button } from "@/components/ui/Button";
 import { OPPORTUNITY_TYPES, EXPERIENCE_LEVELS } from "@/lib/sampleData";
 import type { BraidStyleDTO, OpportunityDTO } from "@/db/queries";
+import pageStyles from "./NewOpportunityClient.module.css";
 
 type PanelTab = "opportunities" | "styles";
 type ModalState =
@@ -60,11 +61,12 @@ export function NewOpportunityClient({
       return;
     }
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const customSlug = `${slug || "style"}-${customStyles.length + 1}`;
     const style: StyleOption = {
-      id: `custom-${slug || Date.now()}`,
+      id: `custom-${customSlug}`,
       catalogId: null,
       name,
-      slug: slug || `custom-${Date.now()}`,
+      slug: customSlug,
       description: "Custom specialty added by the opportunity poster.",
       imagePrompt: "",
       imagePath: "",
@@ -110,15 +112,7 @@ export function NewOpportunityClient({
     <>
       <Topbar title="Post an opportunity" subtitle="Reach skilled braiders near you." />
 
-      <div
-        style={{
-          padding: 32,
-          display: "grid",
-          gridTemplateColumns: "minmax(560px, 1.1fr) minmax(340px, 0.9fr)",
-          gap: 24,
-          alignItems: "start",
-        }}
-      >
+      <div className={pageStyles.layout}>
         <div>
           <Card padded>
             <form
@@ -130,12 +124,12 @@ export function NewOpportunityClient({
             >
               <Input name="title" label="Title" placeholder="e.g. Weekend knotless specialist" required />
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className={pageStyles.fieldGrid}>
                 <Select name="type" label="Employment type" options={OPPORTUNITY_TYPES} />
                 <Select label="Experience" options={EXPERIENCE_LEVELS} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className={pageStyles.fieldGrid}>
                 <Input name="compensation" label="Compensation" placeholder="$28-35 / hr" iconLeft={<DollarIcon />} />
                 <Input name="location" label="Location" placeholder="Atlanta, GA" iconLeft={<PinIcon />} />
               </div>
@@ -160,7 +154,7 @@ export function NewOpportunityClient({
                     {showAllStyles ? "See fewer styles" : `See ${allStyles.length - visibleStyles.length} more styles`}
                   </button>
                 ) : null}
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <div className={pageStyles.customStyleRow}>
                   <Input
                     value={customStyleName}
                     onChange={(e) => setCustomStyleName(e.target.value)}
@@ -188,7 +182,7 @@ export function NewOpportunityClient({
 
               {error && <div style={{ color: "var(--danger)", fontSize: 14 }}>{error}</div>}
 
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", borderTop: "1px solid var(--border-subtle)", paddingTop: 18 }}>
+              <div className={pageStyles.formActions}>
                 <Button type="button" variant="ghost" disabled={pending} onClick={(e) => submit(new FormData(e.currentTarget.form!), "draft")}>Save draft</Button>
                 <Button type="submit" disabled={pending} iconRight={<ArrowRight />}>{pending ? "Saving..." : "Publish opportunity"}</Button>
               </div>
@@ -234,7 +228,7 @@ function LeftPanel({
   onOpenStyle: (style: StyleOption) => void;
 }) {
   return (
-    <Card padded style={{ position: "sticky", top: 92 }}>
+    <Card padded className={pageStyles.referencePanel}>
       <div style={{ display: "flex", gap: 8, padding: 4, border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", background: "var(--bg-subtle)", marginBottom: 16 }}>
         <PanelButton active={tab === "opportunities"} onClick={() => setTab("opportunities")}>Posted</PanelButton>
         <PanelButton active={tab === "styles"} onClick={() => setTab("styles")}>Styles</PanelButton>
@@ -342,7 +336,7 @@ function DetailModal({ modal, onClose }: { modal: ModalState; onClose: () => voi
         </div>
         <div style={{ padding: 22 }}>
           {isStyle ? (
-            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" }}>
+            <div className={pageStyles.styleDetail}>
               <StyleImage style={modal.style} height={280} />
               <div>
                 <p style={{ margin: 0, lineHeight: 1.7, color: "var(--text-body)" }}>{modal.style.description}</p>
@@ -351,7 +345,7 @@ function DetailModal({ modal, onClose }: { modal: ModalState; onClose: () => voi
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <p style={{ margin: 0, lineHeight: 1.7, color: "var(--text-body)" }}>{modal.opportunity.description}</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+              <div className={pageStyles.opportunityDetails}>
                 <InfoTile label="Type" value={modal.opportunity.type} />
                 <InfoTile label="Compensation" value={modal.opportunity.pay} />
                 <InfoTile label="Applicants" value={String(modal.opportunity.applicants)} />

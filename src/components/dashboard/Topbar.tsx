@@ -22,9 +22,11 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
       </div>
 
       <div className={styles.actions}>
-        <ThemeToggle />
-        <NotificationBell />
-        {action}
+        <div className={styles.utilityActions}>
+          <ThemeToggle />
+          <NotificationBell />
+        </div>
+        {action && <div className={styles.primaryAction}>{action}</div>}
       </div>
     </div>
   );

@@ -807,7 +807,12 @@
   }
 
   .stage {
-    grid-template-rows: 430px 480px;
+    grid-template-rows: minmax(360px, auto) 420px;
+  }
+
+  .stageCopy h1,
+  .stageTitle {
+    min-height: 2.35em;
   }
 
   .aboutGrid,
@@ -837,7 +842,7 @@
   }
 
   .stage {
-    grid-template-rows: 420px 310px;
+    grid-template-rows: minmax(350px, auto) 290px;
   }
 
   .stageCopy {
@@ -846,7 +851,7 @@
 
   .stageCopy h1,
   .stageTitle {
-    min-height: 3.76em;
+    min-height: 3.05em;
     font-size: 38px;
     text-wrap: wrap;
   }
@@ -856,7 +861,7 @@
   }
 
   .stageCopy p {
-    min-height: 4.65em;
+    min-height: 3.3em;
     margin-top: 14px;
     font-size: 16px;
   }
@@ -871,7 +876,7 @@
   }
 
   .carousel {
-    min-height: 310px;
+    min-height: 290px;
   }
 
   .about,
