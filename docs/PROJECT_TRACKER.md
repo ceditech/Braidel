@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~86% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~90% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -15,7 +15,7 @@
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
-| **Phase 2** | Client Booking | 4 / 7 | ~57% |
+| **Phase 2** | Client Booking | 17 / 18 | ~94% |
 | **Phase 3** | Online Payments | 0 / 1 | 0% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
@@ -55,6 +55,13 @@ _Tables & relations in Neon_
 | ✅ | portfolio_media table | High | 1 |
 | ✅ | notifications table | High | 1 |
 | ✅ | notification_preferences table | Medium | 1 |
+| ✅ | client_profiles table | High | 2 |
+| ✅ | service_providers table | High | 2 |
+| ✅ | service_offerings table | High | 2 |
+| ✅ | availability_rules table | High | 2 |
+| ✅ | availability_exceptions table | High | 2 |
+| ✅ | bookings table | High | 2 |
+| ✅ | booking_status_history table | High | 2 |
 
 ## Design System
 _Tokens & UI primitives_
@@ -113,6 +120,7 @@ _Salon owner workflows_
 | ✅ | Post Opportunity form | High | 1 |
 | ✅ | Manage Applicants screen | High | 1 |
 | ✅ | Applicant profile + portfolio drawer | High | 1 |
+| ✅ | Appointments calendar + booking setup | High | 2 |
 
 ## Braider Dashboard
 _Braider workflows_
@@ -124,6 +132,7 @@ _Braider workflows_
 | ✅ | Find Work (search + apply) | High | 1 |
 | ✅ | Applications tracker | High | 1 |
 | ✅ | Profile editor + portfolio upload | High | 1 |
+| ✅ | Appointments calendar + booking setup | High | 2 |
 
 ## Shared App
 _Cross-role features_
@@ -133,6 +142,7 @@ _Cross-role features_
 | ✅ | Messaging (DB-backed list + thread) | High | 1 |
 | ✅ | Notifications page | Medium | 1 |
 | ✅ | Settings page (role-aware) | Medium | 1 |
+| ✅ | Client booking discovery + appointment management | High | 2 |
 
 ## Backend / API
 _Data routes & business logic_
@@ -152,6 +162,7 @@ _Data routes & business logic_
 | ✅ | Ratings read/write flows | High | 1 |
 | ✅ | Portfolio media persistence | High | 1 |
 | ✅ | Notifications persistence + event wiring | High | 1 |
+| ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -159,8 +170,8 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 | # | Status | Workstream | Priority | Phase |
 |---|--------|------------|----------|-------|
 | 1 | ✅ | Real role state + client account foundation | High | 1 |
-| 2 | ⬜ | Booking domain schema + migrations | High | 2 |
-| 3 | ⬜ | Booking APIs + appointments/calendar UI | High | 2 |
+| 2 | ✅ | Booking domain schema + migrations | High | 2 |
+| 3 | ✅ | Booking APIs + appointments/calendar UI | High | 2 |
 | 4 | ⬜ | Booking-aware conversations, reviews + notifications | High | 2 |
 | 5 | ⬜ | Payments + monetization | High | 3 |
 | 6 | ⬜ | Trust, verification + marketplace administration | High | 4 |
@@ -171,12 +182,15 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 1. **Real role state + client account foundation** — completed with a
    server-owned single-role contract, explicit onboarding completion,
    role-compatible server redirects, and Client dashboard/settings foundations.
-2. **Booking domain schema + migrations** — model client profiles, service
-   offerings, availability, bookings, status history, timezone-aware scheduling,
-   and integer-cent pricing.
-3. **Booking APIs + appointments/calendar UI** — implement provider schedules,
-   booking requests, confirmations, rescheduling, cancellations, appointment
-   dashboards, and internal calendar workflows.
+2. **Booking domain schema + migrations** — completed in migration `0011` with
+   client and provider booking identities, service offerings, recurring
+   availability and exceptions, timezone-aware bookings, integer-cent service
+   and booking snapshots, status history, lifecycle constraints, indexes, and
+   existing-profile backfills.
+3. **Booking APIs + appointments/calendar UI** — completed with provider
+   services, timezone, capacity, recurring schedules and exceptions, DST-safe
+   availability, idempotent transactional booking requests, lifecycle actions,
+   and role-aware calendar, agenda, discovery, and setup views.
 4. **Booking-aware conversations, reviews + notifications** — generalize the
    application-scoped features for booking participants and lifecycle events.
 5. **Payments + monetization** — finalize subscriptions and transaction fees,

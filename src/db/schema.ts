@@ -10,6 +10,9 @@ import {
   index,
   uniqueIndex,
   check,
+  date,
+  time,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -34,6 +37,25 @@ export const applicationStatusEnum = pgEnum("application_status", [
   "reviewed",
   "accepted",
   "rejected",
+]);
+
+export const serviceProviderTypeEnum = pgEnum("service_provider_type", [
+  "salon",
+  "braider",
+]);
+
+export const availabilityOverrideTypeEnum = pgEnum(
+  "availability_override_type",
+  ["available", "unavailable"]
+);
+
+export const bookingStatusEnum = pgEnum("booking_status", [
+  "requested",
+  "confirmed",
+  "declined",
+  "cancelled",
+  "completed",
+  "no_show",
 ]);
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -127,6 +149,80 @@ export const braiders = pgTable(
   (table) => [uniqueIndex("braiders_user_id_unique").on(table.userId)]
 );
 
+export const clientProfiles = pgTable(
+  "client_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    phone: text("phone"),
+    city: text("city"),
+    state: text("state"),
+    timezone: text("timezone").notNull().default("UTC"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("client_profiles_user_id_unique").on(table.userId),
+    check(
+      "client_profiles_timezone_check",
+      sql`length(trim(${table.timezone})) > 0`
+    ),
+  ]
+);
+
+export const serviceProviders = pgTable(
+  "service_providers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerType: serviceProviderTypeEnum("provider_type").notNull(),
+    salonId: uuid("salon_id").references(() => salons.id, {
+      onDelete: "cascade",
+    }),
+    braiderId: uuid("braider_id").references(() => braiders.id, {
+      onDelete: "cascade",
+    }),
+    timezone: text("timezone").notNull().default("UTC"),
+    isAcceptingBookings: boolean("is_accepting_bookings")
+      .notNull()
+      .default(false),
+    maxConcurrentBookings: integer("max_concurrent_bookings")
+      .notNull()
+      .default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("service_providers_salon_id_unique").on(table.salonId),
+    uniqueIndex("service_providers_braider_id_unique").on(table.braiderId),
+    check(
+      "service_providers_identity_check",
+      sql`(
+        (${table.providerType} = 'salon' and ${table.salonId} is not null and ${table.braiderId} is null)
+        or
+        (${table.providerType} = 'braider' and ${table.braiderId} is not null and ${table.salonId} is null)
+      )`
+    ),
+    check(
+      "service_providers_timezone_check",
+      sql`length(trim(${table.timezone})) > 0`
+    ),
+    check(
+      "service_providers_capacity_check",
+      sql`${table.maxConcurrentBookings} between 1 and 20`
+    ),
+  ]
+);
+
 export const portfolioMedia = pgTable(
   "portfolio_media",
   {
@@ -152,6 +248,224 @@ export const portfolioMedia = pgTable(
       sql`${table.storageProvider} in ('local', 'vercel_blob', 'seed')`
     ),
     check("portfolio_media_size_check", sql`${table.sizeBytes} > 0`),
+  ]
+);
+
+// ─── Booking marketplace ─────────────────────────────────────────────────────
+
+export const serviceOfferings = pgTable(
+  "service_offerings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    braidStyleId: uuid("braid_style_id").references(() => braidStyles.id, {
+      onDelete: "set null",
+    }),
+    name: text("name").notNull(),
+    description: text("description"),
+    durationMinutes: integer("duration_minutes").notNull(),
+    priceCents: integer("price_cents").notNull(),
+    currency: text("currency").notNull().default("USD"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("service_offerings_id_provider_unique").on(
+      table.id,
+      table.providerId
+    ),
+    index("service_offerings_provider_active_idx").on(
+      table.providerId,
+      table.isActive
+    ),
+    index("service_offerings_braid_style_idx").on(table.braidStyleId),
+    check(
+      "service_offerings_name_check",
+      sql`length(trim(${table.name})) > 0`
+    ),
+    check(
+      "service_offerings_duration_check",
+      sql`${table.durationMinutes} > 0`
+    ),
+    check("service_offerings_price_check", sql`${table.priceCents} >= 0`),
+    check(
+      "service_offerings_currency_check",
+      sql`${table.currency} ~ '^[A-Z]{3}$'`
+    ),
+  ]
+);
+
+export const availabilityRules = pgTable(
+  "availability_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    dayOfWeek: integer("day_of_week").notNull(),
+    startTime: time("start_time", { precision: 0 }).notNull(),
+    endTime: time("end_time", { precision: 0 }).notNull(),
+    effectiveFrom: date("effective_from"),
+    effectiveUntil: date("effective_until"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("availability_rules_provider_day_idx").on(
+      table.providerId,
+      table.dayOfWeek,
+      table.isActive
+    ),
+    check(
+      "availability_rules_day_check",
+      sql`${table.dayOfWeek} between 0 and 6`
+    ),
+    check(
+      "availability_rules_time_check",
+      sql`${table.startTime} < ${table.endTime}`
+    ),
+    check(
+      "availability_rules_effective_dates_check",
+      sql`${table.effectiveUntil} is null or ${table.effectiveFrom} is null or ${table.effectiveFrom} <= ${table.effectiveUntil}`
+    ),
+  ]
+);
+
+export const availabilityExceptions = pgTable(
+  "availability_exceptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    overrideType: availabilityOverrideTypeEnum("override_type").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("availability_exceptions_provider_starts_idx").on(
+      table.providerId,
+      table.startsAt
+    ),
+    check(
+      "availability_exceptions_time_check",
+      sql`${table.startsAt} < ${table.endsAt}`
+    ),
+  ]
+);
+
+export const bookings = pgTable(
+  "bookings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientProfileId: uuid("client_profile_id")
+      .notNull()
+      .references(() => clientProfiles.id, { onDelete: "restrict" }),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "restrict" }),
+    serviceOfferingId: uuid("service_offering_id").notNull(),
+    status: bookingStatusEnum("status").notNull().default("requested"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    timezone: text("timezone").notNull(),
+    serviceName: text("service_name").notNull(),
+    priceCents: integer("price_cents").notNull(),
+    currency: text("currency").notNull(),
+    clientNote: text("client_note"),
+    cancellationReason: text("cancellation_reason"),
+    requestKey: text("request_key"),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    foreignKey({
+      name: "bookings_service_provider_fk",
+      columns: [table.serviceOfferingId, table.providerId],
+      foreignColumns: [serviceOfferings.id, serviceOfferings.providerId],
+    }).onDelete("restrict"),
+    index("bookings_client_starts_idx").on(
+      table.clientProfileId,
+      table.startsAt
+    ),
+    index("bookings_provider_status_starts_idx").on(
+      table.providerId,
+      table.status,
+      table.startsAt
+    ),
+    uniqueIndex("bookings_client_request_key_unique").on(
+      table.clientProfileId,
+      table.requestKey
+    ),
+    check("bookings_time_check", sql`${table.startsAt} < ${table.endsAt}`),
+    check(
+      "bookings_timezone_check",
+      sql`length(trim(${table.timezone})) > 0`
+    ),
+    check(
+      "bookings_service_name_check",
+      sql`length(trim(${table.serviceName})) > 0`
+    ),
+    check("bookings_price_check", sql`${table.priceCents} >= 0`),
+    check(
+      "bookings_currency_check",
+      sql`${table.currency} ~ '^[A-Z]{3}$'`
+    ),
+    check("bookings_version_check", sql`${table.version} > 0`),
+  ]
+);
+
+export const bookingStatusHistory = pgTable(
+  "booking_status_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    fromStatus: bookingStatusEnum("from_status"),
+    toStatus: bookingStatusEnum("to_status").notNull(),
+    changedByUserId: uuid("changed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reason: text("reason"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("booking_status_history_booking_created_idx").on(
+      table.bookingId,
+      table.createdAt
+    ),
+    index("booking_status_history_actor_idx").on(table.changedByUserId),
+    check(
+      "booking_status_history_transition_check",
+      sql`${table.fromStatus} is null or ${table.fromStatus} <> ${table.toStatus}`
+    ),
   ]
 );
 
@@ -297,9 +611,14 @@ export const notificationPreferences = pgTable("notification_preferences", {
 export const usersRelations = relations(users, ({ one, many }) => ({
   salon: one(salons, { fields: [users.id], references: [salons.ownerId] }),
   braider: one(braiders, { fields: [users.id], references: [braiders.userId] }),
+  clientProfile: one(clientProfiles, {
+    fields: [users.id],
+    references: [clientProfiles.userId],
+  }),
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "recipient" }),
   ratingsGiven: many(ratings, { relationName: "reviewer" }),
+  bookingStatusChanges: many(bookingStatusHistory),
   notifications: many(notifications),
   notificationPreferences: one(notificationPreferences, {
     fields: [users.id],
@@ -309,16 +628,122 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 
 export const salonsRelations = relations(salons, ({ one, many }) => ({
   owner: one(users, { fields: [salons.ownerId], references: [users.id] }),
+  serviceProvider: one(serviceProviders, {
+    fields: [salons.id],
+    references: [serviceProviders.salonId],
+  }),
   opportunities: many(opportunities),
   ratings: many(ratings),
 }));
 
 export const braidersRelations = relations(braiders, ({ one, many }) => ({
   user: one(users, { fields: [braiders.userId], references: [users.id] }),
+  serviceProvider: one(serviceProviders, {
+    fields: [braiders.id],
+    references: [serviceProviders.braiderId],
+  }),
   applications: many(applications),
   ratings: many(ratings),
   portfolioMedia: many(portfolioMedia),
 }));
+
+export const braidStylesRelations = relations(braidStyles, ({ many }) => ({
+  serviceOfferings: many(serviceOfferings),
+}));
+
+export const clientProfilesRelations = relations(
+  clientProfiles,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [clientProfiles.userId],
+      references: [users.id],
+    }),
+    bookings: many(bookings),
+  })
+);
+
+export const serviceProvidersRelations = relations(
+  serviceProviders,
+  ({ one, many }) => ({
+    salon: one(salons, {
+      fields: [serviceProviders.salonId],
+      references: [salons.id],
+    }),
+    braider: one(braiders, {
+      fields: [serviceProviders.braiderId],
+      references: [braiders.id],
+    }),
+    serviceOfferings: many(serviceOfferings),
+    availabilityRules: many(availabilityRules),
+    availabilityExceptions: many(availabilityExceptions),
+    bookings: many(bookings),
+  })
+);
+
+export const serviceOfferingsRelations = relations(
+  serviceOfferings,
+  ({ one, many }) => ({
+    provider: one(serviceProviders, {
+      fields: [serviceOfferings.providerId],
+      references: [serviceProviders.id],
+    }),
+    braidStyle: one(braidStyles, {
+      fields: [serviceOfferings.braidStyleId],
+      references: [braidStyles.id],
+    }),
+    bookings: many(bookings),
+  })
+);
+
+export const availabilityRulesRelations = relations(
+  availabilityRules,
+  ({ one }) => ({
+    provider: one(serviceProviders, {
+      fields: [availabilityRules.providerId],
+      references: [serviceProviders.id],
+    }),
+  })
+);
+
+export const availabilityExceptionsRelations = relations(
+  availabilityExceptions,
+  ({ one }) => ({
+    provider: one(serviceProviders, {
+      fields: [availabilityExceptions.providerId],
+      references: [serviceProviders.id],
+    }),
+  })
+);
+
+export const bookingsRelations = relations(bookings, ({ one, many }) => ({
+  clientProfile: one(clientProfiles, {
+    fields: [bookings.clientProfileId],
+    references: [clientProfiles.id],
+  }),
+  provider: one(serviceProviders, {
+    fields: [bookings.providerId],
+    references: [serviceProviders.id],
+  }),
+  serviceOffering: one(serviceOfferings, {
+    fields: [bookings.serviceOfferingId],
+    references: [serviceOfferings.id],
+  }),
+  statusHistory: many(bookingStatusHistory),
+}));
+
+export const bookingStatusHistoryRelations = relations(
+  bookingStatusHistory,
+  ({ one }) => ({
+    booking: one(bookings, {
+      fields: [bookingStatusHistory.bookingId],
+      references: [bookings.id],
+    }),
+    changedBy: one(users, {
+      fields: [bookingStatusHistory.changedByUserId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const opportunitiesRelations = relations(
   opportunities,

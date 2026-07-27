@@ -8,6 +8,7 @@ import styles from "./Sidebar.module.css";
 
 const salonNav = [
   { href: "/dashboard",              label: "Dashboard",     icon: <GridIcon /> },
+  { href: "/dashboard/appointments", label: "Appointments",  icon: <CalendarIcon /> },
   { href: "/dashboard/opportunities",label: "Opportunities", icon: <BriefcaseIcon /> },
   { href: "/dashboard/applicants",   label: "Applicants",    icon: <UsersIcon /> },
   { href: "/dashboard/messages",     label: "Messages",      icon: <MessageIcon /> },
@@ -17,6 +18,7 @@ const salonNav = [
 
 const braiderNav = [
   { href: "/dashboard",             label: "Dashboard",    icon: <GridIcon /> },
+  { href: "/dashboard/appointments",label: "Appointments", icon: <CalendarIcon /> },
   { href: "/dashboard/find-work",   label: "Find work",    icon: <BriefcaseIcon /> },
   { href: "/dashboard/applications",label: "Applications", icon: <InboxIcon /> },
   { href: "/dashboard/messages",    label: "Messages",     icon: <MessageIcon /> },
@@ -26,6 +28,7 @@ const braiderNav = [
 
 const clientNav = [
   { href: "/dashboard",               label: "Dashboard",     icon: <GridIcon /> },
+  { href: "/dashboard/appointments",  label: "Appointments",  icon: <CalendarIcon /> },
   { href: "/find-braiders",           label: "Find braiders", icon: <UsersIcon /> },
   { href: "/find-salons",             label: "Find salons",   icon: <BriefcaseIcon /> },
   { href: "/dashboard/notifications", label: "Notifications", icon: <BellIcon /> },
@@ -203,6 +206,9 @@ function GridIcon() {
 }
 function BriefcaseIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>;
+}
+function CalendarIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>;
 }
 function UsersIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>;

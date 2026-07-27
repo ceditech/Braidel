@@ -4,7 +4,7 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** July 25, 2026
+> **Last reviewed:** July 26, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
@@ -77,13 +77,35 @@ Production must not launch until every item in this section is complete.
       server-owned dashboard role flow.
 - [ ] Verify migration `0010` backfills `users.onboarded_at` for every existing
       account while future Clerk-created, pre-onboarding users remain null.
+- [ ] Apply migration `0011_white_rage.sql` before releasing booking
+      configuration, availability, or appointment workflows.
+- [ ] Verify migration `0011` creates one `client_profiles` row per Client and
+      one correctly typed `service_providers` row per Salon or Braider profile.
+- [ ] Apply migration `0012_slippery_tomas.sql` before releasing booking APIs;
+      it adds provider concurrency capacity and client-scoped request
+      idempotency.
+- [ ] Require every bookable provider to replace the safe `UTC` migration
+      default with its real IANA timezone before setting
+      `is_accepting_bookings = true`.
+- [ ] Validate booking collision and capacity rules under concurrent requests;
+      individual Braiders and multi-chair Salons require different semantics.
+- [ ] Verify the production Node.js runtime supports the isolated Neon
+      WebSocket Pool used by serializable booking mutations.
+- [ ] Run `npm run verify:booking` against staging with disposable test
+      identities and confirm the test booking is removed afterward.
+- [ ] Test availability across daylight-saving changes, timezone boundaries,
+      provider exceptions, lead time, Client conflicts, and month boundaries.
+- [ ] Test stale optimistic versions, duplicate idempotency keys, transaction
+      retries, and simultaneous final-slot booking attempts.
 - [ ] Review every pending migration for destructive or locking operations.
 - [ ] Capture and verify a pre-launch backup or restorable Neon branch.
 - [ ] Document database rollback and forward-fix procedures.
 - [ ] Prevent `npm run db:seed` from being run against production.
 - [ ] Confirm production queries do not merge development/demo rows.
 - [ ] Validate referential integrity and uniqueness for users, salons, braiders,
-      opportunities, applications, messages, ratings, and portfolio media.
+      opportunities, applications, messages, ratings, portfolio media, client
+      profiles, service providers, service offerings, availability, bookings,
+      and booking status history.
 
 ### Authentication and Authorization
 
@@ -189,6 +211,10 @@ events otherwise will not automatically synchronize to Neon.
 - [ ] Verify notification counts, deep links, read state, and preferences.
 - [ ] Verify messaging participant authorization and unread-state behavior.
 - [ ] Verify application status transitions and rating eligibility rules.
+- [ ] Verify Client, Braider, and Salon appointment calendars, setup flows,
+      lifecycle actions, empty states, and responsive drawers.
+- [ ] Verify booking confirmations, changes, and cancellations remain visible
+      in status history even before external delivery is implemented.
 - [ ] Run a production smoke test without development/demo fallbacks.
 
 ## Security and Operations
@@ -239,6 +265,18 @@ Add dated entries here as production gates are verified.
   onboarding completion, Client dashboard/settings foundations, and
   role-compatible page redirects were implemented. Migration
   `0010_violet_bloodstrike.sql` was applied to the configured development Neon
-  database and all 13 existing user rows were verified as backfilled;
+  database and all 16 existing user rows were verified as backfilled;
   TypeScript, focused lint, and the production build passed. Staging three-role
   acceptance testing remains required.
+- **July 25, 2026:** Booking-domain migration `0011_white_rage.sql` was applied
+  to the configured development Neon database. Read-only verification confirmed
+  `1/1` Client profile, `8/8` Salon providers, and `7/7` Braider providers.
+  Provider booking remains disabled by default until each provider has a real
+  timezone, service, and availability configuration.
+- **July 26, 2026:** Booking APIs and role-aware appointment/calendar UI were
+  implemented. Migration `0012_slippery_tomas.sql` was applied to the configured
+  development Neon database; the refreshed seed created bookable Braiders,
+  Salons, services, schedules, and a Client identity. TypeScript, focused lint,
+  production build, and the reversible `npm run verify:booking` lifecycle smoke
+  passed locally. Staging concurrency, runtime, timezone, and three-role
+  acceptance checks remain launch gates.

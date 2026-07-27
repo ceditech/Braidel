@@ -18,6 +18,12 @@ const discoveryOptions = [
     href: "/find-salons",
     action: "Explore salons",
   },
+  {
+    title: "Book an appointment",
+    description: "Compare live services and request a time that fits your schedule.",
+    href: "/dashboard/appointments",
+    action: "Open appointments",
+  },
 ];
 
 export function ClientDashboardHome({ firstName }: { firstName: string }) {
@@ -95,7 +101,7 @@ export function ClientDashboardHome({ firstName }: { firstName: string }) {
           }}
         >
           <p style={{ margin: 0, color: "var(--brand)", fontSize: 13, fontWeight: 700 }}>
-            Coming in the booking phase
+            Booking is live
           </p>
           <h2
             style={{
@@ -105,12 +111,17 @@ export function ClientDashboardHome({ firstName }: { firstName: string }) {
               fontSize: 24,
             }}
           >
-            Appointments, saved professionals, and booking history
+            Your appointments and booking history
           </h2>
           <p style={{ maxWidth: 680, margin: 0, color: "var(--text-body)", lineHeight: 1.55 }}>
-            Your client account is ready for the scheduling and booking workflows planned in the
-            next implementation workstream.
+            Request services from available Salons and Braiders, track confirmations,
+            and manage schedule changes from one calendar.
           </p>
+          <Link href="/dashboard/appointments" style={{ display: "inline-flex", marginTop: 18 }}>
+            <Button size="sm" iconRight={<ArrowIcon />}>
+              Manage appointments
+            </Button>
+          </Link>
         </section>
       </div>
     </>

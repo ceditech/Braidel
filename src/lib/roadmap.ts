@@ -57,6 +57,13 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "portfolio_media table", status: "done", priority: "high", phase: 1 },
       { title: "notifications table", status: "done", priority: "high", phase: 1 },
       { title: "notification_preferences table", status: "done", priority: "medium", phase: 1 },
+      { title: "client_profiles table", status: "done", priority: "high", phase: 2 },
+      { title: "service_providers table", status: "done", priority: "high", phase: 2 },
+      { title: "service_offerings table", status: "done", priority: "high", phase: 2 },
+      { title: "availability_rules table", status: "done", priority: "high", phase: 2 },
+      { title: "availability_exceptions table", status: "done", priority: "high", phase: 2 },
+      { title: "bookings table", status: "done", priority: "high", phase: 2 },
+      { title: "booking_status_history table", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -119,6 +126,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Post Opportunity form", status: "done", priority: "high", phase: 1 },
       { title: "Manage Applicants screen", status: "done", priority: "high", phase: 1 },
       { title: "Applicant profile + portfolio drawer", status: "done", priority: "high", phase: 1 },
+      { title: "Appointments calendar + booking setup", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -131,6 +139,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Find Work (search + apply)", status: "done", priority: "high", phase: 1 },
       { title: "Applications tracker", status: "done", priority: "high", phase: 1 },
       { title: "Profile editor + portfolio upload", status: "done", priority: "high", phase: 1 },
+      { title: "Appointments calendar + booking setup", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -141,6 +150,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Messaging (DB-backed list + thread)", status: "done", priority: "high", phase: 1 },
       { title: "Notifications page", status: "done", priority: "medium", phase: 1 },
       { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
+      { title: "Client booking discovery + appointment management", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -161,6 +171,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Ratings read/write flows", status: "done", priority: "high", phase: 1 },
       { title: "Portfolio media persistence", status: "done", priority: "high", phase: 1 },
       { title: "Notifications persistence + event wiring", status: "done", priority: "high", phase: 1 },
+      { title: "Availability engine + transactional booking lifecycle APIs", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -177,17 +188,17 @@ export const ROADMAP: RoadmapGroup[] = [
       },
       {
         title: "2. Booking domain schema + migrations",
-        status: "pending",
+        status: "done",
         priority: "high",
         phase: 2,
-        note: "Model client profiles, service offerings, availability, bookings, status history, timezone-aware scheduling, and integer-cent pricing.",
+        note: "Migration 0011 adds client and provider booking identities, services, recurring availability and exceptions, bookings with timezone-aware instants and integer-cent snapshots, status history, lifecycle constraints, indexes, and existing-profile backfills.",
       },
       {
         title: "3. Booking APIs + appointments/calendar UI",
-        status: "pending",
+        status: "done",
         priority: "high",
         phase: 2,
-        note: "Implement provider schedule management, booking requests, confirmations, rescheduling, cancellations, appointment dashboards, and internal calendar workflows.",
+        note: "Provider services, timezone, capacity, recurring schedules, exceptions, DST-safe availability, idempotent booking requests, lifecycle actions, and role-aware calendar, agenda, and booking views are live.",
       },
       {
         title: "4. Booking-aware conversations, reviews + notifications",

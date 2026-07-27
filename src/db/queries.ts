@@ -12,6 +12,7 @@ import {
   portfolioMedia,
   ratings,
   salons,
+  serviceProviders,
   users,
 } from "./schema";
 
@@ -29,6 +30,8 @@ export interface BraiderDTO {
   tone: number;
   bio: string;
   portfolio: PortfolioMediaDTO[];
+  bookingProviderId: string | null;
+  isAcceptingBookings: boolean;
 }
 
 export interface PortfolioMediaDTO {
@@ -64,6 +67,8 @@ const SELECTION = {
   bio: braiders.bio,
   firstName: users.firstName,
   lastName: users.lastName,
+  bookingProviderId: serviceProviders.id,
+  isAcceptingBookings: serviceProviders.isAcceptingBookings,
 } as const;
 
 type Row = {
@@ -78,6 +83,8 @@ type Row = {
   bio: string | null;
   firstName: string;
   lastName: string;
+  bookingProviderId: string | null;
+  isAcceptingBookings: boolean | null;
 };
 
 function mapRow(r: Row): BraiderDTO {
@@ -93,6 +100,8 @@ function mapRow(r: Row): BraiderDTO {
     tone: toneFromSlug(r.slug),
     bio: r.bio ?? "",
     portfolio: [],
+    bookingProviderId: r.bookingProviderId,
+    isAcceptingBookings: r.isAcceptingBookings ?? false,
   };
 }
 
@@ -101,6 +110,7 @@ export async function getBraiders(): Promise<BraiderDTO[]> {
     .select(SELECTION)
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
     .where(isNull(users.deletedAt));
   return rows.map(mapRow);
 }
@@ -110,6 +120,7 @@ export async function getBraiderBySlug(slug: string): Promise<BraiderDTO | null>
     .select(SELECTION)
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
     .where(and(eq(braiders.slug, slug), isNull(users.deletedAt)))
     .limit(1);
   if (!rows.length) return null;
@@ -147,6 +158,8 @@ export interface SalonDTO {
   openRoles: number;
   verified: boolean;
   tone: number;
+  bookingProviderId: string | null;
+  isAcceptingBookings: boolean;
 }
 
 const SALON_SELECTION = {
@@ -158,6 +171,8 @@ const SALON_SELECTION = {
   ratingCount: salons.ratingCount,
   openRoles: salons.openRoles,
   isVerified: salons.isVerified,
+  bookingProviderId: serviceProviders.id,
+  isAcceptingBookings: serviceProviders.isAcceptingBookings,
 } as const;
 
 type SalonRow = {
@@ -169,6 +184,8 @@ type SalonRow = {
   ratingCount: number;
   openRoles: number;
   isVerified: boolean;
+  bookingProviderId: string | null;
+  isAcceptingBookings: boolean | null;
 };
 
 function mapSalon(r: SalonRow): SalonDTO {
@@ -182,6 +199,8 @@ function mapSalon(r: SalonRow): SalonDTO {
     openRoles: r.openRoles,
     verified: r.isVerified,
     tone: toneFromSlug(r.slug),
+    bookingProviderId: r.bookingProviderId,
+    isAcceptingBookings: r.isAcceptingBookings ?? false,
   };
 }
 
@@ -190,6 +209,7 @@ export async function getSalons(): Promise<SalonDTO[]> {
     .select(SALON_SELECTION)
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
     .where(isNull(users.deletedAt));
   return rows.map(mapSalon);
 }
@@ -199,6 +219,7 @@ export async function getSalonBySlug(slug: string): Promise<SalonDTO | null> {
     .select(SALON_SELECTION)
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
     .where(and(eq(salons.slug, slug), isNull(users.deletedAt)))
     .limit(1);
   return rows.length ? mapSalon(rows[0]) : null;

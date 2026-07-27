@@ -314,11 +314,13 @@ and public content:
   is preserved at public route `/marketplace`; Find Braiders (+ profile), Find
   Salons (+ detail), and Job Opportunities (+ detail) remain wired to Neon.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants with
-  a responsive profile/portfolio drawer and status actions, Messages, Settings.
+  a responsive profile/portfolio drawer and status actions, Appointments with
+  multi-chair capacity and provider setup, Messages, Settings.
 - **Braider app:** dashboard, Find Work + apply, Applications, Messages,
-  Settings (profile editor).
+  Appointments with single-provider availability, Settings (profile editor).
 - **Client app:** role-aware dashboard, public Braider/Salon discovery links,
-  Notifications, and account/notification Settings foundation.
+  booking discovery and appointment management, Notifications, and
+  account/notification Settings.
 - **Shell:** server-owned Salon/Braider/Client role state, role-compatible
   navigation, internal Tracker + Market Study.
 
@@ -332,7 +334,7 @@ and public content:
 6. **Trust, verification, and marketplace administration.**
 7. **Ecosystem expansion:** Academy, Supply, Franchise, then mobile.
 
-### Completed: workstream 1/7
+### Completed: workstreams 1/7, 2/7, and 3/7
 
 **Real role state + client account foundation** is complete:
 
@@ -348,9 +350,59 @@ and public content:
    `users.onboarded_at`; onboarding is idempotent and prevents silent role
    replacement after completion.
 
-**Immediate next strategic focus:** workstream `2/7`, Booking domain schema +
-migrations. Define the booking aggregate and invariants before adding APIs or
-calendar UI.
+**Booking domain schema + migrations** is also complete:
+
+1. Migration `0011_white_rage.sql` adds `client_profiles`,
+   `service_providers`, `service_offerings`, `availability_rules`,
+   `availability_exceptions`, `bookings`, and `booking_status_history`.
+2. `service_providers` is the neutral bookable identity for exactly one Salon or
+   Braider, avoiding repeated polymorphic ownership logic throughout Phase 2.
+3. Recurring availability stores provider-local day/time rules; exceptions and
+   appointment instants use timezone-aware timestamps.
+4. Services and bookings use integer cents plus three-letter currencies.
+   Bookings snapshot service name, price, currency, and timezone for durable
+   history.
+5. A composite foreign key prevents a booking from pairing a service with the
+   wrong provider. Time ranges, provider identity, currency, price, duration,
+   and optimistic version values have database checks and query-path indexes.
+6. Onboarding and the development seed create the required Client or Provider
+   identity. The migration backfilled the configured development database to
+   `1/1` Client profile, `8/8` Salon providers, and `7/7` Braider providers.
+7. Providers default to `UTC` and `is_accepting_bookings = false`; APIs must
+   require a real timezone, at least one active service, and valid availability
+   before enabling booking.
+
+**Booking APIs + appointments/calendar UI** is complete:
+
+1. Migration `0012_slippery_tomas.sql` adds provider booking capacity and a
+   client-scoped idempotency key for booking requests.
+2. Provider APIs persist timezone, booking activation, Salon capacity, service
+   offerings, recurring weekly hours, and date-specific exceptions.
+3. Availability is calculated with Temporal using each provider's IANA
+   timezone, including daylight-saving transitions, lead time, exceptions,
+   existing bookings, Salon capacity, and Client conflicts.
+4. Booking mutations run in isolated serializable Neon transactions with
+   ownership checks, row locks, optimistic versions, retry handling, durable
+   status history, and role-valid request, confirm, decline, reschedule,
+   cancel, complete, and no-show transitions.
+5. `/dashboard/appointments` provides role-aware calendar and agenda views,
+   Client provider/service discovery and booking, Provider services and
+   availability setup, and responsive appointment action drawers.
+6. Public Braider and Salon profiles link accepting providers into the booking
+   workflow. Dashboard navigation exposes Appointments for all three roles.
+7. Development seed data creates bookable Braiders, Salons, services, schedules,
+   and a Client identity. `npm run verify:booking` exercises and removes a real
+   request → confirmation → cancellation lifecycle.
+
+Payments, external calendar synchronization, recurring appointments, and
+booking-specific messaging, reviews, and notifications are intentionally not
+part of workstream `3/7`.
+
+**Immediate next strategic focus:** workstream `4/7`, booking-aware
+conversations, reviews, and notifications. Generalize the existing
+application-scoped authorization and event models around a neutral participant
+or context contract, then add booking lifecycle notifications and
+post-completion review eligibility without weakening current staffing flows.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
