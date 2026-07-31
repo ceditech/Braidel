@@ -425,15 +425,49 @@ and public content:
 4. Completed Client bookings can review the provider. Those booking reviews use
    the existing Salon/Braider rating aggregate trigger and preserve current
    application review behavior.
+5. Review creation and edits retain append-only `rating_history` audit rows.
+   Client and Provider appointment drawers show the current review and edit
+   history, and Provider receives a new notification when a Client updates an
+   existing booking review.
+6. July 31, 2026 manual QA passed for the six-step Workstream 4 hardening
+   flow: Client review edit, Provider update notification, Provider drawer
+   visibility, Client drawer history visibility, shared audit visibility, and
+   old application messaging/review regression checks.
 
 Payments, external calendar synchronization, recurring appointments, and
 provider payout/commission handling remain deferred; they were intentionally not
 part of workstreams `3/7` or `4/7`.
 
+Deferred review/reputation surfaces that must be revisited before launch or in
+Workstream `6/7`: a dedicated `/dashboard/reviews` provider surface, an
+automated capped 5-step Client review reminder system for completed bookings,
+and formal review dispute/moderation workflows. The current implementation
+provides review persistence, update notifications, and audit history, but not
+those larger product surfaces.
+
 **Immediate next strategic focus:** workstream `5/7`, payments and
-monetization. Finalize the pricing/subscription/transaction-fee model, then
-implement Stripe Connect account onboarding, checkout/payment capture, platform
-commissions, refunds, payouts, and idempotent payment webhooks.
+monetization. Planning is active. Finalize the pricing/subscription/transaction
+fee model first, then implement Stripe Connect account onboarding,
+checkout/payment capture, platform commissions, refunds, payouts, and
+idempotent payment webhooks in small, independently testable slices.
+
+Recommended Workstream 5 slices:
+
+1. **Payment product model:** decide what is paid by Clients, Providers, and
+   Salon owners; define subscriptions, transaction fees, cancellation/no-show
+   rules, refund windows, and payout timing.
+2. **Schema + state machine:** add payment accounts, checkout sessions, payment
+   intents, ledger/fee records, payout status, refund/dispute records, and
+   webhook event idempotency.
+3. **Provider monetization setup:** Stripe Connect onboarding, account status,
+   payout readiness, dashboard warnings, and role-compatible settings.
+4. **Client checkout:** attach payment capture to booking confirmation or
+   booking request according to the chosen product model.
+5. **Webhook reliability:** verify Stripe webhook signatures, persist raw event
+   IDs, update local state idempotently, and handle retries/out-of-order events.
+6. **Operational QA:** test successful payment, failed payment, refund,
+   cancellation, no-show, provider payout readiness, and double-submit
+   idempotency before expanding the UI.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

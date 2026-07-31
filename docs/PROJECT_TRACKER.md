@@ -16,7 +16,7 @@
 |-------|-------|------|---|
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
 | **Phase 2** | Client Booking | 19 / 19 | 100% |
-| **Phase 3** | Online Payments | 0 / 1 | 0% |
+| **Phase 3** | Online Payments | 0 / 1 | ~50% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
 | **Phase 6** | Braidel Supply | 0 / 1 | 0% |
@@ -176,7 +176,7 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 | 2 | ✅ | Booking domain schema + migrations | High | 2 |
 | 3 | ✅ | Booking APIs + appointments/calendar UI | High | 2 |
 | 4 | ✅ | Booking-aware conversations, reviews + notifications | High | 2 |
-| 5 | ⬜ | Payments + monetization | High | 3 |
+| 5 | 🔄 | Payments + monetization | High | 3 |
 | 6 | ⬜ | Trust, verification + marketplace administration | High | 4 |
 | 7 | ⬜ | Ecosystem expansion: Academy, Supply, Franchise + mobile | Medium | 5–7 |
 
@@ -199,12 +199,14 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    booking lifecycle notifications, client appointment conversations, direct
    appointment message links, completed-booking provider reviews, provider
    review visibility, update notifications, and review audit history.
-5. **Payments + monetization** — finalize subscriptions and transaction fees,
-   then implement Stripe Connect, commissions, refunds, payouts, and idempotent
-   payment webhooks.
+5. **Payments + monetization** — planning is active. Finalize the pricing,
+   subscription, and transaction-fee model first, then implement Stripe Connect,
+   commissions, refunds, payouts, and idempotent payment webhooks in small,
+   independently testable slices.
 6. **Trust, verification + marketplace administration** — add verification
-   evidence and audit history, moderation, reports, disputes, administrative
-   actions, and account restrictions.
+   evidence and audit history, a dedicated provider reviews dashboard, capped
+   Client review reminders, moderation, reports, review disputes,
+   administrative actions, and account restrictions.
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
 
@@ -214,3 +216,11 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 1. Edit the item's `status` in [`src/lib/roadmap.ts`](../src/lib/roadmap.ts).
 2. The `/tracker` dashboard page updates automatically.
 3. Regenerate this markdown to keep the docs snapshot in sync.
+
+### Latest QA evidence
+
+- **July 31, 2026:** Workstream 4 manual QA passed across the six-step
+  booking review hardening flow: Client review edit, Provider review-update
+  notification, Provider drawer review visibility, Client drawer review history,
+  shared audit history visibility, and application messaging/review regression
+  checks.

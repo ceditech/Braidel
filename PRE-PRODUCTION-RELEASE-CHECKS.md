@@ -4,7 +4,7 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** July 27, 2026
+> **Last reviewed:** July 31, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
@@ -196,6 +196,33 @@ events otherwise will not automatically synchronize to Neon.
 - [ ] Record the endpoint owner, activation date, test evidence, and rotation
       procedure in Completed Evidence.
 
+## Deferred Feature Ledger
+
+These items are intentionally postponed during active development. They are not
+forgotten, and each should be revisited before production launch or before its
+own workstream ships.
+
+- **Clerk webhook activation:** implemented locally, but external endpoint
+  activation waits for a stable staging or production URL.
+- **External notification delivery:** in-app notification preferences are
+  persisted, but email/push delivery workers are not implemented yet.
+- **External calendar synchronization:** booking availability is internal first;
+  Google/Outlook calendar sync remains deferred.
+- **Recurring appointments:** recurring provider availability exists, but
+  recurring customer appointments remain deferred.
+- **Provider payouts and commissions:** intentionally deferred into Workstream
+  5, Payments + monetization.
+- **Dedicated Reviews dashboard:** `/dashboard/reviews` remains deferred. Before
+  launch or during the trust/reputation workstream, Providers should have a
+  first-class review surface with average rating, review count, latest reviews,
+  rating trends, response/dispute status, and appointment links.
+- **Automated review reminders:** a capped 5-step reminder system remains
+  deferred. Before launch or before enabling scaled bookings, Clients should be
+  reminded to review completed bookings on a gentle schedule, and reminders
+  must stop immediately once a review exists.
+- **Review disputes and moderation:** review audit history exists; dispute,
+  moderation, and marketplace administration flows belong to Workstream 6.
+
 ## Storage and Media
 
 - [ ] Provision the production Vercel Blob store and token.
@@ -310,3 +337,12 @@ Add dated entries here as production gates are verified.
   whitespace checks, and the reversible `npm run verify:booking` lifecycle smoke
   passed locally; staging role-flow and deep-link verification remain launch
   gates.
+- **July 31, 2026:** Review update hardening was implemented and verified.
+  Migration `0014_demonic_doctor_faustus.sql` was applied to the configured
+  development Neon database, adding append-only `rating_history` audit rows.
+  Existing booking reviews were backfilled into the audit trail. TypeScript,
+  focused lint, production build, whitespace checks, and the reversible
+  `npm run verify:booking` lifecycle smoke passed locally. Manual six-step QA
+  passed for Client review edits, Provider update notifications, Provider and
+  Client drawer review/history visibility, and old application
+  messaging/review regression checks. Staging acceptance remains a launch gate.

@@ -64,6 +64,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "availability_exceptions table", status: "done", priority: "high", phase: 2 },
       { title: "bookings table", status: "done", priority: "high", phase: 2 },
       { title: "booking_status_history table", status: "done", priority: "high", phase: 2 },
+      { title: "rating_history table", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -151,6 +152,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Notifications page", status: "done", priority: "medium", phase: 1 },
       { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
       { title: "Client booking discovery + appointment management", status: "done", priority: "high", phase: 2 },
+      { title: "Booking review visibility, update notifications, and audit history", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -172,6 +174,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Portfolio media persistence", status: "done", priority: "high", phase: 1 },
       { title: "Notifications persistence + event wiring", status: "done", priority: "high", phase: 1 },
       { title: "Availability engine + transactional booking lifecycle APIs", status: "done", priority: "high", phase: 2 },
+      { title: "Review audit history + update notification wiring", status: "done", priority: "high", phase: 2 },
     ],
   },
   {
@@ -209,17 +212,17 @@ export const ROADMAP: RoadmapGroup[] = [
       },
       {
         title: "5. Payments + monetization",
-        status: "pending",
+        status: "in_progress",
         priority: "high",
         phase: 3,
-        note: "Finalize subscriptions and transaction fees, then implement Stripe Connect accounts, payments, commissions, refunds, payouts, and idempotent webhooks.",
+        note: "Planning is active. Finalize the pricing, subscription, and transaction-fee model first, then implement Stripe Connect accounts, payments, commissions, refunds, payouts, and idempotent webhooks in small slices.",
       },
       {
         title: "6. Trust, verification + marketplace administration",
         status: "pending",
         priority: "high",
         phase: 4,
-        note: "Add verification evidence and audit history, moderation, reports, disputes, administrative actions, and account restrictions.",
+        note: "Add verification evidence and audit history, a dedicated provider reviews dashboard, capped Client review reminders, moderation, reports, review disputes, administrative actions, and account restrictions.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",
