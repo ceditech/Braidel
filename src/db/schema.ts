@@ -589,6 +589,44 @@ export const ratings = pgTable(
   ]
 );
 
+export const ratingHistory = pgTable(
+  "rating_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ratingId: uuid("rating_id")
+      .notNull()
+      .references(() => ratings.id, { onDelete: "cascade" }),
+    changedByUserId: uuid("changed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    action: text("action").notNull(),
+    previousScore: integer("previous_score"),
+    previousComment: text("previous_comment"),
+    newScore: integer("new_score").notNull(),
+    newComment: text("new_comment"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("rating_history_rating_created_idx").on(
+      table.ratingId,
+      table.createdAt
+    ),
+    index("rating_history_changed_by_idx").on(table.changedByUserId),
+    check(
+      "rating_history_action_check",
+      sql`${table.action} in ('created', 'updated')`
+    ),
+    check(
+      "rating_history_previous_score_check",
+      sql`${table.previousScore} is null or ${table.previousScore} between 1 and 5`
+    ),
+    check(
+      "rating_history_new_score_check",
+      sql`${table.newScore} between 1 and 5`
+    ),
+  ]
+);
+
 export const notifications = pgTable(
   "notifications",
   {
@@ -637,6 +675,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "recipient" }),
   ratingsGiven: many(ratings, { relationName: "reviewer" }),
+  ratingHistoryChanges: many(ratingHistory),
   bookingStatusChanges: many(bookingStatusHistory),
   notifications: many(notifications),
   notificationPreferences: one(notificationPreferences, {
@@ -811,7 +850,7 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
-export const ratingsRelations = relations(ratings, ({ one }) => ({
+export const ratingsRelations = relations(ratings, ({ one, many }) => ({
   application: one(applications, {
     fields: [ratings.applicationId],
     references: [applications.id],
@@ -832,6 +871,18 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
   salon: one(salons, {
     fields: [ratings.salonId],
     references: [salons.id],
+  }),
+  history: many(ratingHistory),
+}));
+
+export const ratingHistoryRelations = relations(ratingHistory, ({ one }) => ({
+  rating: one(ratings, {
+    fields: [ratingHistory.ratingId],
+    references: [ratings.id],
+  }),
+  changedBy: one(users, {
+    fields: [ratingHistory.changedByUserId],
+    references: [users.id],
   }),
 }));
 

@@ -89,6 +89,16 @@ export interface BookingDTO {
   review: {
     score: number;
     comment: string;
+    createdAt: string;
+    updatedAt: string;
+    history: Array<{
+      action: "created" | "updated";
+      previousScore: number | null;
+      previousComment: string;
+      newScore: number;
+      newComment: string;
+      createdAt: string;
+    }>;
   } | null;
 }
 

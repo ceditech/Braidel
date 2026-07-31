@@ -32,17 +32,43 @@ export function AppointmentsClient({
   initialBookingId: string;
   referenceNow: string;
 }) {
-  const [bookings, setBookings] = useState(initialWorkspace.bookings);
-  const [provider, setProvider] = useState(initialWorkspace.provider);
-  const [selectedBooking, setSelectedBooking] = useState<BookingDTO | null>(
-    () =>
-      initialWorkspace.bookings.find((booking) => booking.id === initialBookingId) ??
-      null
+  const [bookingOverrides, setBookingOverrides] = useState<
+    Record<string, BookingDTO>
+  >({});
+  const [providerOverride, setProviderOverride] =
+    useState<ProviderBookingWorkspaceDTO | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    initialBookingId || null
   );
   const [view, setView] = useState<View>(() =>
     initialWorkspace.role === "client" && initialProviderId
       ? "discover"
       : "calendar"
+  );
+  const bookings = useMemo(() => {
+    const merged = new Map<string, BookingDTO>();
+
+    for (const booking of initialWorkspace.bookings) {
+      merged.set(booking.id, bookingOverrides[booking.id] ?? booking);
+    }
+
+    for (const booking of Object.values(bookingOverrides)) {
+      if (!merged.has(booking.id)) {
+        merged.set(booking.id, booking);
+      }
+    }
+
+    return [...merged.values()].sort(
+      (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+    );
+  }, [bookingOverrides, initialWorkspace.bookings]);
+  const provider = providerOverride ?? initialWorkspace.provider;
+  const selectedBooking = useMemo(
+    () =>
+      selectedBookingId
+        ? bookings.find((booking) => booking.id === selectedBookingId) ?? null
+        : null,
+    [bookings, selectedBookingId]
   );
   const upcoming = useMemo(
     () =>
@@ -72,19 +98,7 @@ export function AppointmentsClient({
       : initialWorkspace.profileTimezone);
 
   function upsertBooking(next: BookingDTO) {
-    setBookings((current) => {
-      const exists = current.some((item) => item.id === next.id);
-      const merged = exists
-        ? current.map((item) => (item.id === next.id ? next : item))
-        : [...current, next];
-      return merged.sort(
-        (a, b) =>
-          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-      );
-    });
-    setSelectedBooking((current) =>
-      current?.id === next.id ? next : current
-    );
+    setBookingOverrides((current) => ({ ...current, [next.id]: next }));
   }
 
   const tabs: Array<{ value: View; label: string; icon: React.ReactNode }> = [
@@ -196,7 +210,7 @@ export function AppointmentsClient({
             bookings={bookings}
             timezone={timezone}
             referenceNow={referenceNow}
-            onSelect={setSelectedBooking}
+            onSelect={(booking) => setSelectedBookingId(booking.id)}
           />
         )}
         {view === "agenda" && (
@@ -214,7 +228,7 @@ export function AppointmentsClient({
             <AppointmentAgenda
               bookings={bookings}
               emptyMessage="No appointments yet."
-              onSelect={setSelectedBooking}
+              onSelect={(booking) => setSelectedBookingId(booking.id)}
             />
           </section>
         )}
@@ -226,7 +240,7 @@ export function AppointmentsClient({
             onCreated={(booking) => {
               upsertBooking(booking);
               setView("calendar");
-              setSelectedBooking(booking);
+              setSelectedBookingId(booking.id);
             }}
           />
         )}
@@ -235,7 +249,7 @@ export function AppointmentsClient({
             initialProvider={provider}
             braidStyles={initialWorkspace.braidStyles}
             onProviderChange={(next: ProviderBookingWorkspaceDTO) =>
-              setProvider(next)
+              setProviderOverride(next)
             }
           />
         )}
@@ -255,7 +269,7 @@ export function AppointmentsClient({
         key={selectedBooking?.id ?? "closed"}
         booking={selectedBooking}
         role={initialWorkspace.role}
-        onClose={() => setSelectedBooking(null)}
+        onClose={() => setSelectedBookingId(null)}
         onUpdate={upsertBooking}
       />
     </>

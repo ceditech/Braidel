@@ -272,6 +272,51 @@ export function AppointmentDetailsDrawer({
               <p>{booking.cancellationReason}</p>
             </div>
           )}
+          {booking.review && (
+            <section className={styles.reviewPanel}>
+              <div className={styles.reviewHeader}>
+                <div>
+                  <span className={styles.eyebrow}>
+                    {role === "client" ? "Your review" : "Client review"}
+                  </span>
+                  <strong>{starText(booking.review.score)}</strong>
+                </div>
+                <small>
+                  Updated {shortDateTime(booking.review.updatedAt)}
+                </small>
+              </div>
+              {booking.review.comment && (
+                <p className={styles.reviewComment}>{booking.review.comment}</p>
+              )}
+              {booking.review.history.length > 0 && (
+                <div className={styles.reviewHistory}>
+                  <span>Review history</span>
+                  <ol>
+                    {booking.review.history.map((entry, index) => (
+                      <li key={`${entry.createdAt}-${index}`}>
+                        <div>
+                          <strong>
+                            {entry.action === "created"
+                              ? `Created at ${entry.newScore} stars`
+                              : `Updated from ${entry.previousScore ?? "-"} to ${entry.newScore} stars`}
+                          </strong>
+                          <small>{shortDateTime(entry.createdAt)}</small>
+                        </div>
+                        {entry.action === "updated" ? (
+                          <p>
+                            {entry.previousComment || "No previous comment"} {"->"}{" "}
+                            {entry.newComment || "No comment"}
+                          </p>
+                        ) : entry.newComment ? (
+                          <p>{entry.newComment}</p>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </section>
+          )}
 
           <div className={styles.lifecycleSection}>
             <p className={styles.eyebrow}>Actions</p>
@@ -496,6 +541,19 @@ function timeOnly(value: string, timezone: string) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function shortDateTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function starText(score: number) {
+  return `${score}/5 stars`;
 }
 
 function tomorrowKey() {

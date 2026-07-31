@@ -205,7 +205,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "done",
         priority: "high",
         phase: 2,
-        note: "Migration 0013 adds booking-scoped messages and reviews, booking lifecycle notifications, client appointment conversations, direct appointment message links, and completed-booking provider reviews.",
+        note: "Migrations 0013 and 0014 add booking-scoped messages and reviews, booking lifecycle notifications, client appointment conversations, direct appointment message links, completed-booking provider reviews, provider-visible review details, update notifications, and review audit history.",
       },
       {
         title: "5. Payments + monetization",

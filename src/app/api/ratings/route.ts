@@ -1,12 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
+import { withBookingTransaction } from "@/db/booking-db";
 import {
   applications,
   braiders,
   opportunities,
+  ratingHistory,
   ratings,
   salons,
   users,
@@ -158,23 +160,62 @@ export async function PUT(req: NextRequest) {
     updatedAt: new Date(),
   };
 
-  const [review] = application
-    ? await db
-        .insert(ratings)
-        .values(values)
-        .onConflictDoUpdate({
-          target: [ratings.applicationId, ratings.reviewerId],
-          set: updateSet,
-        })
-        .returning({ score: ratings.score, comment: ratings.comment })
-    : await db
-        .insert(ratings)
-        .values(values)
-        .onConflictDoUpdate({
-          target: [ratings.bookingId, ratings.reviewerId],
-          set: updateSet,
-        })
-        .returning({ score: ratings.score, comment: ratings.comment });
+  const mutation = await withBookingTransaction(async (tx) => {
+    const reviewCondition = application
+      ? and(eq(ratings.applicationId, application.id), eq(ratings.reviewerId, user.id))
+      : and(eq(ratings.bookingId, booking!.id), eq(ratings.reviewerId, user.id));
+    const [existingReview] = await tx
+      .select({
+        id: ratings.id,
+        score: ratings.score,
+        comment: ratings.comment,
+      })
+      .from(ratings)
+      .where(reviewCondition)
+      .limit(1)
+      .for("update");
+
+    const [review] = existingReview
+      ? await tx
+          .update(ratings)
+          .set(updateSet)
+          .where(eq(ratings.id, existingReview.id))
+          .returning({
+            id: ratings.id,
+            score: ratings.score,
+            comment: ratings.comment,
+          })
+      : await tx
+          .insert(ratings)
+          .values(values)
+          .returning({
+            id: ratings.id,
+            score: ratings.score,
+            comment: ratings.comment,
+          });
+
+    const [history] = await tx
+      .insert(ratingHistory)
+      .values({
+        ratingId: review.id,
+        changedByUserId: user.id,
+        action: existingReview ? "updated" : "created",
+        previousScore: existingReview?.score ?? null,
+        previousComment: existingReview?.comment ?? null,
+        newScore: score,
+        newComment: comment || null,
+      })
+      .returning({
+        id: ratingHistory.id,
+        action: ratingHistory.action,
+      });
+
+    return {
+      review,
+      history,
+      wasUpdate: Boolean(existingReview),
+    };
+  });
 
   const recipientId: string | null | undefined = booking
     ? resolveBookingReviewTarget(user, booking)?.recipientId
@@ -182,15 +223,24 @@ export async function PUT(req: NextRequest) {
       ? application?.braiderUserId
       : application?.ownerId;
   if (recipientId) {
+    const reviewHref = booking
+      ? `/dashboard/appointments?booking=${booking.id}`
+      : "/dashboard/settings";
     await createNotification({
       userId: recipientId,
       type: "review",
-      title: "New review",
-      body: `You received a ${score}-star review.`,
-      href: "/dashboard/settings",
-      eventKey: application
-        ? `review:${application.id}:${user.id}`
-        : `booking-review:${booking!.id}:${user.id}`,
+      title: mutation.wasUpdate ? "Review updated" : "New review",
+      body: mutation.wasUpdate
+        ? `A review was updated to ${score} stars.`
+        : `You received a ${score}-star review.`,
+      href: reviewHref,
+      eventKey: mutation.wasUpdate
+        ? application
+          ? `review-updated:${application.id}:${user.id}:${mutation.history.id}`
+          : `booking-review-updated:${booking!.id}:${user.id}:${mutation.history.id}`
+        : application
+          ? `review:${application.id}:${user.id}`
+          : `booking-review:${booking!.id}:${user.id}`,
     });
   }
 
@@ -200,6 +250,6 @@ export async function PUT(req: NextRequest) {
   revalidatePath("/dashboard", "layout");
 
   return NextResponse.json({
-    review: { score: review.score, comment: review.comment ?? "" },
+    review: { score: mutation.review.score, comment: mutation.review.comment ?? "" },
   });
 }

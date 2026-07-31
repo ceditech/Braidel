@@ -92,10 +92,10 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Eleven tables, all migrated and live: `users`, `salons`, `braiders`,
-`opportunities`, `applications`, `braid_styles`, `messages`, `ratings`,
-`portfolio_media`, `notifications`, and `notification_preferences`. Full
-definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
+Nineteen tables, all migrated and live: users/profiles, marketplace listings,
+opportunities/applications, booking/availability, messages, ratings,
+`rating_history`, portfolio media, notifications, and notification preferences.
+Full definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
 - `users.onboardedAt` distinguishes identity rows created by Clerk sync from
@@ -143,13 +143,15 @@ Rules while this transition holds:
 8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
 9. ✅ Messaging reads, sends, and read receipts are application-scoped and
    persisted in Neon.
-10. ✅ Ratings are limited to matched applications, support one editable review
-    per participant direction, and refresh salon/braider aggregates in Neon.
+10. ✅ Ratings are limited to matched applications and completed bookings,
+    support one editable review per participant direction, refresh
+    salon/braider aggregates in Neon, notify providers on review updates, and
+    retain append-only `rating_history` audit rows.
 11. ✅ Portfolio media upload/delete flows persist normalized metadata, enforce
     ownership/type/size/count limits, and render on public braider profiles.
 12. ✅ Notifications persist with idempotent event keys for applications,
-    application status changes, messages, and reviews; read state and preferences
-    are DB-backed.
+    application status changes, messages, booking lifecycle events, and review
+    create/update events; read state and preferences are DB-backed.
 13. ✅ Dashboard role state is derived from the authenticated Neon user;
     incompatible role pages redirect server-side, onboarding completion is
     explicit, and Client dashboard/settings foundations are available.

@@ -87,8 +87,12 @@ Production must not launch until every item in this section is complete.
 - [ ] Apply migration `0013_funny_umar.sql` before releasing booking-scoped
       conversations, completed-booking provider reviews, or booking lifecycle
       notifications.
+- [ ] Apply migration `0014_demonic_doctor_faustus.sql` before releasing review
+      update notifications or review audit visibility.
 - [ ] Verify booking message/review context checks reject rows with no context
       or both application and booking contexts.
+- [ ] Verify every editable review creates exactly one current `ratings` row and
+      append-only `rating_history` rows for create/update audit visibility.
 - [ ] Require every bookable provider to replace the safe `UTC` migration
       default with its real IANA timezone before setting
       `is_accepting_bookings = true`.
@@ -110,7 +114,7 @@ Production must not launch until every item in this section is complete.
 - [ ] Validate referential integrity and uniqueness for users, salons, braiders,
       opportunities, applications, messages, ratings, portfolio media, client
       profiles, service providers, service offerings, availability, bookings,
-      and booking status history.
+      booking status history, and rating history.
 
 ### Authentication and Authorization
 

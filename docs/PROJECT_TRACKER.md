@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~91% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~92% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -15,7 +15,7 @@
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
-| **Phase 2** | Client Booking | 18 / 18 | 100% |
+| **Phase 2** | Client Booking | 19 / 19 | 100% |
 | **Phase 3** | Online Payments | 0 / 1 | 0% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
@@ -62,6 +62,7 @@ _Tables & relations in Neon_
 | ✅ | availability_exceptions table | High | 2 |
 | ✅ | bookings table | High | 2 |
 | ✅ | booking_status_history table | High | 2 |
+| ✅ | rating_history table | High | 2 |
 
 ## Design System
 _Tokens & UI primitives_
@@ -143,6 +144,7 @@ _Cross-role features_
 | ✅ | Notifications page | Medium | 1 |
 | ✅ | Settings page (role-aware) | Medium | 1 |
 | ✅ | Client booking discovery + appointment management | High | 2 |
+| ✅ | Booking review visibility, update notifications, and audit history | High | 2 |
 
 ## Backend / API
 _Data routes & business logic_
@@ -163,6 +165,7 @@ _Data routes & business logic_
 | ✅ | Portfolio media persistence | High | 1 |
 | ✅ | Notifications persistence + event wiring | High | 1 |
 | ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
+| ✅ | Review audit history + update notification wiring | High | 2 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -192,9 +195,10 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    availability, idempotent transactional booking requests, lifecycle actions,
    and role-aware calendar, agenda, discovery, and setup views.
 4. **Booking-aware conversations, reviews + notifications** — completed in
-   migration `0013` with booking-scoped messages and reviews, booking lifecycle
-   notifications, client appointment conversations, direct appointment message
-   links, and completed-booking provider reviews.
+   migrations `0013` and `0014` with booking-scoped messages and reviews,
+   booking lifecycle notifications, client appointment conversations, direct
+   appointment message links, completed-booking provider reviews, provider
+   review visibility, update notifications, and review audit history.
 5. **Payments + monetization** — finalize subscriptions and transaction fees,
    then implement Stripe Connect, commissions, refunds, payouts, and idempotent
    payment webhooks.

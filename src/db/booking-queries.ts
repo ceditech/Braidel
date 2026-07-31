@@ -19,6 +19,7 @@ import {
   braidStyles,
   braiders,
   clientProfiles,
+  ratingHistory,
   ratings,
   salons,
   serviceOfferings,
@@ -477,8 +478,11 @@ async function getBookings(
       braiderSlug: braiders.slug,
       braiderCity: braiders.city,
       braiderState: braiders.state,
+      reviewId: ratings.id,
       reviewScore: ratings.score,
       reviewComment: ratings.comment,
+      reviewCreatedAt: ratings.createdAt,
+      reviewUpdatedAt: ratings.updatedAt,
     })
     .from(bookings)
     .innerJoin(
@@ -496,6 +500,41 @@ async function getBookings(
     )
     .where(condition)
     .orderBy(asc(bookings.startsAt));
+
+  const ratingIds = rows
+    .map((row) => row.reviewId)
+    .filter((id): id is string => Boolean(id));
+  const historyRows = ratingIds.length
+    ? await db
+        .select({
+          ratingId: ratingHistory.ratingId,
+          action: ratingHistory.action,
+          previousScore: ratingHistory.previousScore,
+          previousComment: ratingHistory.previousComment,
+          newScore: ratingHistory.newScore,
+          newComment: ratingHistory.newComment,
+          createdAt: ratingHistory.createdAt,
+        })
+        .from(ratingHistory)
+        .where(inArray(ratingHistory.ratingId, ratingIds))
+        .orderBy(asc(ratingHistory.createdAt))
+    : [];
+  const historyByRating = new Map<
+    string,
+    NonNullable<BookingDTO["review"]>["history"]
+  >();
+  for (const history of historyRows) {
+    const entries = historyByRating.get(history.ratingId) ?? [];
+    entries.push({
+      action: history.action === "updated" ? "updated" : "created",
+      previousScore: history.previousScore,
+      previousComment: history.previousComment ?? "",
+      newScore: history.newScore,
+      newComment: history.newComment ?? "",
+      createdAt: toIso(history.createdAt),
+    });
+    historyByRating.set(history.ratingId, entries);
+  }
 
   return rows.map((row) => ({
     id: row.id,
@@ -538,9 +577,15 @@ async function getBookings(
       maxConcurrentBookings: row.maxConcurrentBookings,
     }),
     review:
-      row.reviewScore === null
+      !row.reviewId || row.reviewScore === null
         ? null
-        : { score: row.reviewScore, comment: row.reviewComment ?? "" },
+        : {
+            score: row.reviewScore,
+            comment: row.reviewComment ?? "",
+            createdAt: toIso(row.reviewCreatedAt ?? row.createdAt),
+            updatedAt: toIso(row.reviewUpdatedAt ?? row.createdAt),
+            history: historyByRating.get(row.reviewId) ?? [],
+          },
   }));
 }
 
