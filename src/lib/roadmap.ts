@@ -202,10 +202,10 @@ export const ROADMAP: RoadmapGroup[] = [
       },
       {
         title: "4. Booking-aware conversations, reviews + notifications",
-        status: "pending",
+        status: "done",
         priority: "high",
         phase: 2,
-        note: "Generalize application-scoped messaging, ratings, and notification events so they can safely support booking participants and lifecycle events.",
+        note: "Migration 0013 adds booking-scoped messages and reviews, booking lifecycle notifications, client appointment conversations, direct appointment message links, and completed-booking provider reviews.",
       },
       {
         title: "5. Payments + monetization",

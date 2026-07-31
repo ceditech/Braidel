@@ -63,7 +63,7 @@ export function NotificationsClient({ initialNotifications }: { initialNotificat
 
   return (
     <>
-      <Topbar title="Notifications" subtitle="Application, message, review, and profile activity." />
+      <Topbar title="Notifications" subtitle="Booking, application, message, review, and profile activity." />
       <main className={styles.page}>
         <div className={styles.toolbar}>
           <p className={styles.summary}>{unreadCount ? `${unreadCount} unread` : "You're all caught up"}</p>
@@ -123,6 +123,7 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   if (type === "message") return <MessageIcon />;
   if (type === "review") return <StarIcon />;
   if (type === "portfolio") return <ImageIcon />;
+  if (type === "booking") return <CalendarIcon />;
   if (type === "application" || type === "application_status") return <BriefcaseIcon />;
   return <BellIcon />;
 }
@@ -131,5 +132,6 @@ function CheckIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fi
 function MessageIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>; }
 function StarIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/></svg>; }
 function ImageIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>; }
+function CalendarIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>; }
 function BriefcaseIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>; }
 function BellIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>; }

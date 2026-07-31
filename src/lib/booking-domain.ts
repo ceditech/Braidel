@@ -86,6 +86,10 @@ export interface BookingDTO {
     name: string;
     email: string;
   };
+  review: {
+    score: number;
+    comment: string;
+  } | null;
 }
 
 export interface ProviderBookingWorkspaceDTO extends BookingProviderDTO {

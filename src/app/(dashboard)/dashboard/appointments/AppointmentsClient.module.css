@@ -1395,6 +1395,31 @@
   gap: 8px;
 }
 
+.lifecycleLink {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast);
+}
+
+.lifecycleLink:hover {
+  background: var(--bg-subtle);
+  color: var(--text-strong);
+}
+
 .noActions {
   margin: 0;
   color: var(--text-muted);
@@ -1615,6 +1640,10 @@
   .lifecycleActions > button {
     flex: 1 1 calc(50% - 8px);
   }
+
+  .lifecycleLink {
+    flex: 1 1 calc(50% - 8px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1624,4 +1653,3 @@
     transition: none;
   }
 }
-

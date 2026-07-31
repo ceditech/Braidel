@@ -84,6 +84,11 @@ Production must not launch until every item in this section is complete.
 - [ ] Apply migration `0012_slippery_tomas.sql` before releasing booking APIs;
       it adds provider concurrency capacity and client-scoped request
       idempotency.
+- [ ] Apply migration `0013_funny_umar.sql` before releasing booking-scoped
+      conversations, completed-booking provider reviews, or booking lifecycle
+      notifications.
+- [ ] Verify booking message/review context checks reject rows with no context
+      or both application and booking contexts.
 - [ ] Require every bookable provider to replace the safe `UTC` migration
       default with its real IANA timezone before setting
       `is_accepting_bookings = true`.
@@ -219,6 +224,10 @@ events otherwise will not automatically synchronize to Neon.
       lifecycle actions, empty states, and responsive drawers.
 - [ ] Verify booking confirmations, changes, and cancellations remain visible
       in status history even before external delivery is implemented.
+- [ ] Verify booking lifecycle notifications deep-link to the relevant
+      appointment or booking conversation for Client, Braider, and Salon roles.
+- [ ] Verify completed Client bookings can create and edit exactly one provider
+      review, while incomplete appointments and non-client roles cannot review.
 - [ ] Run a production smoke test without development/demo fallbacks.
 
 ## Security and Operations
@@ -290,3 +299,10 @@ Add dated entries here as production gates are verified.
   now uses semantic navigation tokens so header contrast follows the active
   theme. TypeScript, focused lint, production build, and whitespace checks passed
   locally; authenticated visual verification should still be repeated in staging.
+- **July 27, 2026:** Booking-aware conversations, reviews, and notifications
+  were implemented. Migration `0013_funny_umar.sql` was applied to the
+  configured development Neon database, adding booking-scoped messages/reviews
+  and booking notification events. TypeScript, focused lint, production build,
+  whitespace checks, and the reversible `npm run verify:booking` lifecycle smoke
+  passed locally; staging role-flow and deep-link verification remain launch
+  gates.

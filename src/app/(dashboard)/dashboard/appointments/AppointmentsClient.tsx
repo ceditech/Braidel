@@ -23,17 +23,21 @@ export function AppointmentsClient({
   initialWorkspace,
   initialProviderId,
   initialServiceId,
+  initialBookingId,
   referenceNow,
 }: {
   initialWorkspace: BookingWorkspaceDTO;
   initialProviderId: string;
   initialServiceId: string;
+  initialBookingId: string;
   referenceNow: string;
 }) {
   const [bookings, setBookings] = useState(initialWorkspace.bookings);
   const [provider, setProvider] = useState(initialWorkspace.provider);
   const [selectedBooking, setSelectedBooking] = useState<BookingDTO | null>(
-    null
+    () =>
+      initialWorkspace.bookings.find((booking) => booking.id === initialBookingId) ??
+      null
   );
   const [view, setView] = useState<View>(() =>
     initialWorkspace.role === "client" && initialProviderId

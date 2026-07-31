@@ -19,6 +19,7 @@ import {
   braidStyles,
   braiders,
   clientProfiles,
+  ratings,
   salons,
   serviceOfferings,
   serviceProviders,
@@ -476,6 +477,8 @@ async function getBookings(
       braiderSlug: braiders.slug,
       braiderCity: braiders.city,
       braiderState: braiders.state,
+      reviewScore: ratings.score,
+      reviewComment: ratings.comment,
     })
     .from(bookings)
     .innerJoin(
@@ -487,6 +490,10 @@ async function getBookings(
     .leftJoin(salons, eq(serviceProviders.salonId, salons.id))
     .leftJoin(braiders, eq(serviceProviders.braiderId, braiders.id))
     .leftJoin(braiderUser, eq(braiders.userId, braiderUser.id))
+    .leftJoin(
+      ratings,
+      and(eq(ratings.bookingId, bookings.id), eq(ratings.reviewerId, clientUser.id))
+    )
     .where(condition)
     .orderBy(asc(bookings.startsAt));
 
@@ -530,6 +537,10 @@ async function getBookings(
       isAcceptingBookings: row.isAcceptingBookings,
       maxConcurrentBookings: row.maxConcurrentBookings,
     }),
+    review:
+      row.reviewScore === null
+        ? null
+        : { score: row.reviewScore, comment: row.reviewComment ?? "" },
   }));
 }
 

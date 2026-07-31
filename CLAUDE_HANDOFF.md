@@ -409,15 +409,29 @@ and public content:
    and a Client identity. `npm run verify:booking` exercises and removes a real
    request → confirmation → cancellation lifecycle.
 
-Payments, external calendar synchronization, recurring appointments, and
-booking-specific messaging, reviews, and notifications are intentionally not
-part of workstream `3/7`.
+**Booking-aware conversations, reviews + notifications** is complete:
 
-**Immediate next strategic focus:** workstream `4/7`, booking-aware
-conversations, reviews, and notifications. Generalize the existing
-application-scoped authorization and event models around a neutral participant
-or context contract, then add booking lifecycle notifications and
-post-completion review eligibility without weakening current staffing flows.
+1. Migration `0013_funny_umar.sql` adds nullable `booking_id` context links to
+   `messages` and `ratings`, enforces exactly one conversation/review context,
+   and expands notification types with `booking`.
+2. `/dashboard/messages` now supports application conversations for Salon/Braider
+   staffing flows and booking conversations for Client/Provider appointment
+   flows, including direct links via `?booking=...`.
+3. Booking creation and status mutations emit in-app booking notifications to
+   the opposite participant; booking message notifications deep-link to the
+   booking conversation.
+4. Completed Client bookings can review the provider. Those booking reviews use
+   the existing Salon/Braider rating aggregate trigger and preserve current
+   application review behavior.
+
+Payments, external calendar synchronization, recurring appointments, and
+provider payout/commission handling remain deferred; they were intentionally not
+part of workstreams `3/7` or `4/7`.
+
+**Immediate next strategic focus:** workstream `5/7`, payments and
+monetization. Finalize the pricing/subscription/transaction-fee model, then
+implement Stripe Connect account onboarding, checkout/payment capture, platform
+commissions, refunds, payouts, and idempotent payment webhooks.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

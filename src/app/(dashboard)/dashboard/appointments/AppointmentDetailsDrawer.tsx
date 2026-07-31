@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import {
   BOOKING_STATUS_LABELS,
   formatBookingDateTime,
@@ -274,6 +276,22 @@ export function AppointmentDetailsDrawer({
           <div className={styles.lifecycleSection}>
             <p className={styles.eyebrow}>Actions</p>
             <div className={styles.lifecycleActions}>
+              <Link
+                href={`/dashboard/messages?booking=${booking.id}`}
+                className={styles.lifecycleLink}
+              >
+                <MessageIcon />
+                Message
+              </Link>
+              {role === "client" && booking.status === "completed" && (
+                <ReviewDialog
+                  bookingId={booking.id}
+                  targetName={booking.provider.name}
+                  targetType={booking.provider.type}
+                  initialReview={booking.review}
+                  contextLabel="completed appointment"
+                />
+              )}
               {role !== "client" && booking.status === "requested" && (
                 <>
                   <Button
@@ -339,7 +357,8 @@ export function AppointmentDetailsDrawer({
                   </button>
                 </>
               )}
-              {!hasLifecycleActions(booking, role) && (
+              {!hasLifecycleActions(booking, role) &&
+                !(role === "client" && booking.status === "completed") && (
                 <p className={styles.noActions}>
                   This appointment has no remaining actions.
                 </p>
@@ -530,6 +549,24 @@ function AlertIcon() {
     >
       <path d="M10.3 2.8 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.8a2 2 0 0 0-3.4 0Z" />
       <path d="M12 9v4M12 17h.01" />
+    </svg>
+  );
+}
+
+function MessageIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
     </svg>
   );
 }

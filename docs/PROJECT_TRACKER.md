@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~90% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~91% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
@@ -15,7 +15,7 @@
 | Phase | Focus | Done | % |
 |-------|-------|------|---|
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
-| **Phase 2** | Client Booking | 17 / 18 | ~94% |
+| **Phase 2** | Client Booking | 18 / 18 | 100% |
 | **Phase 3** | Online Payments | 0 / 1 | 0% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
@@ -172,7 +172,7 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 | 1 | ✅ | Real role state + client account foundation | High | 1 |
 | 2 | ✅ | Booking domain schema + migrations | High | 2 |
 | 3 | ✅ | Booking APIs + appointments/calendar UI | High | 2 |
-| 4 | ⬜ | Booking-aware conversations, reviews + notifications | High | 2 |
+| 4 | ✅ | Booking-aware conversations, reviews + notifications | High | 2 |
 | 5 | ⬜ | Payments + monetization | High | 3 |
 | 6 | ⬜ | Trust, verification + marketplace administration | High | 4 |
 | 7 | ⬜ | Ecosystem expansion: Academy, Supply, Franchise + mobile | Medium | 5–7 |
@@ -191,8 +191,10 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    services, timezone, capacity, recurring schedules and exceptions, DST-safe
    availability, idempotent transactional booking requests, lifecycle actions,
    and role-aware calendar, agenda, discovery, and setup views.
-4. **Booking-aware conversations, reviews + notifications** — generalize the
-   application-scoped features for booking participants and lifecycle events.
+4. **Booking-aware conversations, reviews + notifications** — completed in
+   migration `0013` with booking-scoped messages and reviews, booking lifecycle
+   notifications, client appointment conversations, direct appointment message
+   links, and completed-booking provider reviews.
 5. **Payments + monetization** — finalize subscriptions and transaction fees,
    then implement Stripe Connect, commissions, refunds, payouts, and idempotent
    payment webhooks.

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function AppointmentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ provider?: string; service?: string }>;
+  searchParams: Promise<{ provider?: string; service?: string; booking?: string }>;
 }) {
   const [user, params] = await Promise.all([
     requireOnboardedUser(),
@@ -20,6 +20,7 @@ export default async function AppointmentsPage({
       initialWorkspace={workspace}
       initialProviderId={params.provider ?? ""}
       initialServiceId={params.service ?? ""}
+      initialBookingId={params.booking ?? ""}
       referenceNow={new Date().toISOString()}
     />
   );

@@ -74,10 +74,14 @@ export function MessagesClient({
     if (!active?.unread) return;
 
     const controller = new AbortController();
+    const contextPayload =
+      active.contextType === "booking"
+        ? { bookingId: active.id }
+        : { applicationId: active.id };
     fetch("/api/messages", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ applicationId: active.id }),
+      body: JSON.stringify(contextPayload),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -94,7 +98,7 @@ export function MessagesClient({
       });
 
     return () => controller.abort();
-  }, [active?.id, active?.unread]);
+  }, [active?.contextType, active?.id, active?.unread]);
 
   async function sendMessage() {
     const body = draft.trim();
@@ -106,7 +110,11 @@ export function MessagesClient({
       const response = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ applicationId: active.id, body }),
+        body: JSON.stringify(
+          active.contextType === "booking"
+            ? { bookingId: active.id, body }
+            : { applicationId: active.id, body }
+        ),
       });
       if (!response.ok) throw new Error(await responseError(response));
 
@@ -154,7 +162,7 @@ export function MessagesClient({
           {visible.length === 0 ? (
             <p style={{ color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5, padding: "24px 18px", margin: 0 }}>
               {conversations.length === 0
-                ? "No application conversations yet."
+                ? "No appointment or application conversations yet."
                 : "No conversations match your search."}
             </p>
           ) : (
@@ -228,7 +236,11 @@ export function MessagesClient({
                 <div style={{ fontWeight: 700, color: "var(--text-strong)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {active.name}
                 </div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Application conversation</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  {active.contextType === "booking"
+                    ? "Appointment conversation"
+                    : "Application conversation"}
+                </div>
               </div>
               <div style={{ marginLeft: "auto", minWidth: 0 }}>
                 <Badge variant="brand">{active.context}</Badge>
@@ -242,7 +254,9 @@ export function MessagesClient({
                     Start the conversation
                   </div>
                   <div style={{ color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-                    Discuss the application, availability, and next steps here.
+                    {active.contextType === "booking"
+                      ? "Discuss appointment details, timing, and next steps here."
+                      : "Discuss the application, availability, and next steps here."}
                   </div>
                 </div>
               ) : (
@@ -307,7 +321,8 @@ export function MessagesClient({
               No conversation selected
             </div>
             <div style={{ color: "var(--text-muted)", fontSize: 14, lineHeight: 1.6 }}>
-              Conversations become available when a braider applies to an opportunity.
+              Conversations become available when someone applies to an opportunity
+              or books an appointment.
             </div>
           </div>
         )}

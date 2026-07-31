@@ -514,6 +514,9 @@ export const messages = pgTable(
     applicationId: uuid("application_id").references(() => applications.id, {
       onDelete: "cascade",
     }),
+    bookingId: uuid("booking_id").references(() => bookings.id, {
+      onDelete: "cascade",
+    }),
     senderId: uuid("sender_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -526,8 +529,13 @@ export const messages = pgTable(
   },
   (table) => [
     index("messages_application_created_idx").on(table.applicationId, table.createdAt),
+    index("messages_booking_created_idx").on(table.bookingId, table.createdAt),
     index("messages_sender_idx").on(table.senderId),
     index("messages_recipient_read_idx").on(table.recipientId, table.readAt),
+    check(
+      "messages_context_check",
+      sql`(${table.applicationId} is not null) <> (${table.bookingId} is not null)`
+    ),
   ]
 );
 
@@ -538,6 +546,9 @@ export const ratings = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     applicationId: uuid("application_id").references(() => applications.id, {
+      onDelete: "cascade",
+    }),
+    bookingId: uuid("booking_id").references(() => bookings.id, {
       onDelete: "cascade",
     }),
     reviewerId: uuid("reviewer_id")
@@ -559,10 +570,18 @@ export const ratings = pgTable(
       table.applicationId,
       table.reviewerId
     ),
+    uniqueIndex("ratings_booking_reviewer_unique").on(
+      table.bookingId,
+      table.reviewerId
+    ),
     index("ratings_reviewer_idx").on(table.reviewerId),
     index("ratings_braider_idx").on(table.braiderId),
     index("ratings_salon_idx").on(table.salonId),
     check("ratings_score_check", sql`${table.score} between 1 and 5`),
+    check(
+      "ratings_context_check",
+      sql`(${table.applicationId} is not null) <> (${table.bookingId} is not null)`
+    ),
     check(
       "ratings_single_target_check",
       sql`(${table.braiderId} is not null) <> (${table.salonId} is not null)`
@@ -591,7 +610,7 @@ export const notifications = pgTable(
     uniqueIndex("notifications_event_key_unique").on(table.eventKey),
     check(
       "notifications_type_check",
-      sql`${table.type} in ('application', 'application_status', 'message', 'review', 'portfolio', 'system')`
+      sql`${table.type} in ('application', 'application_status', 'booking', 'message', 'review', 'portfolio', 'system')`
     ),
   ]
 );
@@ -729,6 +748,8 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     references: [serviceOfferings.id],
   }),
   statusHistory: many(bookingStatusHistory),
+  messages: many(messages),
+  ratings: many(ratings),
 }));
 
 export const bookingStatusHistoryRelations = relations(
@@ -774,6 +795,10 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.applicationId],
     references: [applications.id],
   }),
+  booking: one(bookings, {
+    fields: [messages.bookingId],
+    references: [bookings.id],
+  }),
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
@@ -790,6 +815,10 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
   application: one(applications, {
     fields: [ratings.applicationId],
     references: [applications.id],
+  }),
+  booking: one(bookings, {
+    fields: [ratings.bookingId],
+    references: [bookings.id],
   }),
   reviewer: one(users, {
     fields: [ratings.reviewerId],

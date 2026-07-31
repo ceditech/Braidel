@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth, UserButton } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -76,6 +77,7 @@ const navItems = [
 ];
 
 export function HomeExperience() {
+  const { isSignedIn } = useAuth();
   const [activeSlide, setActiveSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [spotlightPaused, setSpotlightPaused] = useState(false);
@@ -115,10 +117,25 @@ export function HomeExperience() {
 
         <div className={styles.headerActions}>
           <ThemeToggle className={styles.themeToggle} />
-          <Link href="/sign-up" className={styles.getStarted}>
-            Get started
-            <ArrowRight />
-          </Link>
+          {isSignedIn ? (
+            <div className={styles.accountActions}>
+              <Link href="/dashboard" className={styles.dashboardLink}>
+                Dashboard
+                <ArrowRight />
+              </Link>
+              <UserButton />
+            </div>
+          ) : (
+            <Link href="/sign-up" className={styles.getStarted}>
+              Get started
+              <ArrowRight />
+            </Link>
+          )}
+          {isSignedIn ? (
+            <span className={styles.mobileProfile}>
+              <UserButton />
+            </span>
+          ) : null}
           <button
             type="button"
             className={styles.menuButton}
@@ -140,9 +157,15 @@ export function HomeExperience() {
                 {item.label}
               </a>
             ))}
-            <Link href="/sign-up" onClick={() => setMenuOpen(false)}>
-              Get started
-            </Link>
+            {isSignedIn ? (
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/sign-up" onClick={() => setMenuOpen(false)}>
+                Get started
+              </Link>
+            )}
           </nav>
         )}
       </header>

@@ -3,6 +3,10 @@ import { and, eq, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { applications, braiders, messages, opportunities, salons, users } from "@/db/schema";
+import {
+  getBookingParticipantContext,
+  resolveBookingRecipient,
+} from "@/lib/booking-participants";
 import { createNotification } from "@/lib/notifications";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -62,9 +66,12 @@ export async function POST(req: NextRequest) {
 
   const payload = await req.json().catch(() => ({}));
   const applicationId = stringValue(payload.applicationId);
+  const bookingId = stringValue(payload.bookingId);
   const body = stringValue(payload.body);
+  const hasApplicationId = UUID_PATTERN.test(applicationId);
+  const hasBookingId = UUID_PATTERN.test(bookingId);
 
-  if (!UUID_PATTERN.test(applicationId)) {
+  if (hasApplicationId === hasBookingId) {
     return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
   }
   if (!body) {
@@ -77,27 +84,41 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const [user, application] = await Promise.all([
+  const [user, application, booking] = await Promise.all([
     getDbUser(clerkUser.id),
-    getApplicationParticipants(applicationId),
+    hasApplicationId ? getApplicationParticipants(applicationId) : Promise.resolve(null),
+    hasBookingId ? getBookingParticipantContext(bookingId) : Promise.resolve(null),
   ]);
 
   if (!user) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
   }
-  if (!application) {
+  if (hasApplicationId && !application) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+  if (hasBookingId && !booking) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
 
-  const recipientId = resolveRecipient(user, application);
+  const recipientId = application
+    ? resolveRecipient(user, application)
+    : booking
+      ? resolveBookingRecipient(user, booking)
+      : null;
   if (!recipientId) {
     return NextResponse.json({ error: "You cannot access this conversation" }, { status: 403 });
+  }
+
+  const contextId = application?.id ?? booking?.id;
+  if (!contextId) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
 
   const [message] = await db
     .insert(messages)
     .values({
-      applicationId: application.id,
+      applicationId: application?.id ?? null,
+      bookingId: booking?.id ?? null,
       senderId: user.id,
       recipientId,
       body,
@@ -112,8 +133,12 @@ export async function POST(req: NextRequest) {
     userId: recipientId,
     type: "message",
     title: "New message",
-    body: "You received a new message about an application.",
-    href: `/dashboard/messages?application=${application.id}`,
+    body: booking
+      ? "You received a new message about an appointment."
+      : "You received a new message about an application.",
+    href: booking
+      ? `/dashboard/messages?booking=${booking.id}`
+      : `/dashboard/messages?application=${contextId}`,
     eventKey: `message:${message.id}`,
   });
 
@@ -136,32 +161,47 @@ export async function PATCH(req: NextRequest) {
 
   const payload = await req.json().catch(() => ({}));
   const applicationId = stringValue(payload.applicationId);
-  if (!UUID_PATTERN.test(applicationId)) {
+  const bookingId = stringValue(payload.bookingId);
+  const hasApplicationId = UUID_PATTERN.test(applicationId);
+  const hasBookingId = UUID_PATTERN.test(bookingId);
+  if (hasApplicationId === hasBookingId) {
     return NextResponse.json({ error: "Invalid conversation" }, { status: 400 });
   }
 
-  const [user, application] = await Promise.all([
+  const [user, application, booking] = await Promise.all([
     getDbUser(clerkUser.id),
-    getApplicationParticipants(applicationId),
+    hasApplicationId ? getApplicationParticipants(applicationId) : Promise.resolve(null),
+    hasBookingId ? getBookingParticipantContext(bookingId) : Promise.resolve(null),
   ]);
 
   if (!user) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
   }
-  if (!application) {
+  if (hasApplicationId && !application) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
-  if (!resolveRecipient(user, application)) {
+  if (hasBookingId && !booking) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+  const recipientId = application
+    ? resolveRecipient(user, application)
+    : booking
+      ? resolveBookingRecipient(user, booking)
+      : null;
+  if (!recipientId) {
     return NextResponse.json({ error: "You cannot access this conversation" }, { status: 403 });
   }
 
   const readAt = new Date();
+  const conversationCondition = application
+    ? eq(messages.applicationId, application.id)
+    : eq(messages.bookingId, booking!.id);
   await db
     .update(messages)
     .set({ readAt })
     .where(
       and(
-        eq(messages.applicationId, application.id),
+        conversationCondition,
         eq(messages.recipientId, user.id),
         isNull(messages.readAt)
       )

@@ -8,17 +8,21 @@ import type { ReviewDTO } from "@/db/queries";
 import styles from "./ReviewDialog.module.css";
 
 interface ReviewDialogProps {
-  applicationId: string;
+  applicationId?: string;
+  bookingId?: string;
   targetName: string;
   targetType: "braider" | "salon";
   initialReview: ReviewDTO | null;
+  contextLabel?: string;
 }
 
 export function ReviewDialog({
   applicationId,
+  bookingId,
   targetName,
   targetType,
   initialReview,
+  contextLabel = "matched",
 }: ReviewDialogProps) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -62,7 +66,7 @@ export function ReviewDialog({
       const response = await fetch("/api/ratings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ applicationId, score, comment }),
+        body: JSON.stringify({ applicationId, bookingId, score, comment }),
       });
       const data = await response.json().catch(() => ({}));
 
@@ -81,7 +85,8 @@ export function ReviewDialog({
     }
   }
 
-  const titleId = `review-title-${applicationId}`;
+  const reviewContextId = applicationId ?? bookingId ?? "unknown";
+  const titleId = `review-title-${reviewContextId}`;
 
   return (
     <>
@@ -104,7 +109,7 @@ export function ReviewDialog({
             <div>
               <h2 id={titleId} className={styles.title}>Review {targetName}</h2>
               <p className={styles.subtitle}>
-                Share your experience with this matched {targetType}.
+                Share your experience with this {contextLabel} {targetType}.
               </p>
             </div>
             <button
@@ -139,7 +144,7 @@ export function ReviewDialog({
           </div>
 
           <Textarea
-            id={`review-comment-${applicationId}`}
+            id={`review-comment-${reviewContextId}`}
             label="Review"
             value={comment}
             rows={5}

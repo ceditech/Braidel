@@ -11,6 +11,10 @@ import {
   salons,
   users,
 } from "@/db/schema";
+import {
+  getBookingParticipantContext,
+  resolveBookingReviewTarget,
+} from "@/lib/booking-participants";
 import { createNotification } from "@/lib/notifications";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -81,11 +85,14 @@ export async function PUT(req: NextRequest) {
 
   const payload = await req.json().catch(() => ({}));
   const applicationId = stringValue(payload.applicationId);
+  const bookingId = stringValue(payload.bookingId);
   const comment = stringValue(payload.comment);
   const score = payload.score;
+  const hasApplicationId = UUID_PATTERN.test(applicationId);
+  const hasBookingId = UUID_PATTERN.test(bookingId);
 
-  if (!UUID_PATTERN.test(applicationId)) {
-    return NextResponse.json({ error: "Invalid application" }, { status: 400 });
+  if (hasApplicationId === hasBookingId) {
+    return NextResponse.json({ error: "Invalid review context" }, { status: 400 });
   }
   if (!Number.isInteger(score) || score < 1 || score > 5) {
     return NextResponse.json({ error: "Choose a rating from 1 to 5" }, { status: 400 });
@@ -97,60 +104,95 @@ export async function PUT(req: NextRequest) {
     );
   }
 
-  const [user, application] = await Promise.all([
+  const [user, application, booking] = await Promise.all([
     getDbUser(clerkUser.id),
-    getApplicationContext(applicationId),
+    hasApplicationId ? getApplicationContext(applicationId) : Promise.resolve(null),
+    hasBookingId ? getBookingParticipantContext(bookingId) : Promise.resolve(null),
   ]);
 
   if (!user) {
     return NextResponse.json({ error: "User profile not found" }, { status: 404 });
   }
-  if (!application) {
+  if (hasApplicationId && !application) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
   }
-  if (application.status !== "accepted") {
+  if (hasBookingId && !booking) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+  if (application && application.status !== "accepted") {
     return NextResponse.json(
       { error: "Reviews are available after an application is matched" },
       { status: 409 }
     );
   }
-
-  const target = resolveTarget(user, application);
-  if (!target) {
-    return NextResponse.json({ error: "You cannot review this match" }, { status: 403 });
+  if (booking && booking.status !== "completed") {
+    return NextResponse.json(
+      { error: "Reviews are available after an appointment is completed" },
+      { status: 409 }
+    );
   }
 
-  const [review] = await db
-    .insert(ratings)
-    .values({
-      applicationId: application.id,
-      reviewerId: user.id,
-      braiderId: target.braiderId,
-      salonId: target.salonId,
-      score,
-      comment: comment || null,
-    })
-    .onConflictDoUpdate({
-      target: [ratings.applicationId, ratings.reviewerId],
-      set: {
-        braiderId: target.braiderId,
-        salonId: target.salonId,
-        score,
-        comment: comment || null,
-        updatedAt: new Date(),
-      },
-    })
-    .returning({ score: ratings.score, comment: ratings.comment });
+  const target = application
+    ? resolveTarget(user, application)
+    : booking
+      ? resolveBookingReviewTarget(user, booking)
+      : null;
+  if (!target) {
+    return NextResponse.json({ error: "You cannot review this experience" }, { status: 403 });
+  }
 
-  const recipientId = target.braiderId ? application.braiderUserId : application.ownerId;
-  await createNotification({
-    userId: recipientId,
-    type: "review",
-    title: "New review",
-    body: `You received a ${score}-star review.`,
-    href: "/dashboard/settings",
-    eventKey: `review:${application.id}:${user.id}`,
-  });
+  const values = {
+    applicationId: application?.id ?? null,
+    bookingId: booking?.id ?? null,
+    reviewerId: user.id,
+    braiderId: target.braiderId,
+    salonId: target.salonId,
+    score,
+    comment: comment || null,
+  };
+  const updateSet = {
+    braiderId: target.braiderId,
+    salonId: target.salonId,
+    score,
+    comment: comment || null,
+    updatedAt: new Date(),
+  };
+
+  const [review] = application
+    ? await db
+        .insert(ratings)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [ratings.applicationId, ratings.reviewerId],
+          set: updateSet,
+        })
+        .returning({ score: ratings.score, comment: ratings.comment })
+    : await db
+        .insert(ratings)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [ratings.bookingId, ratings.reviewerId],
+          set: updateSet,
+        })
+        .returning({ score: ratings.score, comment: ratings.comment });
+
+  const recipientId: string | null | undefined = booking
+    ? resolveBookingReviewTarget(user, booking)?.recipientId
+    : target.braiderId
+      ? application?.braiderUserId
+      : application?.ownerId;
+  if (recipientId) {
+    await createNotification({
+      userId: recipientId,
+      type: "review",
+      title: "New review",
+      body: `You received a ${score}-star review.`,
+      href: "/dashboard/settings",
+      eventKey: application
+        ? `review:${application.id}:${user.id}`
+        : `booking-review:${booking!.id}:${user.id}`,
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/braiders", "layout");

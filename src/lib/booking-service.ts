@@ -32,6 +32,10 @@ import {
 } from "@/db/schema";
 import type { AuthenticatedDbUser } from "@/lib/authenticated-user";
 import {
+  notifyBookingRequested,
+  notifyBookingStatusChanged,
+} from "@/lib/booking-notifications";
+import {
   isValidTimezone,
   localDateTimeToInstant,
   slotIsAvailable,
@@ -506,6 +510,7 @@ export async function createBookingRequest(
   if (!booking) {
     throw new BookingServiceError("Booking could not be loaded.", 500);
   }
+  await notifyBookingRequested(booking.id, user);
   return booking;
 }
 
@@ -672,6 +677,13 @@ export async function mutateBooking(
   if (!updated) {
     throw new BookingServiceError("Appointment could not be loaded.", 500);
   }
+  await notifyBookingStatusChanged({
+    bookingId: updated.id,
+    actor: user,
+    status: updated.status,
+    action: input.action,
+    version: updated.version,
+  });
   return updated;
 }
 

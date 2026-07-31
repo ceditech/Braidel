@@ -3,8 +3,10 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import {
   applications,
+  bookings,
   braiders,
   braidStyles,
+  clientProfiles,
   messages,
   notificationPreferences,
   notifications,
@@ -388,6 +390,7 @@ export async function getSettingsProfile(clerkId: string): Promise<SettingsProfi
 export type NotificationType =
   | "application"
   | "application_status"
+  | "booking"
   | "message"
   | "review"
   | "portfolio"
@@ -936,7 +939,8 @@ export interface MessageDTO {
 }
 
 export interface ConversationDTO {
-  id: string; // application id
+  id: string;
+  contextType: "application" | "booking";
   name: string;
   avatarUrl: string | null;
   context: string;
@@ -947,6 +951,9 @@ export interface ConversationDTO {
 
 const messageBraiderUsers = alias(users, "message_braider_users");
 const messageOwnerUsers = alias(users, "message_owner_users");
+const messageClientUsers = alias(users, "message_client_users");
+const messageBookingBraiderUsers = alias(users, "message_booking_braider_users");
+const messageBookingOwnerUsers = alias(users, "message_booking_owner_users");
 
 export async function getConversationsForUser(clerkId: string): Promise<ConversationDTO[]> {
   const [user] = await db
@@ -955,9 +962,23 @@ export async function getConversationsForUser(clerkId: string): Promise<Conversa
     .where(eq(users.clerkId, clerkId))
     .limit(1);
 
-  if (!user || user.role === "client") return [];
+  if (!user) return [];
 
-  let applicationsQuery = db
+  const [applicationConversations, bookingConversations] = await Promise.all([
+    user.role === "client" ? Promise.resolve([]) : getApplicationConversations(user),
+    getBookingConversations(user),
+  ]);
+
+  return [...applicationConversations, ...bookingConversations].sort((a, b) =>
+    b.lastActivityAt.localeCompare(a.lastActivityAt)
+  );
+}
+
+async function getApplicationConversations(user: {
+  id: string;
+  role: string;
+}): Promise<ConversationDTO[]> {
+  let query = db
     .select({
       id: applications.id,
       createdAt: applications.createdAt,
@@ -980,12 +1001,12 @@ export async function getConversationsForUser(clerkId: string): Promise<Conversa
     .$dynamic();
 
   if (!includeDemoRows()) {
-    applicationsQuery = applicationsQuery.where(
+    query = query.where(
       or(eq(messageOwnerUsers.id, user.id), eq(messageBraiderUsers.id, user.id))
     );
   }
 
-  const applicationRows = await applicationsQuery.orderBy(desc(applications.createdAt));
+  const applicationRows = await query.orderBy(desc(applications.createdAt));
   if (!applicationRows.length) return [];
 
   const applicationIds = applicationRows.map((application) => application.id);
@@ -1003,11 +1024,11 @@ export async function getConversationsForUser(clerkId: string): Promise<Conversa
     .where(inArray(messages.applicationId, applicationIds))
     .orderBy(asc(messages.createdAt), asc(messages.id));
 
-  const messagesByApplication = new Map<string, MessageDTO[]>();
-  const unreadApplicationIds = new Set<string>();
+  const messagesByContext = new Map<string, MessageDTO[]>();
+  const unreadContextIds = new Set<string>();
   for (const message of messageRows) {
     if (!message.applicationId) continue;
-    const thread = messagesByApplication.get(message.applicationId) ?? [];
+    const thread = messagesByContext.get(message.applicationId) ?? [];
     thread.push({
       id: message.id,
       body: message.body,
@@ -1015,16 +1036,16 @@ export async function getConversationsForUser(clerkId: string): Promise<Conversa
       readAt: message.readAt?.toISOString() ?? null,
       createdAt: message.createdAt.toISOString(),
     });
-    messagesByApplication.set(message.applicationId, thread);
+    messagesByContext.set(message.applicationId, thread);
     if (message.recipientId === user.id && message.readAt === null) {
-      unreadApplicationIds.add(message.applicationId);
+      unreadContextIds.add(message.applicationId);
     }
   }
 
   const asBraider = user.role === "braider";
   return applicationRows
     .map((application) => {
-      const thread = messagesByApplication.get(application.id) ?? [];
+      const thread = messagesByContext.get(application.id) ?? [];
       const lastMessage = thread.at(-1);
       const name = asBraider
         ? application.salonName
@@ -1032,13 +1053,126 @@ export async function getConversationsForUser(clerkId: string): Promise<Conversa
 
       return {
         id: application.id,
+        contextType: "application",
         name,
         avatarUrl: asBraider
           ? application.salonLogoUrl ?? application.ownerAvatarUrl
           : application.braiderAvatarUrl,
         context: application.context,
         lastActivityAt: lastMessage?.createdAt ?? application.createdAt.toISOString(),
-        unread: unreadApplicationIds.has(application.id),
+        unread: unreadContextIds.has(application.id),
+        messages: thread,
+      } satisfies ConversationDTO;
+    })
+    .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
+}
+
+async function getBookingConversations(user: {
+  id: string;
+  role: string;
+}): Promise<ConversationDTO[]> {
+  let query = db
+    .select({
+      id: bookings.id,
+      createdAt: bookings.createdAt,
+      startsAt: bookings.startsAt,
+      serviceName: bookings.serviceName,
+      status: bookings.status,
+      clientUserId: messageClientUsers.id,
+      clientFirstName: messageClientUsers.firstName,
+      clientLastName: messageClientUsers.lastName,
+      clientAvatarUrl: messageClientUsers.avatarUrl,
+      providerType: serviceProviders.providerType,
+      salonName: salons.name,
+      salonLogoUrl: salons.logoUrl,
+      ownerId: messageBookingOwnerUsers.id,
+      ownerAvatarUrl: messageBookingOwnerUsers.avatarUrl,
+      braiderUserId: messageBookingBraiderUsers.id,
+      braiderFirstName: messageBookingBraiderUsers.firstName,
+      braiderLastName: messageBookingBraiderUsers.lastName,
+      braiderAvatarUrl: messageBookingBraiderUsers.avatarUrl,
+    })
+    .from(bookings)
+    .innerJoin(clientProfiles, eq(bookings.clientProfileId, clientProfiles.id))
+    .innerJoin(messageClientUsers, eq(clientProfiles.userId, messageClientUsers.id))
+    .innerJoin(serviceProviders, eq(bookings.providerId, serviceProviders.id))
+    .leftJoin(salons, eq(serviceProviders.salonId, salons.id))
+    .leftJoin(messageBookingOwnerUsers, eq(salons.ownerId, messageBookingOwnerUsers.id))
+    .leftJoin(braiders, eq(serviceProviders.braiderId, braiders.id))
+    .leftJoin(messageBookingBraiderUsers, eq(braiders.userId, messageBookingBraiderUsers.id))
+    .$dynamic();
+
+  if (!includeDemoRows()) {
+    query = query.where(
+      or(
+        eq(messageClientUsers.id, user.id),
+        eq(messageBookingOwnerUsers.id, user.id),
+        eq(messageBookingBraiderUsers.id, user.id)
+      )
+    );
+  }
+
+  const bookingRows = await query.orderBy(desc(bookings.createdAt));
+  if (!bookingRows.length) return [];
+
+  const bookingIds = bookingRows.map((booking) => booking.id);
+  const messageRows = await db
+    .select({
+      id: messages.id,
+      bookingId: messages.bookingId,
+      senderId: messages.senderId,
+      recipientId: messages.recipientId,
+      body: messages.body,
+      readAt: messages.readAt,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .where(inArray(messages.bookingId, bookingIds))
+    .orderBy(asc(messages.createdAt), asc(messages.id));
+
+  const messagesByContext = new Map<string, MessageDTO[]>();
+  const unreadContextIds = new Set<string>();
+  for (const message of messageRows) {
+    if (!message.bookingId) continue;
+    const thread = messagesByContext.get(message.bookingId) ?? [];
+    thread.push({
+      id: message.id,
+      body: message.body,
+      isMine: message.senderId === user.id,
+      readAt: message.readAt?.toISOString() ?? null,
+      createdAt: message.createdAt.toISOString(),
+    });
+    messagesByContext.set(message.bookingId, thread);
+    if (message.recipientId === user.id && message.readAt === null) {
+      unreadContextIds.add(message.bookingId);
+    }
+  }
+
+  return bookingRows
+    .map((booking) => {
+      const thread = messagesByContext.get(booking.id) ?? [];
+      const lastMessage = thread.at(-1);
+      const providerName =
+        booking.providerType === "salon"
+          ? booking.salonName ?? "Salon"
+          : `${booking.braiderFirstName ?? ""} ${
+              booking.braiderLastName ?? ""
+            }`.trim() || "Braider";
+      const clientName = `${booking.clientFirstName} ${booking.clientLastName}`.trim();
+      const asClient = user.id === booking.clientUserId || user.role === "client";
+
+      return {
+        id: booking.id,
+        contextType: "booking",
+        name: asClient ? providerName : clientName,
+        avatarUrl: asClient
+          ? booking.providerType === "salon"
+            ? booking.salonLogoUrl ?? booking.ownerAvatarUrl
+            : booking.braiderAvatarUrl
+          : booking.clientAvatarUrl,
+        context: `Appointment: ${booking.serviceName}`,
+        lastActivityAt: lastMessage?.createdAt ?? booking.createdAt.toISOString(),
+        unread: unreadContextIds.has(booking.id),
         messages: thread,
       } satisfies ConversationDTO;
     })

@@ -33,6 +33,7 @@ const clientNav = [
   { href: "/dashboard/appointments",  label: "Appointments",  icon: <CalendarIcon /> },
   { href: "/find-braiders",           label: "Find braiders", icon: <UsersIcon /> },
   { href: "/find-salons",             label: "Find salons",   icon: <BriefcaseIcon /> },
+  { href: "/dashboard/messages",      label: "Messages",      icon: <MessageIcon /> },
   { href: "/dashboard/notifications", label: "Notifications", icon: <BellIcon /> },
   { href: "/dashboard/settings",      label: "Settings",      icon: <SettingsIcon /> },
 ];
