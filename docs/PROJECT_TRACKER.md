@@ -16,7 +16,7 @@
 |-------|-------|------|---|
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
 | **Phase 2** | Client Booking | 19 / 19 | 100% |
-| **Phase 3** | Online Payments | 0 / 1 | ~50% |
+| **Phase 3** | Online Payments | 6 / 7 | ~93% |
 | **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
 | **Phase 6** | Braidel Supply | 0 / 1 | 0% |
@@ -63,6 +63,10 @@ _Tables & relations in Neon_
 | ✅ | bookings table | High | 2 |
 | ✅ | booking_status_history table | High | 2 |
 | ✅ | rating_history table | High | 2 |
+| ✅ | provider_payment_accounts table | High | 3 |
+| ✅ | booking_payments table | High | 3 |
+| ✅ | payment_ledger_entries table | High | 3 |
+| ✅ | payment_webhook_events table | High | 3 |
 
 ## Design System
 _Tokens & UI primitives_
@@ -145,6 +149,7 @@ _Cross-role features_
 | ✅ | Settings page (role-aware) | Medium | 1 |
 | ✅ | Client booking discovery + appointment management | High | 2 |
 | ✅ | Booking review visibility, update notifications, and audit history | High | 2 |
+| ✅ | Payment system design insight page | Medium | 3 |
 
 ## Backend / API
 _Data routes & business logic_
@@ -166,6 +171,7 @@ _Data routes & business logic_
 | ✅ | Notifications persistence + event wiring | High | 1 |
 | ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
 | ✅ | Review audit history + update notification wiring | High | 2 |
+| ✅ | Payment foundation schema + fee split helpers | High | 3 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -199,10 +205,13 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    booking lifecycle notifications, client appointment conversations, direct
    appointment message links, completed-booking provider reviews, provider
    review visibility, update notifications, and review audit history.
-5. **Payments + monetization** — planning is active. Finalize the pricing,
-   subscription, and transaction-fee model first, then implement Stripe Connect,
-   commissions, refunds, payouts, and idempotent payment webhooks in small,
-   independently testable slices.
+5. **Payments + monetization** — foundation slice is in progress with payment
+   accounts, booking payments, ledger entries, webhook idempotency schema,
+   server-side fee split helpers, payment architecture documentation, and an
+   internal Payment System Design insight page.
+   Client-to-Provider booking payments are the primary Stripe Connect launch
+   track. Salon-to-Braider agreement capture is required later, while in-app
+   money movement is deferred until policy and operations mature.
 6. **Trust, verification + marketplace administration** — add verification
    evidence and audit history, a dedicated provider reviews dashboard, capped
    Client review reminders, moderation, reports, review disputes,
@@ -224,3 +233,18 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   notification, Provider drawer review visibility, Client drawer review history,
   shared audit history visibility, and application messaging/review regression
   checks.
+- **July 31, 2026:** Workstream 5 payment foundation started with additive
+  Drizzle schema/migration `0015_cheerful_daredevil.sql`, payment-domain fee
+  split helpers, and verified dev Neon tables for provider payment accounts,
+  booking payments, payment ledger entries, and payment webhook events.
+  TypeScript and focused ESLint passed locally. No Stripe checkout, Connect
+  onboarding, live payment capture, refunds, or payouts are active yet.
+- **July 31, 2026:** Workstream 5 payment architecture documentation and SVG
+  diagram were added. Client-to-Provider booking payments remain the primary
+  Stripe Connect launch track. Salon-to-Braider payment movement is deferred,
+  but agreement/payment-status capture is documented as a required future
+  product surface.
+- **July 31, 2026:** Added the protected `/payment-system-design` Insights
+  page to render the payment architecture SVG and summarize launch boundaries,
+  data model tables, QA scope, and Stripe activation gates for the team and
+  stakeholders.

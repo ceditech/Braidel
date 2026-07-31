@@ -59,6 +59,9 @@ Production must not launch until every item in this section is complete.
       endpoint is created.
 - [ ] Configure `BLOB_READ_WRITE_TOKEN`; production portfolio uploads must not
       rely on the local filesystem fallback.
+- [ ] Configure `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and
+      `STRIPE_WEBHOOK_SECRET` before enabling checkout, Connect onboarding, or
+      payment webhooks.
 - [ ] Configure the canonical production application URL and all Clerk redirect
       URLs.
 - [ ] Confirm no development, test, or seed secrets are present in production.
@@ -89,6 +92,9 @@ Production must not launch until every item in this section is complete.
       notifications.
 - [ ] Apply migration `0014_demonic_doctor_faustus.sql` before releasing review
       update notifications or review audit visibility.
+- [ ] Apply migration `0015_cheerful_daredevil.sql` before activating payments;
+      it adds provider payment accounts, booking payments, payment ledger
+      entries, and Stripe webhook-event idempotency.
 - [ ] Verify booking message/review context checks reject rows with no context
       or both application and booking contexts.
 - [ ] Verify every editable review creates exactly one current `ratings` row and
@@ -105,7 +111,8 @@ Production must not launch until every item in this section is complete.
 - [ ] Test availability across daylight-saving changes, timezone boundaries,
       provider exceptions, lead time, Client conflicts, and month boundaries.
 - [ ] Test stale optimistic versions, duplicate idempotency keys, transaction
-      retries, and simultaneous final-slot booking attempts.
+      retries, duplicate payment records, webhook event replays, and
+      simultaneous final-slot booking attempts.
 - [ ] Review every pending migration for destructive or locking operations.
 - [ ] Capture and verify a pre-launch backup or restorable Neon branch.
 - [ ] Document database rollback and forward-fix procedures.
@@ -114,7 +121,8 @@ Production must not launch until every item in this section is complete.
 - [ ] Validate referential integrity and uniqueness for users, salons, braiders,
       opportunities, applications, messages, ratings, portfolio media, client
       profiles, service providers, service offerings, availability, bookings,
-      booking status history, and rating history.
+      booking status history, rating history, provider payment accounts,
+      booking payments, payment ledger entries, and payment webhook events.
 
 ### Authentication and Authorization
 
@@ -196,6 +204,52 @@ events otherwise will not automatically synchronize to Neon.
 - [ ] Record the endpoint owner, activation date, test evidence, and rotation
       procedure in Completed Evidence.
 
+## Stripe Payments Activation
+
+**Status: Deferred until Workstream 5 checkout and Connect routes are
+implemented and a stable staging URL exists.**
+
+Payments are not required for continued feature development, but they are a
+production launch gate before charging Clients, collecting platform fees, or
+paying Providers.
+
+### Already Implemented
+
+- [x] Payment foundation schema is represented by migration
+      `0015_cheerful_daredevil.sql`.
+- [x] Provider payment accounts, booking payments, payment ledger entries, and
+      payment webhook event idempotency tables are modeled in Drizzle.
+- [x] Integer-cent fee split helpers exist in `src/lib/payments-domain.ts`.
+- [x] Protected internal payment design page exists at `/payment-system-design`
+      and renders the committed architecture SVG plus launch-gate context.
+- [x] Checkout, Connect onboarding, refunds, disputes, and payouts are not wired
+      yet, so no money can move from this foundation alone.
+
+### Required Before Any Live Payment Flow
+
+- [ ] Finalize the product money model: Client-paid booking deposits or full
+      payment, Provider/Salon subscriptions, transaction fee basis points,
+      cancellation/no-show rules, refund windows, and payout timing.
+- [ ] Keep the payment architecture decision record current:
+      [`docs/PAYMENT_SYSTEM_ARCHITECTURE.md`](docs/PAYMENT_SYSTEM_ARCHITECTURE.md).
+- [ ] Decide the Stripe Connect charge architecture and document why it fits
+      Braidel's marketplace risk model.
+- [ ] Implement Provider/Salon Connect onboarding, account status refresh, and
+      payout-readiness warnings.
+- [ ] Implement checkout/payment creation from authenticated server code only;
+      calculate amounts and platform fees on the server.
+- [ ] Implement Stripe webhook signature verification on raw request bodies and
+      idempotent event handling using stored Stripe event IDs.
+- [ ] Test successful payment, failed payment, authentication-required payment,
+      retry/double-submit idempotency, refund, cancellation/no-show, webhook
+      replay, and out-of-order webhook delivery in Stripe test mode.
+- [ ] Verify no production checkout is reachable until live Stripe credentials,
+      webhook endpoint, policy copy, support procedures, and monitoring are
+      ready.
+- [ ] Keep Salon-to-Braider in-app payment movement disabled until hiring
+      agreement capture, support policy, tax posture, disputes, refunds, and
+      payout operations are explicitly designed and approved.
+
 ## Deferred Feature Ledger
 
 These items are intentionally postponed during active development. They are not
@@ -210,8 +264,16 @@ own workstream ships.
   Google/Outlook calendar sync remains deferred.
 - **Recurring appointments:** recurring provider availability exists, but
   recurring customer appointments remain deferred.
-- **Provider payouts and commissions:** intentionally deferred into Workstream
-  5, Payments + monetization.
+- **Provider payouts and commissions:** Workstream 5 schema foundation exists,
+  but Connect onboarding, live checkout, platform-fee capture, refunds,
+  disputes, payout records, and reconciliation remain deferred until the
+  payment product policy is finalized.
+- **Salon-to-Braider payments:** agreement capture is required future product
+  functionality, but in-app money movement is deferred. The first version should
+  record agreed rate, compensation type, work/completion status, and external
+  payment confirmation. Stripe-managed Salon-to-Braider payments should wait
+  until marketplace policy, support, disputes, tax posture, and payout
+  operations are mature.
 - **Dedicated Reviews dashboard:** `/dashboard/reviews` remains deferred. Before
   launch or during the trust/reputation workstream, Providers should have a
   first-class review surface with average rating, review count, latest reviews,
@@ -294,6 +356,7 @@ own workstream ships.
 | Engineering | TBD | Pending | |
 | Database | TBD | Pending | |
 | Authentication | TBD | Pending | |
+| Payments | TBD | Pending | |
 | Security / Privacy | TBD | Pending | |
 | Operations | TBD | Pending | |
 
@@ -346,3 +409,20 @@ Add dated entries here as production gates are verified.
   passed for Client review edits, Provider update notifications, Provider and
   Client drawer review/history visibility, and old application
   messaging/review regression checks. Staging acceptance remains a launch gate.
+- **July 31, 2026:** Workstream 5 payment foundation was started. Migration
+  `0015_cheerful_daredevil.sql` was applied to the configured development Neon
+  database for provider payment accounts, booking payments, payment ledger
+  entries, and Stripe webhook-event idempotency. Read-only verification
+  confirmed all four payment tables exist. `src/lib/payments-domain.ts` adds
+  server-side integer-cent split helpers. TypeScript and focused ESLint passed
+  locally. Stripe Connect, checkout, live payment capture, refunds, disputes,
+  payouts, and payment webhooks remain launch-gated and intentionally inactive.
+- **July 31, 2026:** Workstream 5 payment architecture decision record was
+  added in `docs/PAYMENT_SYSTEM_ARCHITECTURE.md` with a reusable SVG diagram at
+  `docs/payment-system-architecture.svg`. Client-to-Provider booking payments
+  remain the primary Stripe Connect launch track. Salon-to-Braider payment
+  movement is deferred, but agreement/payment-status capture is documented as a
+  required future product surface.
+- **July 31, 2026:** Added the protected `/payment-system-design` Insights page
+  for team and stakeholder review of the payment architecture diagram, launch
+  boundaries, data model, QA scope, and Stripe activation gates.

@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Braidel Payment System Architecture</title>
+  <desc id="desc">Architecture diagram showing Braidel client booking payments through Stripe Connect, internal database records, webhook reconciliation, and deferred Salon-to-Braider payment handling.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffaf8"/>
+      <stop offset="0.48" stop-color="#fff3f1"/>
+      <stop offset="1" stop-color="#f5d7d2"/>
+    </linearGradient>
+    <linearGradient id="rose" x1="0" x2="1">
+      <stop offset="0" stop-color="#c65d66"/>
+      <stop offset="1" stop-color="#733831"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" x2="1">
+      <stop offset="0" stop-color="#17110f"/>
+      <stop offset="1" stop-color="#2b1715"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#733831" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowRose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c65d66"/>
+    </marker>
+    <marker id="arrowInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b1715"/>
+    </marker>
+    <style>
+      .font { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .mono { font-family: "JetBrains Mono", Consolas, monospace; }
+      .title { font-size: 48px; font-weight: 800; fill: #17110f; letter-spacing: 0; }
+      .subtitle { font-size: 21px; fill: #733831; }
+      .section { font-size: 18px; font-weight: 800; fill: #733831; text-transform: uppercase; letter-spacing: 2px; }
+      .h { font-size: 25px; font-weight: 800; fill: #17110f; }
+      .body { font-size: 17px; fill: #4b3b36; }
+      .small { font-size: 14px; fill: #6f5b55; }
+      .label { font-size: 14px; font-weight: 800; fill: #ffffff; letter-spacing: 1.4px; text-transform: uppercase; }
+      .card { fill: rgba(255,255,255,0.92); stroke: #ead9d4; stroke-width: 1.5; rx: 24; filter: url(#shadow); }
+      .dark { fill: url(#ink); stroke: #3b2521; stroke-width: 1.5; rx: 24; filter: url(#shadow); }
+      .stripe { fill: #635bff; rx: 24; filter: url(#shadow); }
+      .muted { fill: #fbf6f3; stroke: #ead9d4; stroke-width: 1.5; rx: 18; }
+      .rail { fill: none; stroke: #c65d66; stroke-width: 5; stroke-linecap: round; marker-end: url(#arrowRose); }
+      .railInk { fill: none; stroke: #2b1715; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrowInk); }
+      .dash { fill: none; stroke: #9c7b73; stroke-width: 4; stroke-dasharray: 10 12; stroke-linecap: round; marker-end: url(#arrowRose); }
+      .pill { fill: #fff3f1; stroke: #e8c9c5; rx: 18; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <circle cx="1440" cy="130" r="210" fill="#c65d66" opacity="0.10"/>
+  <circle cx="160" cy="945" r="260" fill="#733831" opacity="0.07"/>
+
+  <text x="90" y="92" class="font title">braid.el Payment System</text>
+  <text x="92" y="132" class="font subtitle">Connect. Book. Grow. Payments are designed in layers so money movement never outruns product policy.</text>
+
+  <rect x="90" y="175" width="1420" height="750" rx="32" fill="rgba(255,255,255,0.58)" stroke="#ead9d4"/>
+  <text x="120" y="222" class="font section">Primary launch path</text>
+  <text x="120" y="255" class="font h">Client-to-Provider booking payments</text>
+
+  <rect x="120" y="300" width="255" height="170" class="card"/>
+  <text x="148" y="343" class="font h">Client</text>
+  <text x="148" y="378" class="font body">Books appointment</text>
+  <text x="148" y="404" class="font body">Pays deposit or full fee</text>
+  <rect x="148" y="425" width="150" height="30" class="pill"/>
+  <text x="164" y="445" class="font small">Future checkout</text>
+
+  <rect x="475" y="275" width="300" height="220" class="dark"/>
+  <text x="508" y="318" class="font label">Braidel server</text>
+  <text x="508" y="358" class="font body" fill="#f8eee9">Owns amount calculation</text>
+  <text x="508" y="385" class="font body" fill="#f8eee9">Owns platform fee split</text>
+  <text x="508" y="412" class="font body" fill="#f8eee9">Creates payment intent</text>
+  <text x="508" y="439" class="font body" fill="#f8eee9">Never trusts browser totals</text>
+
+  <rect x="880" y="280" width="295" height="210" class="stripe"/>
+  <text x="915" y="323" class="font label">Stripe Connect</text>
+  <text x="915" y="362" class="font body" fill="#ffffff">Checkout or PaymentIntent</text>
+  <text x="915" y="389" class="font body" fill="#ffffff">Connected accounts</text>
+  <text x="915" y="416" class="font body" fill="#ffffff">Platform fees</text>
+  <text x="915" y="443" class="font body" fill="#ffffff">Compliance and payouts</text>
+
+  <rect x="1265" y="300" width="215" height="170" class="card"/>
+  <text x="1294" y="343" class="font h">Provider</text>
+  <text x="1294" y="378" class="font body">Salon or Braider</text>
+  <text x="1294" y="404" class="font body">Receives provider portion</text>
+  <rect x="1294" y="425" width="148" height="30" class="pill"/>
+  <text x="1311" y="445" class="font small">Connect account</text>
+
+  <path d="M 382 385 C 420 385 431 385 468 385" class="rail"/>
+  <path d="M 782 385 C 820 385 835 385 873 385" class="rail"/>
+  <path d="M 1182 385 C 1218 385 1225 385 1258 385" class="rail"/>
+
+  <rect x="475" y="585" width="700" height="230" class="card"/>
+  <text x="508" y="630" class="font h">Neon payment records</text>
+  <text x="508" y="668" class="font body">provider_payment_accounts: onboarding and payout readiness</text>
+  <text x="508" y="697" class="font body">booking_payments: booking-level payment status and Stripe IDs</text>
+  <text x="508" y="726" class="font body">payment_ledger_entries: charge, platform fee, refund, dispute, adjustment</text>
+  <text x="508" y="755" class="font body">payment_webhook_events: event idempotency and retry safety</text>
+  <rect x="508" y="779" width="285" height="30" class="pill"/>
+  <text x="525" y="799" class="font small mono">0015_cheerful_daredevil.sql</text>
+
+  <path d="M 625 502 L 625 576" class="railInk"/>
+  <path d="M 1028 498 C 1028 535 1010 555 955 584" class="railInk"/>
+  <text x="1052" y="548" class="font small">webhooks reconcile status</text>
+
+  <rect x="120" y="585" width="255" height="230" class="card"/>
+  <text x="148" y="630" class="font h">Braidel fee</text>
+  <text x="148" y="667" class="font body">Application fee or</text>
+  <text x="148" y="694" class="font body">commission is calculated</text>
+  <text x="148" y="721" class="font body">server-side in cents.</text>
+  <rect x="148" y="756" width="160" height="30" class="pill"/>
+  <text x="164" y="776" class="font small">Policy pending</text>
+  <path d="M 468 648 C 430 648 415 648 383 648" class="railInk"/>
+
+  <rect x="1265" y="585" width="215" height="230" class="card"/>
+  <text x="1294" y="630" class="font h">Notifications</text>
+  <text x="1294" y="667" class="font body">Payment success</text>
+  <text x="1294" y="694" class="font body">Failure</text>
+  <text x="1294" y="721" class="font body">Refund</text>
+  <text x="1294" y="748" class="font body">Dispute</text>
+  <path d="M 1182 700 C 1218 700 1225 700 1258 700" class="railInk"/>
+
+  <text x="120" y="890" class="font section">Deferred path</text>
+  <rect x="120" y="930" width="1360" height="95" class="muted"/>
+  <text x="148" y="965" class="font h">Salon-to-Braider compensation</text>
+  <text x="148" y="995" class="font body">Capture hiring agreement, rate, terms, completion, and external payment status now. Defer in-app Stripe money movement until policy, support, disputes, and payout operations are mature.</text>
+  <path d="M 488 975 C 565 930 700 930 790 975" class="dash"/>
+  <text x="810" y="971" class="font small">future optional invoice/payment request via Stripe Connect</text>
+</svg>

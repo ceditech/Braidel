@@ -58,6 +58,41 @@ export const bookingStatusEnum = pgEnum("booking_status", [
   "no_show",
 ]);
 
+export const paymentAccountStatusEnum = pgEnum("payment_account_status", [
+  "not_started",
+  "onboarding",
+  "restricted",
+  "active",
+  "disabled",
+]);
+
+export const bookingPaymentStatusEnum = pgEnum("booking_payment_status", [
+  "pending",
+  "requires_action",
+  "processing",
+  "succeeded",
+  "failed",
+  "cancelled",
+  "refunded",
+  "partially_refunded",
+]);
+
+export const paymentLedgerEntryTypeEnum = pgEnum("payment_ledger_entry_type", [
+  "client_charge",
+  "platform_fee",
+  "provider_gross",
+  "refund",
+  "dispute",
+  "adjustment",
+]);
+
+export const paymentWebhookStatusEnum = pgEnum("payment_webhook_status", [
+  "pending",
+  "processed",
+  "failed",
+  "ignored",
+]);
+
 // ─── Users ────────────────────────────────────────────────────────────────────
 // clerk_id links this row to the Clerk user record (source of truth for auth)
 
@@ -471,6 +506,200 @@ export const bookingStatusHistory = pgTable(
 
 // ─── Opportunities ────────────────────────────────────────────────────────────
 
+// Payments are additive until Stripe is activated. Booking and provider records
+// remain usable without a payment row, which keeps Workstream 5 low-regression.
+
+export const providerPaymentAccounts = pgTable(
+  "provider_payment_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    stripeAccountId: text("stripe_account_id"),
+    status: paymentAccountStatusEnum("status")
+      .notNull()
+      .default("not_started"),
+    chargesEnabled: boolean("charges_enabled").notNull().default(false),
+    payoutsEnabled: boolean("payouts_enabled").notNull().default(false),
+    detailsSubmitted: boolean("details_submitted").notNull().default(false),
+    onboardingStartedAt: timestamp("onboarding_started_at", {
+      withTimezone: true,
+    }),
+    onboardingCompletedAt: timestamp("onboarding_completed_at", {
+      withTimezone: true,
+    }),
+    disabledReason: text("disabled_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("provider_payment_accounts_provider_unique").on(
+      table.providerId
+    ),
+    uniqueIndex("provider_payment_accounts_stripe_unique").on(
+      table.stripeAccountId
+    ),
+    index("provider_payment_accounts_status_idx").on(table.status),
+    check(
+      "provider_payment_accounts_onboarding_check",
+      sql`${table.onboardingCompletedAt} is null or ${table.onboardingStartedAt} is null or ${table.onboardingStartedAt} <= ${table.onboardingCompletedAt}`
+    ),
+  ]
+);
+
+export const bookingPayments = pgTable(
+  "booking_payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "restrict" }),
+    providerPaymentAccountId: uuid("provider_payment_account_id").references(
+      () => providerPaymentAccounts.id,
+      { onDelete: "restrict" }
+    ),
+    payerUserId: uuid("payer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: bookingPaymentStatusEnum("status").notNull().default("pending"),
+    collectionMode: text("collection_mode").notNull().default("manual"),
+    captureMethod: text("capture_method").notNull().default("automatic"),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull(),
+    applicationFeeCents: integer("application_fee_cents").notNull().default(0),
+    providerGrossCents: integer("provider_gross_cents").notNull(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+    stripeChargeId: text("stripe_charge_id"),
+    idempotencyKey: text("idempotency_key"),
+    lastError: text("last_error"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("booking_payments_booking_unique").on(table.bookingId),
+    uniqueIndex("booking_payments_intent_unique").on(
+      table.stripePaymentIntentId
+    ),
+    uniqueIndex("booking_payments_checkout_unique").on(
+      table.stripeCheckoutSessionId
+    ),
+    uniqueIndex("booking_payments_idempotency_unique").on(table.idempotencyKey),
+    index("booking_payments_provider_status_idx").on(
+      table.providerPaymentAccountId,
+      table.status
+    ),
+    index("booking_payments_payer_status_idx").on(
+      table.payerUserId,
+      table.status
+    ),
+    check("booking_payments_amount_check", sql`${table.amountCents} >= 0`),
+    check(
+      "booking_payments_currency_check",
+      sql`${table.currency} ~ '^[A-Z]{3}$'`
+    ),
+    check(
+      "booking_payments_fee_check",
+      sql`${table.applicationFeeCents} >= 0 and ${table.applicationFeeCents} <= ${table.amountCents}`
+    ),
+    check(
+      "booking_payments_provider_gross_check",
+      sql`${table.providerGrossCents} >= 0 and ${table.providerGrossCents} + ${table.applicationFeeCents} = ${table.amountCents}`
+    ),
+    check(
+      "booking_payments_collection_mode_check",
+      sql`${table.collectionMode} in ('manual', 'booking_request', 'booking_confirmation')`
+    ),
+    check(
+      "booking_payments_capture_method_check",
+      sql`${table.captureMethod} in ('automatic', 'manual')`
+    ),
+  ]
+);
+
+export const paymentLedgerEntries = pgTable(
+  "payment_ledger_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingPaymentId: uuid("booking_payment_id")
+      .notNull()
+      .references(() => bookingPayments.id, { onDelete: "cascade" }),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "restrict" }),
+    entryType: paymentLedgerEntryTypeEnum("entry_type").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull(),
+    stripeObjectId: text("stripe_object_id"),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("payment_ledger_entries_payment_created_idx").on(
+      table.bookingPaymentId,
+      table.createdAt
+    ),
+    index("payment_ledger_entries_booking_created_idx").on(
+      table.bookingId,
+      table.createdAt
+    ),
+    index("payment_ledger_entries_type_idx").on(table.entryType),
+    check(
+      "payment_ledger_entries_amount_check",
+      sql`${table.amountCents} >= 0`
+    ),
+    check(
+      "payment_ledger_entries_currency_check",
+      sql`${table.currency} ~ '^[A-Z]{3}$'`
+    ),
+  ]
+);
+
+export const paymentWebhookEvents = pgTable(
+  "payment_webhook_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    stripeEventId: text("stripe_event_id").notNull(),
+    eventType: text("event_type").notNull(),
+    livemode: boolean("livemode").notNull().default(false),
+    stripeAccountId: text("stripe_account_id"),
+    apiVersion: text("api_version"),
+    status: paymentWebhookStatusEnum("status").notNull().default("pending"),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    processingError: text("processing_error"),
+    receivedAt: timestamp("received_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("payment_webhook_events_stripe_event_unique").on(
+      table.stripeEventId
+    ),
+    index("payment_webhook_events_status_received_idx").on(
+      table.status,
+      table.receivedAt
+    ),
+    index("payment_webhook_events_type_idx").on(table.eventType),
+    check(
+      "payment_webhook_events_event_type_check",
+      sql`length(trim(${table.eventType})) > 0`
+    ),
+  ]
+);
+
 export const opportunities = pgTable("opportunities", {
   id: uuid("id").primaryKey().defaultRandom(),
   salonId: uuid("salon_id")
@@ -677,6 +906,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   ratingsGiven: many(ratings, { relationName: "reviewer" }),
   ratingHistoryChanges: many(ratingHistory),
   bookingStatusChanges: many(bookingStatusHistory),
+  bookingPayments: many(bookingPayments),
   notifications: many(notifications),
   notificationPreferences: one(notificationPreferences, {
     fields: [users.id],
@@ -735,6 +965,10 @@ export const serviceProvidersRelations = relations(
     availabilityRules: many(availabilityRules),
     availabilityExceptions: many(availabilityExceptions),
     bookings: many(bookings),
+    paymentAccount: one(providerPaymentAccounts, {
+      fields: [serviceProviders.id],
+      references: [providerPaymentAccounts.providerId],
+    }),
   })
 );
 
@@ -789,6 +1023,10 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   statusHistory: many(bookingStatusHistory),
   messages: many(messages),
   ratings: many(ratings),
+  payment: one(bookingPayments, {
+    fields: [bookings.id],
+    references: [bookingPayments.bookingId],
+  }),
 }));
 
 export const bookingStatusHistoryRelations = relations(
@@ -801,6 +1039,50 @@ export const bookingStatusHistoryRelations = relations(
     changedBy: one(users, {
       fields: [bookingStatusHistory.changedByUserId],
       references: [users.id],
+    }),
+  })
+);
+
+export const providerPaymentAccountsRelations = relations(
+  providerPaymentAccounts,
+  ({ one, many }) => ({
+    provider: one(serviceProviders, {
+      fields: [providerPaymentAccounts.providerId],
+      references: [serviceProviders.id],
+    }),
+    bookingPayments: many(bookingPayments),
+  })
+);
+
+export const bookingPaymentsRelations = relations(
+  bookingPayments,
+  ({ one, many }) => ({
+    booking: one(bookings, {
+      fields: [bookingPayments.bookingId],
+      references: [bookings.id],
+    }),
+    providerPaymentAccount: one(providerPaymentAccounts, {
+      fields: [bookingPayments.providerPaymentAccountId],
+      references: [providerPaymentAccounts.id],
+    }),
+    payer: one(users, {
+      fields: [bookingPayments.payerUserId],
+      references: [users.id],
+    }),
+    ledgerEntries: many(paymentLedgerEntries),
+  })
+);
+
+export const paymentLedgerEntriesRelations = relations(
+  paymentLedgerEntries,
+  ({ one }) => ({
+    bookingPayment: one(bookingPayments, {
+      fields: [paymentLedgerEntries.bookingPaymentId],
+      references: [bookingPayments.id],
+    }),
+    booking: one(bookings, {
+      fields: [paymentLedgerEntries.bookingId],
+      references: [bookings.id],
     }),
   })
 );

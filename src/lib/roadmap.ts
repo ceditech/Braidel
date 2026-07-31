@@ -65,6 +65,10 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "bookings table", status: "done", priority: "high", phase: 2 },
       { title: "booking_status_history table", status: "done", priority: "high", phase: 2 },
       { title: "rating_history table", status: "done", priority: "high", phase: 2 },
+      { title: "provider_payment_accounts table", status: "done", priority: "high", phase: 3 },
+      { title: "booking_payments table", status: "done", priority: "high", phase: 3 },
+      { title: "payment_ledger_entries table", status: "done", priority: "high", phase: 3 },
+      { title: "payment_webhook_events table", status: "done", priority: "high", phase: 3 },
     ],
   },
   {
@@ -153,6 +157,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Settings page (role-aware)", status: "done", priority: "medium", phase: 1 },
       { title: "Client booking discovery + appointment management", status: "done", priority: "high", phase: 2 },
       { title: "Booking review visibility, update notifications, and audit history", status: "done", priority: "high", phase: 2 },
+      { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
     ],
   },
   {
@@ -175,6 +180,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Notifications persistence + event wiring", status: "done", priority: "high", phase: 1 },
       { title: "Availability engine + transactional booking lifecycle APIs", status: "done", priority: "high", phase: 2 },
       { title: "Review audit history + update notification wiring", status: "done", priority: "high", phase: 2 },
+      { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
     ],
   },
   {
@@ -215,7 +221,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 3,
-        note: "Planning is active. Finalize the pricing, subscription, and transaction-fee model first, then implement Stripe Connect accounts, payments, commissions, refunds, payouts, and idempotent webhooks in small slices.",
+        note: "Foundation slice is in progress: payment accounts, booking payments, ledger entries, webhook idempotency schema, server-side fee split helpers, payment architecture documentation, and an internal Payment System Design insight page are added. Client-to-Provider booking payments are the primary Stripe Connect launch track. Salon-to-Braider agreement capture is required later, while in-app money movement is deferred until policy and operations mature.",
       },
       {
         title: "6. Trust, verification + marketplace administration",

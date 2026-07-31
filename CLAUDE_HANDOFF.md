@@ -33,6 +33,7 @@ both message and rate each other.
 | Database | **Neon** (serverless Postgres) | |
 | ORM | **Drizzle** | schema in `src/db/schema.ts` |
 | Media storage | **Vercel Blob** | local filesystem fallback in development |
+| Payments | **Stripe Connect** (planned) | schema foundation added; checkout/onboarding not active yet |
 
 Stack rationale: best-of-breed and decoupled (Neon and Clerk are independently
 swappable) — chosen over Supabase/Firebase for a relational marketplace. Full
@@ -182,6 +183,9 @@ accounts to `/dashboard`. Changing account roles is not a self-service action.
 - `BLOB_READ_WRITE_TOKEN` — required for portfolio uploads in production;
   optional locally because the development adapter writes ignored files under
   `public/uploads/portfolio`
+- `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`,
+  `STRIPE_WEBHOOK_SECRET` — required before activating Workstream 5 checkout,
+  Connect onboarding, or Stripe webhooks
 - Clerk redirect paths (already set; relative, so port-independent)
 
 **Commands:**
@@ -434,9 +438,10 @@ and public content:
    visibility, Client drawer history visibility, shared audit visibility, and
    old application messaging/review regression checks.
 
-Payments, external calendar synchronization, recurring appointments, and
-provider payout/commission handling remain deferred; they were intentionally not
-part of workstreams `3/7` or `4/7`.
+External calendar synchronization and recurring appointments remain deferred;
+they were intentionally not part of workstreams `3/7` or `4/7`. Payments are
+now in Workstream `5/7`: the schema/domain foundation is started, but checkout,
+Connect onboarding, live capture, refunds, and payouts are not active yet.
 
 Deferred review/reputation surfaces that must be revisited before launch or in
 Workstream `6/7`: a dedicated `/dashboard/reviews` provider surface, an
@@ -445,20 +450,30 @@ and formal review dispute/moderation workflows. The current implementation
 provides review persistence, update notifications, and audit history, but not
 those larger product surfaces.
 
-**Immediate next strategic focus:** workstream `5/7`, payments and
-monetization. Planning is active. Finalize the pricing/subscription/transaction
-fee model first, then implement Stripe Connect account onboarding,
-checkout/payment capture, platform commissions, refunds, payouts, and
-idempotent payment webhooks in small, independently testable slices.
+**Immediate strategic focus:** workstream `5/7`, payments and monetization.
+Foundation slice `5.2` is started: migration `0015_cheerful_daredevil.sql`
+has been applied to the configured development Neon database and adds provider
+payment accounts, booking payments, payment ledger entries, and Stripe
+webhook-event idempotency; `src/lib/payments-domain.ts` adds server-side
+integer-cent fee split helpers. Finalize the product money model before wiring
+Stripe Connect, checkout/payment capture, refunds, disputes, or payouts.
+Architecture and product boundaries are documented in
+[`docs/PAYMENT_SYSTEM_ARCHITECTURE.md`](docs/PAYMENT_SYSTEM_ARCHITECTURE.md).
+The protected in-app companion page at `/payment-system-design` appears under
+the dashboard Insights navigation and renders
+[`docs/payment-system-architecture.svg`](docs/payment-system-architecture.svg)
+with stakeholder-oriented payment tracks, data model, QA boundaries, and
+activation gates.
 
 Recommended Workstream 5 slices:
 
 1. **Payment product model:** decide what is paid by Clients, Providers, and
    Salon owners; define subscriptions, transaction fees, cancellation/no-show
    rules, refund windows, and payout timing.
-2. **Schema + state machine:** add payment accounts, checkout sessions, payment
-   intents, ledger/fee records, payout status, refund/dispute records, and
-   webhook event idempotency.
+2. **Schema + state machine:** base payment accounts, booking payments,
+   ledger/fee records, and webhook-event idempotency are added. Remaining:
+   refund/dispute detail records, payout records, and final state transitions
+   once the product policy is fixed.
 3. **Provider monetization setup:** Stripe Connect onboarding, account status,
    payout readiness, dashboard warnings, and role-compatible settings.
 4. **Client checkout:** attach payment capture to booking confirmation or
@@ -468,6 +483,12 @@ Recommended Workstream 5 slices:
 6. **Operational QA:** test successful payment, failed payment, refund,
    cancellation, no-show, provider payout readiness, and double-submit
    idempotency before expanding the UI.
+
+Salon-to-Braider compensation is a separate B2B/hiring-payment track. Capture
+the agreement, rate, work/completion status, and external payment confirmation
+inside Braidel first, but defer Stripe-managed Salon-to-Braider money movement
+until marketplace policy, support, dispute, tax, and payout operations are
+mature. Do not block Workstream 5 QA on that deferred money movement.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
