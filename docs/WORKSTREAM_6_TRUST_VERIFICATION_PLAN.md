@@ -18,6 +18,16 @@
   owner access, Braider access, Client redirect protection, provider-scoped
   review data, detail drawer content, appointment deep links, and responsive
   light/dark smoke testing.
+- **August 1, 2026:** Slice 6.2 implementation added provider review
+  responses and provider report intake. Migration `0016_absurd_slyde.sql`
+  introduces `provider_review_responses`,
+  `provider_review_response_history`, and `review_reports`; `/dashboard/reviews`
+  now supports provider response publishing/edit history and one report per
+  provider/review. Provider responses are also visible in the appointment
+  details drawer so Client notifications land on a meaningful surface. Manual
+  QA passed August 1, 2026 for response create/update, Client notification
+  delivery, appointment drawer response visibility, response history, report
+  intake, report status locking, and role-compatible access smoke checks.
 
 ## Purpose
 
@@ -61,9 +71,16 @@ Add structured provider actions for review transparency.
 Scope:
 
 - Provider can respond once to a review, with edit history if edits are allowed.
-- Provider can request clarification or report/dispute a review.
-- Dispute status should be visible but not over-automated at first.
+  **Implemented and manual-QA passed August 1, 2026.**
+- Provider can request clarification or report/dispute a review. **Initial
+  report intake is implemented and manual-QA passed; admin moderation is
+  deferred.**
+- Dispute status should be visible but not over-automated at first. **Provider
+  report status is visible in the drawer after submission.**
 - Notifications should be created for relevant Client/provider/admin events.
+  **Provider response create/update sends Client notifications and manual QA
+  passed August 1, 2026; admin review queue notifications remain deferred with
+  moderation tooling.**
 
 Recommended product language:
 
@@ -137,6 +154,7 @@ the external notification worker.
 Potential additive tables or fields:
 
 - `provider_review_responses`
+- `provider_review_response_history`
 - `review_reports` or `review_disputes`
 - `provider_verifications`
 - `verification_evidence`

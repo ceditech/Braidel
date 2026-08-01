@@ -5,19 +5,42 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Drawer } from "@/components/ui/Drawer";
 import { Topbar } from "@/components/dashboard/Topbar";
-import type { ProviderReviewDTO, ProviderReviewDashboardDTO } from "@/lib/review-domain";
+import type {
+  ProviderReviewDTO,
+  ProviderReviewDashboardDTO,
+  ProviderReviewReportCategory,
+} from "@/lib/review-domain";
 import styles from "./ProviderReviewsClient.module.css";
 
 interface ProviderReviewsClientProps {
   dashboard: ProviderReviewDashboardDTO;
 }
 
+const REPORT_OPTIONS: Array<{
+  value: ProviderReviewReportCategory;
+  label: string;
+}> = [
+  { value: "inaccurate", label: "Inaccurate details" },
+  { value: "abusive", label: "Abusive or harmful" },
+  { value: "private_info", label: "Private information" },
+  { value: "fraud", label: "Fraud or spam" },
+  { value: "other", label: "Other" },
+];
+
 export function ProviderReviewsClient({ dashboard }: ProviderReviewsClientProps) {
+  const [reviews, setReviews] = useState(dashboard.reviews);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const selectedReview = useMemo(
-    () => dashboard.reviews.find((review) => review.id === selectedReviewId) ?? null,
-    [dashboard.reviews, selectedReviewId]
+    () => reviews.find((review) => review.id === selectedReviewId) ?? null,
+    [reviews, selectedReviewId]
   );
+  const updateReview = (reviewId: string, patch: Partial<ProviderReviewDTO>) => {
+    setReviews((current) =>
+      current.map((review) =>
+        review.id === reviewId ? { ...review, ...patch } : review
+      )
+    );
+  };
 
   return (
     <>
@@ -59,9 +82,9 @@ export function ProviderReviewsClient({ dashboard }: ProviderReviewsClientProps)
               <Badge variant="brand">{dashboard.totalReviews} total</Badge>
             </div>
 
-            {dashboard.reviews.length ? (
+            {reviews.length ? (
               <div className={styles.reviewList}>
-                {dashboard.reviews.map((review) => (
+                {reviews.map((review) => (
                   <ReviewCard
                     key={review.id}
                     review={review}
@@ -101,10 +124,10 @@ export function ProviderReviewsClient({ dashboard }: ProviderReviewsClientProps)
               ))}
             </div>
             <div className={styles.policyNote}>
-              <p className={styles.policyTitle}>Coming next</p>
+              <p className={styles.policyTitle}>Trust controls</p>
               <p>
-                Provider responses, clarification requests, and dispute intake are planned
-                as the next Workstream 6 slices.
+                Provider responses and report intake are available here. Admin moderation,
+                public trust placement, and reminder automation remain tracked before launch.
               </p>
             </div>
           </aside>
@@ -134,7 +157,13 @@ export function ProviderReviewsClient({ dashboard }: ProviderReviewsClientProps)
           ) : null
         }
       >
-        {selectedReview && <ReviewDetails review={selectedReview} />}
+        {selectedReview && (
+          <ReviewDetails
+            key={selectedReview.id}
+            review={selectedReview}
+            onReviewUpdated={updateReview}
+          />
+        )}
       </Drawer>
     </>
   );
@@ -191,13 +220,81 @@ function ReviewCard({
       <span className={styles.reviewComment}>{review.comment || "No written comment."}</span>
       <span className={styles.reviewFooter}>
         {wasEdited ? <Badge variant="info">Updated</Badge> : <Badge variant="success">Original</Badge>}
+        {review.providerResponse ? <Badge variant="brand">Responded</Badge> : null}
+        {review.report ? <Badge variant="warning">Reported</Badge> : null}
         <span>Reviewed {formatShortDate(review.createdAt)}</span>
       </span>
     </button>
   );
 }
 
-function ReviewDetails({ review }: { review: ProviderReviewDTO }) {
+function ReviewDetails({
+  review,
+  onReviewUpdated,
+}: {
+  review: ProviderReviewDTO;
+  onReviewUpdated: (reviewId: string, patch: Partial<ProviderReviewDTO>) => void;
+}) {
+  const [responseBody, setResponseBody] = useState(review.providerResponse?.body ?? "");
+  const [responseStatus, setResponseStatus] = useState<FeedbackState>({});
+  const [isSavingResponse, setIsSavingResponse] = useState(false);
+  const [reportCategory, setReportCategory] =
+    useState<ProviderReviewReportCategory>("inaccurate");
+  const [reportReason, setReportReason] = useState("");
+  const [reportStatus, setReportStatus] = useState<FeedbackState>({});
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  async function saveResponse() {
+    setIsSavingResponse(true);
+    setResponseStatus({});
+
+    const response = await fetch(`/api/provider-reviews/${review.id}/response`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: responseBody }),
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    setIsSavingResponse(false);
+    if (!response.ok) {
+      setResponseStatus({ error: payload.error ?? "Response could not be saved" });
+      return;
+    }
+
+    onReviewUpdated(review.id, {
+      providerResponse: {
+        ...payload.response,
+        history: [
+          ...(review.providerResponse?.history ?? []),
+          ...(payload.response.history ?? []),
+        ],
+      },
+    });
+    setResponseStatus({ message: "Provider response saved" });
+  }
+
+  async function submitReport() {
+    setIsSubmittingReport(true);
+    setReportStatus({});
+
+    const response = await fetch(`/api/provider-reviews/${review.id}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: reportCategory, reason: reportReason }),
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    setIsSubmittingReport(false);
+    if (!response.ok) {
+      setReportStatus({ error: payload.error ?? "Report could not be submitted" });
+      return;
+    }
+
+    onReviewUpdated(review.id, { report: payload.report });
+    setReportReason("");
+    setReportStatus({ message: "Review report submitted" });
+  }
+
   return (
     <div className={styles.drawerContent}>
       <section className={styles.drawerSection}>
@@ -255,7 +352,147 @@ function ReviewDetails({ review }: { review: ProviderReviewDTO }) {
           <p className={styles.mutedText}>No history events have been recorded for this review yet.</p>
         )}
       </section>
+
+      <section className={styles.drawerSection}>
+        <div className={styles.sectionHeaderCompact}>
+          <h3>Provider response</h3>
+          <Badge variant={review.providerResponse ? "success" : "neutral"}>
+            {review.providerResponse ? "Published" : "Not published"}
+          </Badge>
+        </div>
+        {review.providerResponse ? (
+          <div className={styles.responsePreview}>
+            <p>{review.providerResponse.body}</p>
+            <span>Last updated {formatDateTime(review.providerResponse.updatedAt, review.timezone)}</span>
+          </div>
+        ) : null}
+        <label className={styles.formLabel} htmlFor={`response-${review.id}`}>
+          Public response
+        </label>
+        <textarea
+          id={`response-${review.id}`}
+          className={styles.textarea}
+          value={responseBody}
+          maxLength={2000}
+          onChange={(event) => setResponseBody(event.target.value)}
+          placeholder="Thank the client, clarify context, or explain how your team handled the appointment."
+        />
+        <div className={styles.formFooter}>
+          <span>{responseBody.trim().length}/2000 characters</span>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={saveResponse}
+            disabled={isSavingResponse || !responseBody.trim()}
+          >
+            {isSavingResponse
+              ? "Saving..."
+              : review.providerResponse
+                ? "Update response"
+                : "Publish response"}
+          </button>
+        </div>
+        <FeedbackMessage state={responseStatus} />
+        {review.providerResponse?.history.length ? (
+          <details className={styles.historyDetails}>
+            <summary>Response history ({review.providerResponse.history.length})</summary>
+            <ol className={styles.historyList}>
+              {review.providerResponse.history.map((entry, index) => (
+                <li key={`${entry.createdAt}-${index}`} className={styles.historyItem}>
+                  <span className={styles.historyDot} />
+                  <div>
+                    <p>
+                      <strong>
+                        {entry.action === "updated" ? "Response updated" : "Response created"}
+                      </strong>
+                      <span>{formatDateTime(entry.createdAt, review.timezone)}</span>
+                    </p>
+                    <p className={styles.historyBody}>{entry.newBody}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : null}
+      </section>
+
+      <section className={styles.drawerSection}>
+        <div className={styles.sectionHeaderCompact}>
+          <h3>Report review</h3>
+          {review.report ? (
+            <Badge variant="warning">{formatReportStatus(review.report.status)}</Badge>
+          ) : (
+            <Badge variant="neutral">Optional</Badge>
+          )}
+        </div>
+        {review.report ? (
+          <div className={styles.reportState}>
+            <p>
+              <strong>{formatReportCategory(review.report.category)}</strong>
+              <span>Submitted {formatDateTime(review.report.createdAt, review.timezone)}</span>
+            </p>
+            <p>{review.report.reason}</p>
+          </div>
+        ) : (
+          <>
+            <label className={styles.formLabel} htmlFor={`report-category-${review.id}`}>
+              Category
+            </label>
+            <select
+              id={`report-category-${review.id}`}
+              className={styles.select}
+              value={reportCategory}
+              onChange={(event) =>
+                setReportCategory(event.target.value as ProviderReviewReportCategory)
+              }
+            >
+              {REPORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <label className={styles.formLabel} htmlFor={`report-reason-${review.id}`}>
+              Reason
+            </label>
+            <textarea
+              id={`report-reason-${review.id}`}
+              className={styles.textarea}
+              value={reportReason}
+              maxLength={2000}
+              onChange={(event) => setReportReason(event.target.value)}
+              placeholder="Explain what should be reviewed by the Braidel team. Include only relevant facts."
+            />
+            <div className={styles.formFooter}>
+              <span>{reportReason.trim().length}/2000 characters</span>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={submitReport}
+                disabled={isSubmittingReport || reportReason.trim().length < 10}
+              >
+                {isSubmittingReport ? "Submitting..." : "Submit report"}
+              </button>
+            </div>
+            <FeedbackMessage state={reportStatus} />
+          </>
+        )}
+      </section>
     </div>
+  );
+}
+
+interface FeedbackState {
+  message?: string;
+  error?: string;
+}
+
+function FeedbackMessage({ state }: { state: FeedbackState }) {
+  if (!state.message && !state.error) return null;
+  return (
+    <p className={state.error ? styles.formError : styles.formSuccess}>
+      {state.error ?? state.message}
+    </p>
   );
 }
 
@@ -290,6 +527,17 @@ function formatDateTime(value: string, timezone: string) {
 
 function formatAppointment(review: ProviderReviewDTO) {
   return formatDateTime(review.appointmentStartsAt, review.timezone);
+}
+
+function formatReportCategory(category: ProviderReviewReportCategory) {
+  return REPORT_OPTIONS.find((option) => option.value === category)?.label ?? "Other";
+}
+
+function formatReportStatus(status: string) {
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function StarIcon({ filled = true }: { filled?: boolean }) {

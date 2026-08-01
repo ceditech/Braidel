@@ -19,6 +19,7 @@ import {
   braidStyles,
   braiders,
   clientProfiles,
+  providerReviewResponses,
   ratingHistory,
   ratings,
   salons,
@@ -483,6 +484,9 @@ async function getBookings(
       reviewComment: ratings.comment,
       reviewCreatedAt: ratings.createdAt,
       reviewUpdatedAt: ratings.updatedAt,
+      providerResponseBody: providerReviewResponses.body,
+      providerResponseCreatedAt: providerReviewResponses.createdAt,
+      providerResponseUpdatedAt: providerReviewResponses.updatedAt,
     })
     .from(bookings)
     .innerJoin(
@@ -497,6 +501,10 @@ async function getBookings(
     .leftJoin(
       ratings,
       and(eq(ratings.bookingId, bookings.id), eq(ratings.reviewerId, clientUser.id))
+    )
+    .leftJoin(
+      providerReviewResponses,
+      eq(providerReviewResponses.ratingId, ratings.id)
     )
     .where(condition)
     .orderBy(asc(bookings.startsAt));
@@ -584,6 +592,13 @@ async function getBookings(
             comment: row.reviewComment ?? "",
             createdAt: toIso(row.reviewCreatedAt ?? row.createdAt),
             updatedAt: toIso(row.reviewUpdatedAt ?? row.createdAt),
+            providerResponse: row.providerResponseBody
+              ? {
+                  body: row.providerResponseBody,
+                  createdAt: toIso(row.providerResponseCreatedAt ?? row.createdAt),
+                  updatedAt: toIso(row.providerResponseUpdatedAt ?? row.createdAt),
+                }
+              : null,
             history: historyByRating.get(row.reviewId) ?? [],
           },
   }));

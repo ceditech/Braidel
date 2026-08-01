@@ -69,6 +69,9 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "booking_payments table", status: "done", priority: "high", phase: 3 },
       { title: "payment_ledger_entries table", status: "done", priority: "high", phase: 3 },
       { title: "payment_webhook_events table", status: "done", priority: "high", phase: 3 },
+      { title: "provider_review_responses table", status: "done", priority: "high", phase: 4 },
+      { title: "provider_review_response_history table", status: "done", priority: "high", phase: 4 },
+      { title: "review_reports table", status: "done", priority: "high", phase: 4 },
     ],
   },
   {
@@ -159,6 +162,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Booking review visibility, update notifications, and audit history", status: "done", priority: "high", phase: 2 },
       { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
       { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026 for provider access, client redirect protection, scoped data, drawer details, booking deep links, and responsive light/dark checks." },
+      { title: "Provider review responses + report intake", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026. Migration 0016_absurd_slyde.sql added provider response create/update with Client notifications, response audit history, appointment drawer visibility, and one provider report per review." },
     ],
   },
   {
@@ -182,6 +186,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Availability engine + transactional booking lifecycle APIs", status: "done", priority: "high", phase: 2 },
       { title: "Review audit history + update notification wiring", status: "done", priority: "high", phase: 2 },
       { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
+      { title: "Provider review response/report APIs", status: "done", priority: "high", phase: 4 },
     ],
   },
   {
@@ -229,7 +234,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Started with a provider-only reviews dashboard at /dashboard/reviews, backed by completed-booking ratings and rating_history. Slice 6.1 manual QA passed August 1, 2026. Remaining order: provider review responses/dispute intake, verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Remaining order: verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

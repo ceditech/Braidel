@@ -444,10 +444,11 @@ now in Workstream `5/7`: the schema/domain foundation is started, but checkout,
 Connect onboarding, live capture, refunds, and payouts are not active yet.
 
 Deferred review/reputation surfaces that must be revisited before launch or in
-Workstream `6/7`: provider response/dispute workflows, verification evidence,
-marketplace administration, public trust signals, and an automated capped
-5-step Client review reminder system for completed bookings. The dedicated
-provider `/dashboard/reviews` visibility surface is now started.
+Workstream `6/7`: verification evidence, marketplace administration, public
+trust signals, formal dispute resolution, and an automated capped 5-step Client
+review reminder system for completed bookings. The dedicated provider
+`/dashboard/reviews` visibility surface is QA-passed, and the first provider
+response/report-intake implementation is also QA-passed.
 
 **Recently completed strategic focus:** workstream `5/7`, payments and
 monetization, foundation QA complete but live Stripe activation deferred.
@@ -508,9 +509,19 @@ rating distribution, latest reviews, a detail drawer, booking deep links, and
 append-only rating history. August 1, 2026 manual QA passed for Salon owner
 access, Braider access, Client redirect protection, provider-scoped review data,
 review drawer details, booking deep links, and responsive light/dark checks.
-Next slices: provider review responses/dispute intake, verification evidence,
-admin moderation, marketplace trust signals, and capped Client review
-reminders.
+Second slice implementation added: migration `0016_absurd_slyde.sql` creates
+`provider_review_responses`, `provider_review_response_history`, and
+`review_reports`; the Reviews drawer supports provider response create/update,
+Client notifications for response changes, response history, and one provider
+report per review. Appointment drawers show provider responses next to the
+related review, so Client notifications land on visible content. Migration
+`0016_absurd_slyde.sql` has been applied to the configured development Neon
+database; production/staging migration remains a launch gate. August 1, 2026
+manual QA passed for response create/update, Client notification delivery,
+appointment drawer response visibility, response history, report intake, report
+status locking, and role-compatible access smoke checks. Next slices:
+verification evidence foundation, admin moderation, marketplace trust signals,
+and capped Client review reminders.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

@@ -91,6 +91,11 @@ export interface BookingDTO {
     comment: string;
     createdAt: string;
     updatedAt: string;
+    providerResponse: {
+      body: string;
+      createdAt: string;
+      updatedAt: string;
+    } | null;
     history: Array<{
       action: "created" | "updated";
       previousScore: number | null;

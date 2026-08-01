@@ -9,6 +9,44 @@ export interface ProviderReviewHistoryDTO {
   createdAt: string;
 }
 
+export type ProviderReviewReportCategory =
+  | "inaccurate"
+  | "abusive"
+  | "private_info"
+  | "fraud"
+  | "other";
+
+export type ProviderReviewReportStatus =
+  | "submitted"
+  | "under_review"
+  | "resolved"
+  | "dismissed";
+
+export interface ProviderReviewResponseHistoryDTO {
+  action: "created" | "updated";
+  previousBody: string;
+  newBody: string;
+  createdAt: string;
+}
+
+export interface ProviderReviewResponseDTO {
+  id: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  history: ProviderReviewResponseHistoryDTO[];
+}
+
+export interface ProviderReviewReportDTO {
+  id: string;
+  category: ProviderReviewReportCategory;
+  reason: string;
+  status: ProviderReviewReportStatus;
+  resolutionNote: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProviderReviewDTO {
   id: string;
   bookingId: string;
@@ -25,6 +63,8 @@ export interface ProviderReviewDTO {
     email: string;
   };
   history: ProviderReviewHistoryDTO[];
+  providerResponse: ProviderReviewResponseDTO | null;
+  report: ProviderReviewReportDTO | null;
 }
 
 export interface ProviderReviewDashboardDTO {

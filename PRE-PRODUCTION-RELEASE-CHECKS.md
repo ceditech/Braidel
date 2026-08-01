@@ -95,6 +95,9 @@ Production must not launch until every item in this section is complete.
 - [ ] Apply migration `0015_cheerful_daredevil.sql` before activating payments;
       it adds provider payment accounts, booking payments, payment ledger
       entries, and Stripe webhook-event idempotency.
+- [ ] Apply migration `0016_absurd_slyde.sql` before releasing provider review
+      responses or review report intake; it adds provider response, response
+      history, and review report tables.
 - [ ] Verify booking message/review context checks reject rows with no context
       or both application and booking contexts.
 - [ ] Verify every editable review creates exactly one current `ratings` row and
@@ -277,10 +280,11 @@ own workstream ships.
   payment confirmation. Stripe-managed Salon-to-Braider payments should wait
   until marketplace policy, support, disputes, tax posture, and payout
   operations are mature.
-- **Provider review response and disputes:** the first `/dashboard/reviews`
-  visibility slice exists for Providers, but response, clarification,
-  report/dispute status, and moderation policy remain deferred Workstream 6
-  follow-ups.
+- **Provider review response and disputes:** `/dashboard/reviews` now has the
+  first provider response and report-intake implementation, and manual QA
+  passed August 1, 2026. Moderation policy, admin review queues, public dispute
+  labels, and formal dispute resolution remain deferred Workstream 6 follow-ups
+  before launch.
 - **Automated review reminders:** a capped 5-step reminder system remains
   deferred. Before launch or before enabling scaled bookings, Clients should be
   reminded to review completed bookings on a gentle schedule, and reminders
@@ -289,7 +293,8 @@ own workstream ships.
   moderation, and marketplace administration flows belong to Workstream 6.
 - **Trust and verification implementation:** Workstream 6 is planned in
   [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
-  Provider reviews dashboard, review responses/disputes, verification evidence,
+  Provider reviews dashboard is manual-QA passed. Provider review responses and
+  report intake are implemented and manual-QA passed. Verification evidence,
   admin moderation, marketplace trust signals, and review reminders remain
   implementation work.
 
@@ -452,3 +457,13 @@ Add dated entries here as production gates are verified.
   Workstream 6 trust features include review responses/disputes, verification
   evidence, admin moderation, marketplace trust badges, and capped review
   reminders.
+- **August 1, 2026:** Workstream 6.2 provider review response and report intake
+  implementation and manual QA passed. Migration `0016_absurd_slyde.sql` added
+  protected provider response create/update APIs, Client notifications for
+  response changes, append-only response history, one provider report per
+  review, and appointment drawer visibility for provider responses. The
+  migration was applied to the configured development Neon database. Manual QA
+  covered response create/update, Client notification delivery, appointment
+  drawer response visibility, response history, report intake, report status
+  locking, and role-compatible access smoke checks. Staging/production
+  migration application remains a launch gate.

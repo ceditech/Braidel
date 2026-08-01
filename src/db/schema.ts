@@ -856,6 +856,101 @@ export const ratingHistory = pgTable(
   ]
 );
 
+export const providerReviewResponses = pgTable(
+  "provider_review_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ratingId: uuid("rating_id")
+      .notNull()
+      .references(() => ratings.id, { onDelete: "cascade" }),
+    providerUserId: uuid("provider_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("provider_review_responses_rating_unique").on(table.ratingId),
+    index("provider_review_responses_provider_idx").on(table.providerUserId),
+    check(
+      "provider_review_responses_body_check",
+      sql`length(trim(${table.body})) between 1 and 2000`
+    ),
+  ]
+);
+
+export const providerReviewResponseHistory = pgTable(
+  "provider_review_response_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    responseId: uuid("response_id")
+      .notNull()
+      .references(() => providerReviewResponses.id, { onDelete: "cascade" }),
+    changedByUserId: uuid("changed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    action: text("action").notNull(),
+    previousBody: text("previous_body"),
+    newBody: text("new_body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("provider_review_response_history_response_created_idx").on(
+      table.responseId,
+      table.createdAt
+    ),
+    index("provider_review_response_history_actor_idx").on(table.changedByUserId),
+    check(
+      "provider_review_response_history_action_check",
+      sql`${table.action} in ('created', 'updated')`
+    ),
+    check(
+      "provider_review_response_history_body_check",
+      sql`length(trim(${table.newBody})) between 1 and 2000`
+    ),
+  ]
+);
+
+export const reviewReports = pgTable(
+  "review_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ratingId: uuid("rating_id")
+      .notNull()
+      .references(() => ratings.id, { onDelete: "cascade" }),
+    reportedByUserId: uuid("reported_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category: text("category").notNull(),
+    reason: text("reason").notNull(),
+    status: text("status").notNull().default("submitted"),
+    resolutionNote: text("resolution_note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("review_reports_rating_reporter_unique").on(
+      table.ratingId,
+      table.reportedByUserId
+    ),
+    index("review_reports_status_created_idx").on(table.status, table.createdAt),
+    index("review_reports_reporter_idx").on(table.reportedByUserId),
+    check(
+      "review_reports_category_check",
+      sql`${table.category} in ('inaccurate', 'abusive', 'private_info', 'fraud', 'other')`
+    ),
+    check(
+      "review_reports_status_check",
+      sql`${table.status} in ('submitted', 'under_review', 'resolved', 'dismissed')`
+    ),
+    check(
+      "review_reports_reason_check",
+      sql`length(trim(${table.reason})) between 10 and 2000`
+    ),
+  ]
+);
+
 export const notifications = pgTable(
   "notifications",
   {
@@ -905,6 +1000,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   receivedMessages: many(messages, { relationName: "recipient" }),
   ratingsGiven: many(ratings, { relationName: "reviewer" }),
   ratingHistoryChanges: many(ratingHistory),
+  providerReviewResponses: many(providerReviewResponses),
+  providerReviewResponseHistoryChanges: many(providerReviewResponseHistory),
+  reviewReports: many(reviewReports),
   bookingStatusChanges: many(bookingStatusHistory),
   bookingPayments: many(bookingPayments),
   notifications: many(notifications),
@@ -1155,6 +1253,8 @@ export const ratingsRelations = relations(ratings, ({ one, many }) => ({
     references: [salons.id],
   }),
   history: many(ratingHistory),
+  providerResponses: many(providerReviewResponses),
+  reports: many(reviewReports),
 }));
 
 export const ratingHistoryRelations = relations(ratingHistory, ({ one }) => ({
@@ -1164,6 +1264,46 @@ export const ratingHistoryRelations = relations(ratingHistory, ({ one }) => ({
   }),
   changedBy: one(users, {
     fields: [ratingHistory.changedByUserId],
+    references: [users.id],
+  }),
+}));
+
+export const providerReviewResponsesRelations = relations(
+  providerReviewResponses,
+  ({ one, many }) => ({
+    rating: one(ratings, {
+      fields: [providerReviewResponses.ratingId],
+      references: [ratings.id],
+    }),
+    providerUser: one(users, {
+      fields: [providerReviewResponses.providerUserId],
+      references: [users.id],
+    }),
+    history: many(providerReviewResponseHistory),
+  })
+);
+
+export const providerReviewResponseHistoryRelations = relations(
+  providerReviewResponseHistory,
+  ({ one }) => ({
+    response: one(providerReviewResponses, {
+      fields: [providerReviewResponseHistory.responseId],
+      references: [providerReviewResponses.id],
+    }),
+    changedBy: one(users, {
+      fields: [providerReviewResponseHistory.changedByUserId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const reviewReportsRelations = relations(reviewReports, ({ one }) => ({
+  rating: one(ratings, {
+    fields: [reviewReports.ratingId],
+    references: [ratings.id],
+  }),
+  reportedBy: one(users, {
+    fields: [reviewReports.reportedByUserId],
     references: [users.id],
   }),
 }));

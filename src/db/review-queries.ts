@@ -6,8 +6,11 @@ import { db } from "@/db";
 import {
   bookings,
   clientProfiles,
+  providerReviewResponseHistory,
+  providerReviewResponses,
   ratingHistory,
   ratings,
+  reviewReports,
   serviceProviders,
   users,
 } from "@/db/schema";
@@ -16,12 +19,18 @@ import type {
   ProviderReviewDTO,
   ProviderReviewDashboardDTO,
   ProviderReviewHistoryDTO,
+  ProviderReviewReportCategory,
+  ProviderReviewReportDTO,
+  ProviderReviewReportStatus,
+  ProviderReviewResponseDTO,
+  ProviderReviewResponseHistoryDTO,
 } from "@/lib/review-domain";
 
 const clientUser = alias(users, "review_client_user");
 
 export async function getProviderReviewDashboard(
-  provider: BookingProviderDTO | null
+  provider: BookingProviderDTO | null,
+  providerUserId?: string
 ): Promise<ProviderReviewDashboardDTO> {
   if (!provider) return emptyReviewDashboard(null);
 
@@ -80,6 +89,95 @@ export async function getProviderReviewDashboard(
     historyByRating.set(history.ratingId, entries);
   }
 
+  const responseRows = ratingIds.length
+    ? await db
+        .select({
+          id: providerReviewResponses.id,
+          ratingId: providerReviewResponses.ratingId,
+          body: providerReviewResponses.body,
+          createdAt: providerReviewResponses.createdAt,
+          updatedAt: providerReviewResponses.updatedAt,
+        })
+        .from(providerReviewResponses)
+        .where(inArray(providerReviewResponses.ratingId, ratingIds))
+    : [];
+
+  const responseIds = responseRows.map((response) => response.id);
+  const responseHistoryRows = responseIds.length
+    ? await db
+        .select({
+          responseId: providerReviewResponseHistory.responseId,
+          action: providerReviewResponseHistory.action,
+          previousBody: providerReviewResponseHistory.previousBody,
+          newBody: providerReviewResponseHistory.newBody,
+          createdAt: providerReviewResponseHistory.createdAt,
+        })
+        .from(providerReviewResponseHistory)
+        .where(inArray(providerReviewResponseHistory.responseId, responseIds))
+        .orderBy(asc(providerReviewResponseHistory.createdAt))
+    : [];
+
+  const responseHistoryByResponse = new Map<
+    string,
+    ProviderReviewResponseHistoryDTO[]
+  >();
+  for (const history of responseHistoryRows) {
+    const entries = responseHistoryByResponse.get(history.responseId) ?? [];
+    entries.push({
+      action: history.action === "updated" ? "updated" : "created",
+      previousBody: history.previousBody ?? "",
+      newBody: history.newBody,
+      createdAt: toIso(history.createdAt),
+    });
+    responseHistoryByResponse.set(history.responseId, entries);
+  }
+
+  const responseByRating = new Map<string, ProviderReviewResponseDTO>();
+  for (const response of responseRows) {
+    responseByRating.set(response.ratingId, {
+      id: response.id,
+      body: response.body,
+      createdAt: toIso(response.createdAt),
+      updatedAt: toIso(response.updatedAt),
+      history: responseHistoryByResponse.get(response.id) ?? [],
+    });
+  }
+
+  const reportRows =
+    ratingIds.length && providerUserId
+      ? await db
+          .select({
+            id: reviewReports.id,
+            ratingId: reviewReports.ratingId,
+            category: reviewReports.category,
+            reason: reviewReports.reason,
+            status: reviewReports.status,
+            resolutionNote: reviewReports.resolutionNote,
+            createdAt: reviewReports.createdAt,
+            updatedAt: reviewReports.updatedAt,
+          })
+          .from(reviewReports)
+          .where(
+            and(
+              inArray(reviewReports.ratingId, ratingIds),
+              eq(reviewReports.reportedByUserId, providerUserId)
+            )
+          )
+      : [];
+
+  const reportByRating = new Map<string, ProviderReviewReportDTO>();
+  for (const report of reportRows) {
+    reportByRating.set(report.ratingId, {
+      id: report.id,
+      category: report.category as ProviderReviewReportCategory,
+      reason: report.reason,
+      status: report.status as ProviderReviewReportStatus,
+      resolutionNote: report.resolutionNote ?? "",
+      createdAt: toIso(report.createdAt),
+      updatedAt: toIso(report.updatedAt),
+    });
+  }
+
   const reviews = rows.map((row) => ({
     id: row.id,
     bookingId: row.bookingId,
@@ -96,6 +194,8 @@ export async function getProviderReviewDashboard(
       email: row.clientEmail,
     },
     history: historyByRating.get(row.id) ?? [],
+    providerResponse: responseByRating.get(row.id) ?? null,
+    report: reportByRating.get(row.id) ?? null,
   }));
 
   return {

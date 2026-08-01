@@ -288,6 +288,15 @@ export function AppointmentDetailsDrawer({
               {booking.review.comment && (
                 <p className={styles.reviewComment}>{booking.review.comment}</p>
               )}
+              {booking.review.providerResponse && (
+                <div className={styles.providerResponse}>
+                  <span>Provider response</span>
+                  <p>{booking.review.providerResponse.body}</p>
+                  <small>
+                    Updated {shortDateTime(booking.review.providerResponse.updatedAt)}
+                  </small>
+                </div>
+              )}
               {booking.review.history.length > 0 && (
                 <div className={styles.reviewHistory}>
                   <span>Review history</span>

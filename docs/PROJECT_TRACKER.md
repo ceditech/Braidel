@@ -217,10 +217,11 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 6. **Trust, verification + marketplace administration** — started with a
    provider-only reviews dashboard at `/dashboard/reviews`, scoped to completed
    booking reviews, provider-owned appointment links, rating distribution, and
-   append-only review history. Remaining planned slices: provider review
-   responses/dispute intake, verification evidence foundation,
-   admin/moderation surface, marketplace trust signals, and capped Client
-   review reminders. Planning record:
+   append-only review history. Slice 6.2 implementation now adds provider
+   response publishing/edit history and provider report intake, with manual QA
+   passed August 1, 2026. Remaining planned slices: verification evidence
+   foundation, admin/moderation surface, marketplace trust signals, and capped
+   Client review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -271,3 +272,13 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   access, Braider access, Client redirect protection, provider-scoped review
   data, review detail drawer content, booking deep links, and desktop/mobile
   light/dark responsiveness.
+- **August 1, 2026:** Workstream 6.2 implementation and manual QA passed.
+  Migration
+  `0016_absurd_slyde.sql` adds provider review responses, response history, and
+  review reports. The provider Reviews drawer now supports public response
+  create/update with Client notifications, response audit history, and one
+  provider report per review. Appointment drawers also show provider responses
+  beside the related review. The migration was applied to the configured
+  development Neon database. Manual QA covered response create/update, Client
+  notifications, appointment drawer response visibility, response history,
+  report intake, report status locking, and role-compatible access smoke checks.
