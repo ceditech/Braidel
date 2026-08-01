@@ -277,10 +277,10 @@ own workstream ships.
   payment confirmation. Stripe-managed Salon-to-Braider payments should wait
   until marketplace policy, support, disputes, tax posture, and payout
   operations are mature.
-- **Dedicated Reviews dashboard:** `/dashboard/reviews` remains deferred. Before
-  launch or during the trust/reputation workstream, Providers should have a
-  first-class review surface with average rating, review count, latest reviews,
-  rating trends, response/dispute status, and appointment links.
+- **Provider review response and disputes:** the first `/dashboard/reviews`
+  visibility slice exists for Providers, but response, clarification,
+  report/dispute status, and moderation policy remain deferred Workstream 6
+  follow-ups.
 - **Automated review reminders:** a capped 5-step reminder system remains
   deferred. Before launch or before enabling scaled bookings, Clients should be
   reminded to review completed bookings on a gentle schedule, and reminders
@@ -442,3 +442,8 @@ Add dated entries here as production gates are verified.
   until those flows are intentionally implemented.
 - **July 31, 2026:** Workstream 6 planning was recorded in
   `docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`.
+- **July 31, 2026:** Workstream 6 implementation started with a provider-only
+  Reviews dashboard at `/dashboard/reviews`, using completed-booking reviews and
+  append-only `rating_history` data. Focused QA for provider access,
+  client-role redirect, empty state, populated review details, and booking deep
+  links remains required before considering slice 6.1 accepted.

@@ -2,9 +2,18 @@
 
 > Planning record for the next strategic implementation stream.
 >
-> Status: planned, not yet implemented.
+> Status: in progress.
 >
 > Last updated: July 31, 2026
+
+## Progress Notes
+
+- **July 31, 2026:** Slice 6.1 started with a provider-only
+  `/dashboard/reviews` route for Salon owners and Braiders. The first slice is
+  read-only and uses existing completed-booking `ratings` plus append-only
+  `rating_history` data. Provider responses, dispute intake, verification
+  evidence, moderation, marketplace trust badges, and review reminders remain
+  planned follow-up slices.
 
 ## Purpose
 
@@ -25,10 +34,12 @@ and Braiders.
 
 Scope:
 
-- Average rating, review count, and rating distribution.
-- Latest review list with appointment/service context.
+- Average rating, review count, and rating distribution. **Implemented in the
+  first slice.**
+- Latest review list with appointment/service context. **Implemented in the
+  first slice.**
 - Review detail drawer with rating, comment, timestamps, booking link, and
-  audit history.
+  audit history. **Implemented in the first slice.**
 - Provider response placeholder or first implementation, depending on scope.
 - Empty state for providers with no reviews.
 
@@ -156,4 +167,3 @@ Manual QA should include:
 - Background worker or cron implementation for review reminders.
 - Legal copy for review guidelines, verification standards, and evidence
   retention.
-

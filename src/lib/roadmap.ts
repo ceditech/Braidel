@@ -158,6 +158,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Client booking discovery + appointment management", status: "done", priority: "high", phase: 2 },
       { title: "Booking review visibility, update notifications, and audit history", status: "done", priority: "high", phase: 2 },
       { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
+      { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4 },
     ],
   },
   {
@@ -225,10 +226,10 @@ export const ROADMAP: RoadmapGroup[] = [
       },
       {
         title: "6. Trust, verification + marketplace administration",
-        status: "pending",
+        status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Next planned stream. Recommended order: provider reviews dashboard, provider review responses/dispute intake, verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Started with a provider-only reviews dashboard at /dashboard/reviews, backed by completed-booking ratings and rating_history. Remaining order: provider review responses/dispute intake, verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

@@ -17,7 +17,7 @@
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
 | **Phase 2** | Client Booking | 19 / 19 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | ~93% |
-| **Phase 4** | Reputation & Verification | 0 / 1 | 0% |
+| **Phase 4** | Reputation & Verification | 1 / 2 | ~75% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
 | **Phase 6** | Braidel Supply | 0 / 1 | 0% |
 | **Phase 7** | Salon Franchise | 0 / 1 | 0% |
@@ -183,7 +183,7 @@ _Core gaps and next product phases, ordered for low-regression delivery_
 | 3 | ✅ | Booking APIs + appointments/calendar UI | High | 2 |
 | 4 | ✅ | Booking-aware conversations, reviews + notifications | High | 2 |
 | 5 | 🔄 | Payments + monetization | High | 3 |
-| 6 | ⬜ | Trust, verification + marketplace administration | High | 4 |
+| 6 | 🔄 | Trust, verification + marketplace administration | High | 4 |
 | 7 | ⬜ | Ecosystem expansion: Academy, Supply, Franchise + mobile | Medium | 5–7 |
 
 ### Workstream scope
@@ -214,10 +214,13 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    money movement is deferred until policy and operations mature. Workstream 5
    remains in progress until live Stripe checkout, Connect onboarding, webhooks,
    refunds, disputes, and payouts are intentionally implemented.
-6. **Trust, verification + marketplace administration** — next planned stream:
-   provider reviews dashboard, provider review responses/dispute intake,
-   verification evidence foundation, admin/moderation surface, marketplace trust
-   signals, and capped Client review reminders. Planning record:
+6. **Trust, verification + marketplace administration** — started with a
+   provider-only reviews dashboard at `/dashboard/reviews`, scoped to completed
+   booking reviews, provider-owned appointment links, rating distribution, and
+   append-only review history. Remaining planned slices: provider review
+   responses/dispute intake, verification evidence foundation,
+   admin/moderation surface, marketplace trust signals, and capped Client
+   review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -259,3 +262,8 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   intentionally implemented.
 - **July 31, 2026:** Workstream 6 planning added in
   [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
+- **July 31, 2026:** Workstream 6 implementation started with a guarded
+  provider Reviews dashboard at `/dashboard/reviews`. Salon owners and Braiders
+  now have a first-class view of completed-booking reviews, average rating,
+  rating distribution, latest review cards, booking deep links, and audit
+  history. Manual QA remains next.

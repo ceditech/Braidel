@@ -444,14 +444,14 @@ now in Workstream `5/7`: the schema/domain foundation is started, but checkout,
 Connect onboarding, live capture, refunds, and payouts are not active yet.
 
 Deferred review/reputation surfaces that must be revisited before launch or in
-Workstream `6/7`: a dedicated `/dashboard/reviews` provider surface, an
-automated capped 5-step Client review reminder system for completed bookings,
-and formal review dispute/moderation workflows. The current implementation
-provides review persistence, update notifications, and audit history, but not
-those larger product surfaces.
+Workstream `6/7`: provider response/dispute workflows, verification evidence,
+marketplace administration, public trust signals, and an automated capped
+5-step Client review reminder system for completed bookings. The dedicated
+provider `/dashboard/reviews` visibility surface is now started.
 
-**Current strategic focus:** workstream `5/7`, payments and monetization,
-foundation QA complete but live Stripe activation deferred. Foundation slice
+**Recently completed strategic focus:** workstream `5/7`, payments and
+monetization, foundation QA complete but live Stripe activation deferred.
+Foundation slice
 `5.2` is started: migration `0015_cheerful_daredevil.sql`
 has been applied to the configured development Neon database and adds provider
 payment accounts, booking payments, payment ledger entries, and Stripe
@@ -499,12 +499,15 @@ inside Braidel first, but defer Stripe-managed Salon-to-Braider money movement
 until marketplace policy, support, dispute, tax, and payout operations are
 mature. Do not block Workstream 5 QA on that deferred money movement.
 
-Next implementation stream: Workstream `6/7`, trust, verification, and
+Current implementation stream: Workstream `6/7`, trust, verification, and
 marketplace administration. Planning is recorded in
 [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
-Recommended first slice: provider reviews dashboard at `/dashboard/reviews`,
-then provider review responses/dispute intake, verification evidence, admin
-moderation, marketplace trust signals, and capped Client review reminders.
+First slice implemented: provider reviews dashboard at `/dashboard/reviews`.
+It is provider-only, reads completed-booking reviews, displays average rating,
+rating distribution, latest reviews, a detail drawer, booking deep links, and
+append-only rating history. Next slices: provider review responses/dispute
+intake, verification evidence, admin moderation, marketplace trust signals, and
+capped Client review reminders.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
