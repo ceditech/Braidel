@@ -4,7 +4,7 @@
 >
 > Status: in progress.
 >
-> Last updated: July 31, 2026
+> Last updated: August 1, 2026
 
 ## Progress Notes
 
@@ -14,6 +14,10 @@
   `rating_history` data. Provider responses, dispute intake, verification
   evidence, moderation, marketplace trust badges, and review reminders remain
   planned follow-up slices.
+- **August 1, 2026:** Slice 6.1 manual QA passed. Coverage included Salon
+  owner access, Braider access, Client redirect protection, provider-scoped
+  review data, detail drawer content, appointment deep links, and responsive
+  light/dark smoke testing.
 
 ## Purpose
 
@@ -35,11 +39,12 @@ and Braiders.
 Scope:
 
 - Average rating, review count, and rating distribution. **Implemented in the
-  first slice.**
+  first slice and manual-QA passed August 1, 2026.**
 - Latest review list with appointment/service context. **Implemented in the
-  first slice.**
+  first slice and manual-QA passed August 1, 2026.**
 - Review detail drawer with rating, comment, timestamps, booking link, and
-  audit history. **Implemented in the first slice.**
+  audit history. **Implemented in the first slice and manual-QA passed
+  August 1, 2026.**
 - Provider response placeholder or first implementation, depending on scope.
 - Empty state for providers with no reviews.
 

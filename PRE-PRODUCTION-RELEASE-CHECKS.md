@@ -4,7 +4,7 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** July 31, 2026
+> **Last reviewed:** August 1, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
@@ -444,6 +444,11 @@ Add dated entries here as production gates are verified.
   `docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`.
 - **July 31, 2026:** Workstream 6 implementation started with a provider-only
   Reviews dashboard at `/dashboard/reviews`, using completed-booking reviews and
-  append-only `rating_history` data. Focused QA for provider access,
-  client-role redirect, empty state, populated review details, and booking deep
-  links remains required before considering slice 6.1 accepted.
+  append-only `rating_history` data.
+- **August 1, 2026:** Workstream 6.1 provider Reviews dashboard manual QA
+  passed. Verified Salon owner access, Braider access, Client redirect
+  protection, provider-scoped review data, populated review details,
+  appointment deep links, and responsive light/dark smoke checks. Remaining
+  Workstream 6 trust features include review responses/disputes, verification
+  evidence, admin moderation, marketplace trust badges, and capped review
+  reminders.

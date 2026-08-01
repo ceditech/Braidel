@@ -505,9 +505,12 @@ marketplace administration. Planning is recorded in
 First slice implemented: provider reviews dashboard at `/dashboard/reviews`.
 It is provider-only, reads completed-booking reviews, displays average rating,
 rating distribution, latest reviews, a detail drawer, booking deep links, and
-append-only rating history. Next slices: provider review responses/dispute
-intake, verification evidence, admin moderation, marketplace trust signals, and
-capped Client review reminders.
+append-only rating history. August 1, 2026 manual QA passed for Salon owner
+access, Braider access, Client redirect protection, provider-scoped review data,
+review drawer details, booking deep links, and responsive light/dark checks.
+Next slices: provider review responses/dispute intake, verification evidence,
+admin moderation, marketplace trust signals, and capped Client review
+reminders.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

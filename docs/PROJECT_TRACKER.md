@@ -266,4 +266,8 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   provider Reviews dashboard at `/dashboard/reviews`. Salon owners and Braiders
   now have a first-class view of completed-booking reviews, average rating,
   rating distribution, latest review cards, booking deep links, and audit
-  history. Manual QA remains next.
+  history.
+- **August 1, 2026:** Workstream 6.1 manual QA passed. Verified Salon owner
+  access, Braider access, Client redirect protection, provider-scoped review
+  data, review detail drawer content, booking deep links, and desktop/mobile
+  light/dark responsiveness.
