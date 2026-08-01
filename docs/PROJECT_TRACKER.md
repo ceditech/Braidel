@@ -205,17 +205,20 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    booking lifecycle notifications, client appointment conversations, direct
    appointment message links, completed-booking provider reviews, provider
    review visibility, update notifications, and review audit history.
-5. **Payments + monetization** — foundation slice is in progress with payment
+5. **Payments + monetization** — foundation slice QA passed with payment
    accounts, booking payments, ledger entries, webhook idempotency schema,
    server-side fee split helpers, payment architecture documentation, and an
    internal Payment System Design insight page.
    Client-to-Provider booking payments are the primary Stripe Connect launch
    track. Salon-to-Braider agreement capture is required later, while in-app
-   money movement is deferred until policy and operations mature.
-6. **Trust, verification + marketplace administration** — add verification
-   evidence and audit history, a dedicated provider reviews dashboard, capped
-   Client review reminders, moderation, reports, review disputes,
-   administrative actions, and account restrictions.
+   money movement is deferred until policy and operations mature. Workstream 5
+   remains in progress until live Stripe checkout, Connect onboarding, webhooks,
+   refunds, disputes, and payouts are intentionally implemented.
+6. **Trust, verification + marketplace administration** — next planned stream:
+   provider reviews dashboard, provider review responses/dispute intake,
+   verification evidence foundation, admin/moderation surface, marketplace trust
+   signals, and capped Client review reminders. Planning record:
+   [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
 
@@ -248,3 +251,11 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   page to render the payment architecture SVG and summarize launch boundaries,
   data model tables, QA scope, and Stripe activation gates for the team and
   stakeholders.
+- **July 31, 2026:** Workstream 5 foundation manual QA passed: the payment
+  design page loads for authenticated roles, all four payment tables exist in
+  Neon, no live payment/checkout/Connect/refund/payout surface is exposed, and
+  booking request, booking confirmation, booking messages, and notifications
+  still work. Live Stripe-flow QA remains deferred until those flows are
+  intentionally implemented.
+- **July 31, 2026:** Workstream 6 planning added in
+  [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).

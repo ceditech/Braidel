@@ -222,6 +222,9 @@ paying Providers.
 - [x] Integer-cent fee split helpers exist in `src/lib/payments-domain.ts`.
 - [x] Protected internal payment design page exists at `/payment-system-design`
       and renders the committed architecture SVG plus launch-gate context.
+- [x] Workstream 5 foundation manual QA passed for authenticated access,
+      payment-table existence, no accidental live payment surface, and booking,
+      messaging, and notification regression coverage.
 - [x] Checkout, Connect onboarding, refunds, disputes, and payouts are not wired
       yet, so no money can move from this foundation alone.
 
@@ -284,6 +287,11 @@ own workstream ships.
   must stop immediately once a review exists.
 - **Review disputes and moderation:** review audit history exists; dispute,
   moderation, and marketplace administration flows belong to Workstream 6.
+- **Trust and verification implementation:** Workstream 6 is planned in
+  [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
+  Provider reviews dashboard, review responses/disputes, verification evidence,
+  admin moderation, marketplace trust signals, and review reminders remain
+  implementation work.
 
 ## Storage and Media
 
@@ -426,3 +434,11 @@ Add dated entries here as production gates are verified.
 - **July 31, 2026:** Added the protected `/payment-system-design` Insights page
   for team and stakeholder review of the payment architecture diagram, launch
   boundaries, data model, QA scope, and Stripe activation gates.
+- **July 31, 2026:** Workstream 5 foundation manual QA passed. Verified
+  authenticated access to `/payment-system-design`, existence of all four
+  payment foundation tables in Neon, absence of accidental checkout/Connect/
+  refund/payout surfaces, and no regressions in booking request/confirmation,
+  booking messages, and notifications. Live Stripe-flow QA remains deferred
+  until those flows are intentionally implemented.
+- **July 31, 2026:** Workstream 6 planning was recorded in
+  `docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`.

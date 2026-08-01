@@ -221,14 +221,14 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 3,
-        note: "Foundation slice is in progress: payment accounts, booking payments, ledger entries, webhook idempotency schema, server-side fee split helpers, payment architecture documentation, and an internal Payment System Design insight page are added. Client-to-Provider booking payments are the primary Stripe Connect launch track. Salon-to-Braider agreement capture is required later, while in-app money movement is deferred until policy and operations mature.",
+        note: "Foundation slice QA passed: payment accounts, booking payments, ledger entries, webhook idempotency schema, server-side fee split helpers, payment architecture documentation, and an internal Payment System Design insight page are added. Client-to-Provider booking payments are the primary Stripe Connect launch track. Salon-to-Braider agreement capture is required later, while in-app money movement is deferred until policy and operations mature. Workstream remains in progress until live Stripe checkout, Connect onboarding, webhooks, refunds, disputes, and payouts are intentionally implemented.",
       },
       {
         title: "6. Trust, verification + marketplace administration",
         status: "pending",
         priority: "high",
         phase: 4,
-        note: "Add verification evidence and audit history, a dedicated provider reviews dashboard, capped Client review reminders, moderation, reports, review disputes, administrative actions, and account restrictions.",
+        note: "Next planned stream. Recommended order: provider reviews dashboard, provider review responses/dispute intake, verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

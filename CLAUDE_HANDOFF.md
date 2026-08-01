@@ -450,8 +450,9 @@ and formal review dispute/moderation workflows. The current implementation
 provides review persistence, update notifications, and audit history, but not
 those larger product surfaces.
 
-**Immediate strategic focus:** workstream `5/7`, payments and monetization.
-Foundation slice `5.2` is started: migration `0015_cheerful_daredevil.sql`
+**Current strategic focus:** workstream `5/7`, payments and monetization,
+foundation QA complete but live Stripe activation deferred. Foundation slice
+`5.2` is started: migration `0015_cheerful_daredevil.sql`
 has been applied to the configured development Neon database and adds provider
 payment accounts, booking payments, payment ledger entries, and Stripe
 webhook-event idempotency; `src/lib/payments-domain.ts` adds server-side
@@ -464,6 +465,14 @@ the dashboard Insights navigation and renders
 [`docs/payment-system-architecture.svg`](docs/payment-system-architecture.svg)
 with stakeholder-oriented payment tracks, data model, QA boundaries, and
 activation gates.
+
+July 31, 2026 manual QA passed for the Workstream 5 foundation: authenticated
+roles can access `/payment-system-design`; all four payment tables exist in
+Neon; no live checkout, Connect onboarding, refund, payout, or payment action is
+exposed; and existing booking, messaging, and notification flows still work.
+This does not complete live Stripe QA, which remains deferred until checkout,
+Connect onboarding, Stripe webhooks, refunds, disputes, and payouts are
+intentionally implemented.
 
 Recommended Workstream 5 slices:
 
@@ -489,6 +498,13 @@ the agreement, rate, work/completion status, and external payment confirmation
 inside Braidel first, but defer Stripe-managed Salon-to-Braider money movement
 until marketplace policy, support, dispute, tax, and payout operations are
 mature. Do not block Workstream 5 QA on that deferred money movement.
+
+Next implementation stream: Workstream `6/7`, trust, verification, and
+marketplace administration. Planning is recorded in
+[`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
+Recommended first slice: provider reviews dashboard at `/dashboard/reviews`,
+then provider review responses/dispute intake, verification evidence, admin
+moderation, marketplace trust signals, and capped Client review reminders.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
