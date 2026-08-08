@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Tag } from "@/components/ui/Tag";
 import { Photo } from "@/components/ui/Photo";
 import type { OpportunityDTO } from "@/db/queries";
+import styles from "../DashboardPages.module.css";
 
 const TYPES = ["Any type", "Part-time", "Full-time", "Single event", "Booth rental", "Commission"];
 
@@ -49,8 +50,8 @@ export function FindWorkClient({ jobs }: { jobs: OpportunityDTO[] }) {
     <>
       <Topbar title="Find work" subtitle={`${results.length} active opportunities`} />
 
-      <div style={{ padding: 32 }}>
-        <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
+      <div className={styles.page}>
+        <div className={styles.filterRow}>
           <div style={{ flex: "2 1 260px" }}>
             <Input placeholder="Role, salon or style" iconLeft={<SearchIcon />} value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
@@ -72,7 +73,7 @@ export function FindWorkClient({ jobs }: { jobs: OpportunityDTO[] }) {
             </p>
           </Card>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div className={styles.twoColumnGrid}>
             {results.map((j, i) => (
               <Card key={j.id} padded>
                 <div style={{ display: "flex", gap: 14 }}>
@@ -92,7 +93,7 @@ export function FindWorkClient({ jobs }: { jobs: OpportunityDTO[] }) {
                 <div style={{ display: "flex", gap: 6, margin: "14px 0", flexWrap: "wrap" }}>
                   {j.specs.map((s) => <Tag key={s}>{s}</Tag>)}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: "1px solid var(--border-subtle)" }}>
+                <div className={styles.jobCardFooter}>
                   <div style={{ display: "flex", gap: 14, fontSize: 13, color: "var(--text-muted)", alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-strong)" }}>{j.pay}</span>
                     <span>{j.posted}</span>

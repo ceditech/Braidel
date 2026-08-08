@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Photo } from "@/components/ui/Photo";
 import type { BraiderDTO } from "@/db/queries";
+import layoutStyles from "../Directory.module.css";
 
 const SORTS = ["Sort: Top rated", "Sort: Most reviews", "Sort: Name A–Z"] as const;
 type Sort = (typeof SORTS)[number];
@@ -51,7 +52,7 @@ export function FindBraidersClient({
   }, [braiders, query, active, sort]);
 
   return (
-    <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
+    <div className={layoutStyles.page}>
       {/* Header */}
       <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Find braiders
@@ -61,23 +62,8 @@ export function FindBraidersClient({
       </p>
 
       {/* Search bar */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginTop: 22,
-          padding: 14,
-          background: "var(--surface-card)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--radius-lg)",
-          boxShadow: "var(--shadow-sm)",
-          position: "sticky",
-          top: 74,
-          zIndex: 10,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ flex: "2 1 240px" }}>
+      <div className={layoutStyles.filterBar}>
+        <div className={layoutStyles.searchField}>
           <Input
             placeholder="Style, name or city"
             iconLeft={<SearchIcon />}
@@ -85,7 +71,7 @@ export function FindBraidersClient({
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div style={{ flex: "1 1 200px" }}>
+        <div className={layoutStyles.sortField}>
           <Select
             options={[...SORTS]}
             value={sort}
@@ -95,7 +81,7 @@ export function FindBraidersClient({
       </div>
 
       {/* Specialty filter chips */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 4px", alignItems: "center" }}>
+      <div className={layoutStyles.chipRail}>
         {specialtyOptions.map((s) => (
           <Tag key={s} selected={active.includes(s)} onClick={() => toggle(s)}>
             {s}
@@ -115,9 +101,9 @@ export function FindBraidersClient({
       {results.length === 0 ? (
         <EmptyState onReset={() => { setQuery(""); setActive([]); }} />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 22, margin: "24px 0", paddingBottom: 20 }}>
+        <div className={layoutStyles.resultGridThree}>
           {results.map((b) => (
-            <Link key={b.id} href={`/find-braiders/${b.id}`} style={{ textDecoration: "none" }}>
+            <Link key={b.id} href={`/find-braiders/${b.id}`} className={layoutStyles.resultLink}>
               <Card interactive>
                 <div style={{ position: "relative" }}>
                   <Photo seed={b.tone} aspect="4/3" />
@@ -130,7 +116,7 @@ export function FindBraidersClient({
                   </button>
                 </div>
                 <CardBody>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className={layoutStyles.cardHeader}>
                     <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>
                       {b.name}
                     </span>

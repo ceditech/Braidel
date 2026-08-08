@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { users, salons, braiders } from "@/db/schema";
+import {
+  braiders,
+  clientProfiles,
+  salons,
+  serviceProviders,
+  users,
+} from "@/db/schema";
 
 type UserRole = typeof users.$inferInsert.role;
 
@@ -69,6 +75,19 @@ export async function POST(req: NextRequest) {
         slug: `${clerkUser.id}-salon`,
       })
       .onConflictDoNothing({ target: salons.ownerId });
+
+    const [salon] = await db
+      .select({ id: salons.id })
+      .from(salons)
+      .where(eq(salons.ownerId, user.id))
+      .limit(1);
+
+    if (salon) {
+      await db
+        .insert(serviceProviders)
+        .values({ providerType: "salon", salonId: salon.id })
+        .onConflictDoNothing({ target: serviceProviders.salonId });
+    }
   }
 
   if (role === "braider") {
@@ -76,6 +95,26 @@ export async function POST(req: NextRequest) {
       .insert(braiders)
       .values({ userId: user.id, slug: `${clerkUser.id}-braider` })
       .onConflictDoNothing({ target: braiders.userId });
+
+    const [braider] = await db
+      .select({ id: braiders.id })
+      .from(braiders)
+      .where(eq(braiders.userId, user.id))
+      .limit(1);
+
+    if (braider) {
+      await db
+        .insert(serviceProviders)
+        .values({ providerType: "braider", braiderId: braider.id })
+        .onConflictDoNothing({ target: serviceProviders.braiderId });
+    }
+  }
+
+  if (role === "client") {
+    await db
+      .insert(clientProfiles)
+      .values({ userId: user.id })
+      .onConflictDoNothing({ target: clientProfiles.userId });
   }
 
   return NextResponse.json({ ok: true });

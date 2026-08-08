@@ -140,6 +140,38 @@
     transform var(--dur-fast);
 }
 
+.accountActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboardLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 17px;
+  border: 1px solid var(--home-line);
+  color: var(--home-text);
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    border-color var(--dur-base),
+    background var(--dur-base),
+    transform var(--dur-fast);
+}
+
+.dashboardLink:hover {
+  border-color: var(--home-accent);
+  background: color-mix(in srgb, var(--home-accent) 13%, transparent);
+  transform: translateY(-1px);
+}
+
+.mobileProfile {
+  display: none;
+}
+
 .getStarted:hover {
   background: #ad4a54;
   transform: translateY(-1px);
@@ -154,6 +186,17 @@
 :global(html[data-theme="light"]) .header .getStarted:hover {
   border-color: #202124;
   background: #202124;
+}
+
+:global(html[data-theme="light"]) .header .dashboardLink {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+:global(html[data-theme="light"]) .header .dashboardLink:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 :global(html[data-theme="light"]) .header .desktopNav a {
@@ -172,6 +215,7 @@
 }
 
 .getStarted svg,
+.dashboardLink svg,
 .menuButton svg,
 .stageCta svg,
 .pathwayArrow svg {
@@ -751,13 +795,19 @@
 
   .marketplaceLink,
   .desktopNav,
-  .getStarted {
+  .getStarted,
+  .accountActions {
     display: none;
   }
 
   .menuButton {
     display: grid;
     place-items: center;
+  }
+
+  .mobileProfile {
+    display: inline-flex;
+    align-items: center;
   }
 
   .mobileNav {
@@ -807,7 +857,12 @@
   }
 
   .stage {
-    grid-template-rows: 430px 480px;
+    grid-template-rows: minmax(360px, auto) 420px;
+  }
+
+  .stageCopy h1,
+  .stageTitle {
+    min-height: 2.35em;
   }
 
   .aboutGrid,
@@ -837,7 +892,7 @@
   }
 
   .stage {
-    grid-template-rows: 420px 310px;
+    grid-template-rows: minmax(350px, auto) 290px;
   }
 
   .stageCopy {
@@ -846,7 +901,7 @@
 
   .stageCopy h1,
   .stageTitle {
-    min-height: 3.76em;
+    min-height: 3.05em;
     font-size: 38px;
     text-wrap: wrap;
   }
@@ -856,7 +911,7 @@
   }
 
   .stageCopy p {
-    min-height: 4.65em;
+    min-height: 3.3em;
     margin-top: 14px;
     font-size: 16px;
   }
@@ -871,7 +926,7 @@
   }
 
   .carousel {
-    min-height: 310px;
+    min-height: 290px;
   }
 
   .about,

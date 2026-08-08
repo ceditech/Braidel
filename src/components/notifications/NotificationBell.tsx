@@ -45,7 +45,7 @@ export function NotificationBell() {
         background: "var(--surface-card)",
         display: "grid",
         placeItems: "center",
-        color: "var(--brown-600)",
+        color: "var(--text-muted)",
         position: "relative",
       }}
     >

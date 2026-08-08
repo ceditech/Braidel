@@ -1,0 +1,133 @@
+.body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 26px;
+  padding: 32px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 22px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.opportunityRow,
+.jobRow,
+.applicantRow {
+  min-width: 0;
+}
+
+.profilePrompt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: 8px;
+  background: var(--brand-soft);
+}
+
+.profilePromptCopy {
+  min-width: 0;
+  flex: 1;
+}
+
+.clientGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+
+.clientCallout {
+  padding: 24px 26px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+
+@media (max-width: 1180px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contentGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .body {
+    gap: 16px;
+    padding: 18px 16px 24px;
+  }
+
+  .statsGrid {
+    gap: 12px;
+  }
+
+  .contentGrid {
+    gap: 16px;
+  }
+
+  .profilePrompt {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 15px;
+  }
+
+  .profilePrompt > a {
+    width: 100%;
+  }
+
+  .profilePrompt > a button {
+    width: 100%;
+  }
+
+  .opportunityRow,
+  .jobRow {
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+  }
+
+  .opportunityRow > :first-child,
+  .jobRow > :nth-child(2) {
+    min-width: min(100%, 180px);
+  }
+
+  .applicantRow {
+    align-items: flex-start !important;
+    flex-wrap: wrap;
+  }
+
+  .clientCallout {
+    padding: 20px 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .body {
+    padding-inline: 12px;
+  }
+
+  .statsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+  }
+}

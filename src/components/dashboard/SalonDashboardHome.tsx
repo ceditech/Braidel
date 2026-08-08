@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import type { ApplicantDTO, OpportunityDTO } from "@/db/queries";
+import styles from "./DashboardHome.module.css";
 
 const APPLICANT_STATUS_VARIANT: Record<ApplicantDTO["status"], "warning" | "info" | "success" | "danger"> = {
   New: "warning",
@@ -43,17 +44,17 @@ export function SalonDashboardHome({
         }
       />
 
-      <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 26 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
+      <div className={styles.body}>
+        <div className={styles.statsGrid}>
           <StatCard icon={<BriefcaseIcon />} label="Open opportunities" value={String(activePosts.length)} tone="brand" />
           <StatCard icon={<UsersIcon />} label="New applicants" value={String(newApplicants)} tone="gold" />
           <StatCard icon={<CheckIcon />} label="Matches made" value={String(matches)} tone="sage" />
           <StatCard icon={<CalendarIcon />} label="Chairs filled" value={`${chairsFilled}%`} tone="teal" />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 22 }}>
+        <div className={styles.contentGrid}>
           <Card padded>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div className={styles.sectionHeader}>
               <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 19, margin: 0, color: "var(--text-strong)" }}>
                 Your opportunities
               </h3>
@@ -67,6 +68,7 @@ export function SalonDashboardHome({
               ) : recentPosts.map((p) => (
                 <Link key={p.id} href="/dashboard/applicants" style={{ textDecoration: "none" }}>
                   <div
+                    className={styles.opportunityRow}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -106,7 +108,7 @@ export function SalonDashboardHome({
               {recentApplicants.length === 0 ? (
                 <div style={{ color: "var(--text-muted)", fontSize: 14 }}>No applicants yet.</div>
               ) : recentApplicants.map((a) => (
-                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div key={a.id} className={styles.applicantRow} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <Avatar name={a.name} size="md" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, color: "var(--text-strong)", fontSize: 14 }}>{a.name}</div>

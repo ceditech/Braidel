@@ -1,4 +1,81 @@
-@media (max-width: 760px) {
+.mobilePrimaryNav {
+  display: none;
+}
+
+.moreMenu {
+  display: grid;
+  gap: 18px;
+}
+
+.moreSection {
+  display: grid;
+  gap: 6px;
+}
+
+.moreLabel {
+  margin: 0 4px 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moreLink {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.moreLinkActive {
+  border-color: var(--brand-soft-border);
+  background: var(--brand-soft);
+  color: var(--text-strong);
+}
+
+.moreLink svg {
+  color: var(--brand);
+}
+
+.mobileAccount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+
+.mobileAccountText {
+  min-width: 0;
+}
+
+.mobileAccountText strong,
+.mobileAccountText span {
+  display: block;
+}
+
+.mobileAccountText strong {
+  color: var(--text-strong);
+}
+
+.mobileAccountText span {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
   .sidebar {
     position: fixed !important;
     z-index: 30;
@@ -7,40 +84,83 @@
     bottom: 0;
     left: 0;
     width: 100% !important;
-    height: auto !important;
-    overflow: hidden !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    height: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
   }
 
   .logo,
   .roleSwitch,
+  .primaryNav,
   .insightsLabel,
   .insightsNav,
   .userArea {
     display: none !important;
   }
 
-  .primaryNav {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 0 !important;
-    padding: 6px 4px !important;
-    overflow-x: auto;
-    scrollbar-width: none;
+  .mobilePrimaryNav {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    min-height: calc(66px + env(safe-area-inset-bottom));
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(9, 10, 11, 0.96);
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(16px);
   }
 
-  .primaryNav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .primaryNav a {
-    min-width: 64px;
-    flex: 1 0 64px;
+  .mobilePrimaryNav a,
+  .mobilePrimaryNav button {
+    display: flex;
+    min-width: 0;
+    min-height: 52px;
     flex-direction: column;
-    gap: 3px !important;
-    padding: 7px 6px !important;
-    font-size: 10px !important;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--taupe-400);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 650;
     line-height: 1.1;
     text-align: center;
+    cursor: pointer;
+  }
+
+  .mobilePrimaryNav a span:last-child,
+  .mobilePrimaryNav button span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobilePrimaryNav .mobileItemActive {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  .mobilePrimaryNav .mobileItemActive svg {
+    color: var(--terracotta-400);
+  }
+}
+
+@media (max-width: 380px) {
+  .mobilePrimaryNav {
+    padding-inline: 4px;
+  }
+
+  .mobilePrimaryNav a,
+  .mobilePrimaryNav button {
+    font-size: 9px;
   }
 }

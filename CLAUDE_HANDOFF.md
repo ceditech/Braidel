@@ -33,6 +33,7 @@ both message and rate each other.
 | Database | **Neon** (serverless Postgres) | |
 | ORM | **Drizzle** | schema in `src/db/schema.ts` |
 | Media storage | **Vercel Blob** | local filesystem fallback in development |
+| Payments | **Stripe Connect** (planned) | schema foundation added; checkout/onboarding not active yet |
 
 Stack rationale: best-of-breed and decoupled (Neon and Clerk are independently
 swappable) — chosen over Supabase/Firebase for a relational marketplace. Full
@@ -92,10 +93,10 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Eleven tables, all migrated and live: `users`, `salons`, `braiders`,
-`opportunities`, `applications`, `braid_styles`, `messages`, `ratings`,
-`portfolio_media`, `notifications`, and `notification_preferences`. Full
-definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
+Nineteen tables, all migrated and live: users/profiles, marketplace listings,
+opportunities/applications, booking/availability, messages, ratings,
+`rating_history`, portfolio media, notifications, and notification preferences.
+Full definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
 - `users.onboardedAt` distinguishes identity rows created by Clerk sync from
@@ -143,13 +144,15 @@ Rules while this transition holds:
 8. ✅ Profile + settings persistence saves salon/braider profile fields to Neon.
 9. ✅ Messaging reads, sends, and read receipts are application-scoped and
    persisted in Neon.
-10. ✅ Ratings are limited to matched applications, support one editable review
-    per participant direction, and refresh salon/braider aggregates in Neon.
+10. ✅ Ratings are limited to matched applications and completed bookings,
+    support one editable review per participant direction, refresh
+    salon/braider aggregates in Neon, notify providers on review updates, and
+    retain append-only `rating_history` audit rows.
 11. ✅ Portfolio media upload/delete flows persist normalized metadata, enforce
     ownership/type/size/count limits, and render on public braider profiles.
 12. ✅ Notifications persist with idempotent event keys for applications,
-    application status changes, messages, and reviews; read state and preferences
-    are DB-backed.
+    application status changes, messages, booking lifecycle events, and review
+    create/update events; read state and preferences are DB-backed.
 13. ✅ Dashboard role state is derived from the authenticated Neon user;
     incompatible role pages redirect server-side, onboarding completion is
     explicit, and Client dashboard/settings foundations are available.
@@ -180,6 +183,9 @@ accounts to `/dashboard`. Changing account roles is not a self-service action.
 - `BLOB_READ_WRITE_TOKEN` — required for portfolio uploads in production;
   optional locally because the development adapter writes ignored files under
   `public/uploads/portfolio`
+- `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`,
+  `STRIPE_WEBHOOK_SECRET` — required before activating Workstream 5 checkout,
+  Connect onboarding, or Stripe webhooks
 - Clerk redirect paths (already set; relative, so port-independent)
 
 **Commands:**
@@ -283,6 +289,21 @@ The redesigned homepage at `/` is a responsive, image-led editorial experience:
   tablet/mobile breakpoints. Keep header contrast, stable spotlight geometry,
   and overflow checks in the regression checklist for future homepage edits.
 
+### Dashboard shell responsive polish
+
+The authenticated dashboard shell has been tightened for mobile and dark mode:
+
+- **Mobile layout:** the desktop sidebar collapses into a bottom navigation with
+  a More drawer for secondary routes, while dashboard cards, lists, and booking
+  views stack into single-column layouts at small breakpoints.
+- **Dark theme header:** [`Topbar.module.css`](src/components/dashboard/Topbar.module.css)
+  uses the semantic `--nav-glass` token so the header resolves to a dark glass
+  surface in dark mode instead of the old light backdrop. Notification bell icon
+  color follows `--text-muted` for contrast across both themes.
+- **Verification:** rerun responsive checks for `/dashboard`, role dashboards,
+  `/dashboard/appointments`, and the public homepage whenever dashboard shell or
+  theme tokens change.
+
 ---
 
 ## 8. Internal Dashboard Tools
@@ -314,11 +335,13 @@ and public content:
   is preserved at public route `/marketplace`; Find Braiders (+ profile), Find
   Salons (+ detail), and Job Opportunities (+ detail) remain wired to Neon.
 - **Salon app:** dashboard, Opportunities (list + post form), Applicants with
-  a responsive profile/portfolio drawer and status actions, Messages, Settings.
+  a responsive profile/portfolio drawer and status actions, Appointments with
+  multi-chair capacity and provider setup, Messages, Settings.
 - **Braider app:** dashboard, Find Work + apply, Applications, Messages,
-  Settings (profile editor).
+  Appointments with single-provider availability, Settings (profile editor).
 - **Client app:** role-aware dashboard, public Braider/Salon discovery links,
-  Notifications, and account/notification Settings foundation.
+  booking discovery and appointment management, Notifications, and
+  account/notification Settings.
 - **Shell:** server-owned Salon/Braider/Client role state, role-compatible
   navigation, internal Tracker + Market Study.
 
@@ -332,7 +355,7 @@ and public content:
 6. **Trust, verification, and marketplace administration.**
 7. **Ecosystem expansion:** Academy, Supply, Franchise, then mobile.
 
-### Completed: workstream 1/7
+### Completed: workstreams 1/7, 2/7, and 3/7
 
 **Real role state + client account foundation** is complete:
 
@@ -348,9 +371,168 @@ and public content:
    `users.onboarded_at`; onboarding is idempotent and prevents silent role
    replacement after completion.
 
-**Immediate next strategic focus:** workstream `2/7`, Booking domain schema +
-migrations. Define the booking aggregate and invariants before adding APIs or
-calendar UI.
+**Booking domain schema + migrations** is also complete:
+
+1. Migration `0011_white_rage.sql` adds `client_profiles`,
+   `service_providers`, `service_offerings`, `availability_rules`,
+   `availability_exceptions`, `bookings`, and `booking_status_history`.
+2. `service_providers` is the neutral bookable identity for exactly one Salon or
+   Braider, avoiding repeated polymorphic ownership logic throughout Phase 2.
+3. Recurring availability stores provider-local day/time rules; exceptions and
+   appointment instants use timezone-aware timestamps.
+4. Services and bookings use integer cents plus three-letter currencies.
+   Bookings snapshot service name, price, currency, and timezone for durable
+   history.
+5. A composite foreign key prevents a booking from pairing a service with the
+   wrong provider. Time ranges, provider identity, currency, price, duration,
+   and optimistic version values have database checks and query-path indexes.
+6. Onboarding and the development seed create the required Client or Provider
+   identity. The migration backfilled the configured development database to
+   `1/1` Client profile, `8/8` Salon providers, and `7/7` Braider providers.
+7. Providers default to `UTC` and `is_accepting_bookings = false`; APIs must
+   require a real timezone, at least one active service, and valid availability
+   before enabling booking.
+
+**Booking APIs + appointments/calendar UI** is complete:
+
+1. Migration `0012_slippery_tomas.sql` adds provider booking capacity and a
+   client-scoped idempotency key for booking requests.
+2. Provider APIs persist timezone, booking activation, Salon capacity, service
+   offerings, recurring weekly hours, and date-specific exceptions.
+3. Availability is calculated with Temporal using each provider's IANA
+   timezone, including daylight-saving transitions, lead time, exceptions,
+   existing bookings, Salon capacity, and Client conflicts.
+4. Booking mutations run in isolated serializable Neon transactions with
+   ownership checks, row locks, optimistic versions, retry handling, durable
+   status history, and role-valid request, confirm, decline, reschedule,
+   cancel, complete, and no-show transitions.
+5. `/dashboard/appointments` provides role-aware calendar and agenda views,
+   Client provider/service discovery and booking, Provider services and
+   availability setup, and responsive appointment action drawers.
+6. Public Braider and Salon profiles link accepting providers into the booking
+   workflow. Dashboard navigation exposes Appointments for all three roles.
+7. Development seed data creates bookable Braiders, Salons, services, schedules,
+   and a Client identity. `npm run verify:booking` exercises and removes a real
+   request → confirmation → cancellation lifecycle.
+
+**Booking-aware conversations, reviews + notifications** is complete:
+
+1. Migration `0013_funny_umar.sql` adds nullable `booking_id` context links to
+   `messages` and `ratings`, enforces exactly one conversation/review context,
+   and expands notification types with `booking`.
+2. `/dashboard/messages` now supports application conversations for Salon/Braider
+   staffing flows and booking conversations for Client/Provider appointment
+   flows, including direct links via `?booking=...`.
+3. Booking creation and status mutations emit in-app booking notifications to
+   the opposite participant; booking message notifications deep-link to the
+   booking conversation.
+4. Completed Client bookings can review the provider. Those booking reviews use
+   the existing Salon/Braider rating aggregate trigger and preserve current
+   application review behavior.
+5. Review creation and edits retain append-only `rating_history` audit rows.
+   Client and Provider appointment drawers show the current review and edit
+   history, and Provider receives a new notification when a Client updates an
+   existing booking review.
+6. July 31, 2026 manual QA passed for the six-step Workstream 4 hardening
+   flow: Client review edit, Provider update notification, Provider drawer
+   visibility, Client drawer history visibility, shared audit visibility, and
+   old application messaging/review regression checks.
+
+External calendar synchronization and recurring appointments remain deferred;
+they were intentionally not part of workstreams `3/7` or `4/7`. Payments are
+now in Workstream `5/7`: the schema/domain foundation is started, but checkout,
+Connect onboarding, live capture, refunds, and payouts are not active yet.
+
+Deferred review/reputation surfaces that must be revisited before launch or in
+Workstream `6/7`: verification evidence, marketplace administration, public
+trust signals, formal dispute resolution, and an automated capped 5-step Client
+review reminder system for completed bookings. The dedicated provider
+`/dashboard/reviews` visibility surface is QA-passed, and the first provider
+response/report-intake implementation is also QA-passed.
+
+**Recently completed strategic focus:** workstream `5/7`, payments and
+monetization, foundation QA complete but live Stripe activation deferred.
+Foundation slice
+`5.2` is started: migration `0015_cheerful_daredevil.sql`
+has been applied to the configured development Neon database and adds provider
+payment accounts, booking payments, payment ledger entries, and Stripe
+webhook-event idempotency; `src/lib/payments-domain.ts` adds server-side
+integer-cent fee split helpers. Finalize the product money model before wiring
+Stripe Connect, checkout/payment capture, refunds, disputes, or payouts.
+Architecture and product boundaries are documented in
+[`docs/PAYMENT_SYSTEM_ARCHITECTURE.md`](docs/PAYMENT_SYSTEM_ARCHITECTURE.md).
+The protected in-app companion page at `/payment-system-design` appears under
+the dashboard Insights navigation and renders
+[`docs/payment-system-architecture.svg`](docs/payment-system-architecture.svg)
+with stakeholder-oriented payment tracks, data model, QA boundaries, and
+activation gates.
+
+July 31, 2026 manual QA passed for the Workstream 5 foundation: authenticated
+roles can access `/payment-system-design`; all four payment tables exist in
+Neon; no live checkout, Connect onboarding, refund, payout, or payment action is
+exposed; and existing booking, messaging, and notification flows still work.
+This does not complete live Stripe QA, which remains deferred until checkout,
+Connect onboarding, Stripe webhooks, refunds, disputes, and payouts are
+intentionally implemented.
+
+Recommended Workstream 5 slices:
+
+1. **Payment product model:** decide what is paid by Clients, Providers, and
+   Salon owners; define subscriptions, transaction fees, cancellation/no-show
+   rules, refund windows, and payout timing.
+2. **Schema + state machine:** base payment accounts, booking payments,
+   ledger/fee records, and webhook-event idempotency are added. Remaining:
+   refund/dispute detail records, payout records, and final state transitions
+   once the product policy is fixed.
+3. **Provider monetization setup:** Stripe Connect onboarding, account status,
+   payout readiness, dashboard warnings, and role-compatible settings.
+4. **Client checkout:** attach payment capture to booking confirmation or
+   booking request according to the chosen product model.
+5. **Webhook reliability:** verify Stripe webhook signatures, persist raw event
+   IDs, update local state idempotently, and handle retries/out-of-order events.
+6. **Operational QA:** test successful payment, failed payment, refund,
+   cancellation, no-show, provider payout readiness, and double-submit
+   idempotency before expanding the UI.
+
+Salon-to-Braider compensation is a separate B2B/hiring-payment track. Capture
+the agreement, rate, work/completion status, and external payment confirmation
+inside Braidel first, but defer Stripe-managed Salon-to-Braider money movement
+until marketplace policy, support, dispute, tax, and payout operations are
+mature. Do not block Workstream 5 QA on that deferred money movement.
+
+Current implementation stream: Workstream `6/7`, trust, verification, and
+marketplace administration. Planning is recorded in
+[`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
+First slice implemented: provider reviews dashboard at `/dashboard/reviews`.
+It is provider-only, reads completed-booking reviews, displays average rating,
+rating distribution, latest reviews, a detail drawer, booking deep links, and
+append-only rating history. August 1, 2026 manual QA passed for Salon owner
+access, Braider access, Client redirect protection, provider-scoped review data,
+review drawer details, booking deep links, and responsive light/dark checks.
+Second slice implementation added: migration `0016_absurd_slyde.sql` creates
+`provider_review_responses`, `provider_review_response_history`, and
+`review_reports`; the Reviews drawer supports provider response create/update,
+Client notifications for response changes, response history, and one provider
+report per review. Appointment drawers show provider responses next to the
+related review, so Client notifications land on visible content. Migration
+`0016_absurd_slyde.sql` has been applied to the configured development Neon
+database; production/staging migration remains a launch gate. August 1, 2026
+manual QA passed for response create/update, Client notification delivery,
+appointment drawer response visibility, response history, report intake, report
+status locking, and role-compatible access smoke checks. Next slices:
+verification evidence foundation, admin moderation, marketplace trust signals,
+and capped Client review reminders.
+Third slice implementation added: migration `0017_flat_leopardon.sql` creates
+`provider_verifications`, `verification_evidence`, and
+`verification_status_history`; Salon owners and Braiders can use the
+provider-only `/dashboard/verification` workspace to add evidence metadata,
+track checklist readiness, submit for review, and see status history. Protected
+APIs enforce provider ownership, block Clients, and lock submitted/approved
+profiles from further provider-side edits. Migration `0017_flat_leopardon.sql`
+has been applied to the configured development Neon database. Manual QA is
+pending before calling slice 6.3 complete. Admin approval, sensitive evidence
+file upload policy, public trust badges, and external review operations remain
+deferred to later slices.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

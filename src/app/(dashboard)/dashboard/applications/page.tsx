@@ -7,6 +7,7 @@ import { Photo } from "@/components/ui/Photo";
 import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import { getApplicationsForBraider, type ApplicationDTO } from "@/db/queries";
 import { requireDashboardRole } from "@/lib/authenticated-user";
+import styles from "../DashboardPages.module.css";
 
 const STATUS_VARIANT: Record<ApplicationDTO["status"], "info" | "warning" | "danger" | "success"> = {
   Shortlisted: "info",
@@ -25,7 +26,7 @@ export default async function ApplicationsPage() {
     <>
       <Topbar title="Your applications" subtitle="Track where you stand with each salon." />
 
-      <div style={{ padding: 32, maxWidth: 820 }}>
+      <div className={styles.narrowPage}>
         <Card>
           {applications.length === 0 ? (
             <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "32px 0", margin: 0 }}>
@@ -51,7 +52,7 @@ export default async function ApplicationsPage() {
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{a.when}</div>
               </div>
               <Badge variant={STATUS_VARIANT[a.status]} dot>{a.status}</Badge>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className={styles.cardActions}>
                 {a.status === "Matched" && (
                   <ReviewDialog
                     applicationId={a.id}

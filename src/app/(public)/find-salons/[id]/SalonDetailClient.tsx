@@ -11,6 +11,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Photo } from "@/components/ui/Photo";
 import { JOBS } from "@/lib/sampleData";
 import type { SalonDTO } from "@/db/queries";
+import detailStyles from "../../PublicDetail.module.css";
 
 const ABOUT_FACTS: [string, string][] = [
   ["Established", "2018"],
@@ -42,17 +43,17 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
   const openings = JOBS.filter((j) => j.salon === salon.name);
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px var(--gutter) 40px" }}>
+    <div className={detailStyles.page}>
       <Link href="/find-salons" style={{ color: "var(--text-muted)", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 18 }}>
         <span style={{ transform: "rotate(180deg)", display: "inline-flex" }}><ChevronIcon /></span>
         Back to salons
       </Link>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 32, alignItems: "start" }}>
+      <div className={detailStyles.layout}>
         {/* Main */}
-        <div>
+        <div className={detailStyles.main}>
           {/* Header */}
-          <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+          <div className={detailStyles.profileHeader}>
             <Avatar name={salon.name} size="xl" ring />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -95,7 +96,7 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
                 scalp-first approach. A supportive team, clean stations, and a steady clientele make it a great
                 place to book a style — or to build your braiding career.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18 }}>
+              <div className={detailStyles.factsGrid}>
                 {ABOUT_FACTS.map(([k, v]) => (
                   <div key={k} style={{ padding: 14, background: "var(--bg-subtle)", borderRadius: "var(--radius-md)" }}>
                     <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{k}</div>
@@ -115,7 +116,7 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
                   {openings.map((j, i) => (
                     <Link key={j.id} href={`/opportunities/${j.id}`} style={{ textDecoration: "none" }}>
                       <Card interactive>
-                        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16 }}>
+                        <div className={detailStyles.openingRow}>
                           <div style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
                             <Photo seed={i} aspect="1/1" />
                           </div>
@@ -153,10 +154,21 @@ export function SalonDetailClient({ salon }: { salon: SalonDTO | null }) {
         </div>
 
         {/* Sticky card */}
-        <Card padded style={{ position: "sticky", top: 90 }}>
+        <Card padded className={detailStyles.actionCard}>
           <Rating value={salon.rating} count={salon.reviews} size="1rem" />
           <div style={{ marginTop: 6, fontSize: 14, color: "var(--text-muted)" }}>{salon.city}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
+            {salon.isAcceptingBookings && salon.bookingProviderId ? (
+              <Link href={`/dashboard/appointments?provider=${salon.bookingProviderId}`}>
+                <Button fullWidth size="lg" iconLeft={<CalendarIcon />}>
+                  Book appointment
+                </Button>
+              </Link>
+            ) : (
+              <Button fullWidth size="lg" variant="outline" disabled iconLeft={<CalendarIcon />}>
+                Booking unavailable
+              </Button>
+            )}
             {salon.openRoles > 0 && (
               <Button fullWidth size="lg" onClick={() => setTab("openings")} iconLeft={<BriefcaseIcon />}>
                 View {salon.openRoles} opening{salon.openRoles > 1 ? "s" : ""}
@@ -186,3 +198,4 @@ function HeartIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24"
 function ShieldIcon()   { return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>; }
 function UsersIcon()    { return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>; }
 function ClockIcon()    { return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>; }
+function CalendarIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg>; }

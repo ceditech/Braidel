@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import type { SalonDTO } from "@/db/queries";
+import layoutStyles from "../Directory.module.css";
 
 const SORTS = ["Sort: Top rated", "Sort: Most reviews", "Sort: Open roles"] as const;
 type Sort = (typeof SORTS)[number];
@@ -48,7 +49,7 @@ export function FindSalonsClient({
   }, [salons, query, active, sort]);
 
   return (
-    <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "34px var(--gutter) 40px" }}>
+    <div className={layoutStyles.page}>
       <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "clamp(30px,4vw,42px)", margin: 0, color: "var(--text-strong)" }}>
         Find salons
       </h1>
@@ -57,32 +58,17 @@ export function FindSalonsClient({
       </p>
 
       {/* Search bar */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginTop: 22,
-          padding: 14,
-          background: "var(--surface-card)",
-          border: "1px solid var(--border-subtle)",
-          borderRadius: "var(--radius-lg)",
-          boxShadow: "var(--shadow-sm)",
-          position: "sticky",
-          top: 74,
-          zIndex: 10,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ flex: "2 1 240px" }}>
+      <div className={layoutStyles.filterBar}>
+        <div className={layoutStyles.searchField}>
           <Input placeholder="Salon name, city or service" iconLeft={<SearchIcon />} value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <div style={{ flex: "1 1 200px" }}>
+        <div className={layoutStyles.sortField}>
           <Select options={[...SORTS]} value={sort} onChange={(e) => setSort(e.target.value as Sort)} />
         </div>
       </div>
 
       {/* Service chips */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 4px", alignItems: "center" }}>
+      <div className={layoutStyles.chipRail}>
         {specialtyOptions.map((s) => (
           <Tag key={s} selected={active.includes(s)} onClick={() => toggle(s)}>{s}</Tag>
         ))}
@@ -103,13 +89,13 @@ export function FindSalonsClient({
           <Button onClick={() => { setQuery(""); setActive([]); }}>Reset filters</Button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 22, margin: "24px 0", paddingBottom: 20 }}>
+        <div className={layoutStyles.resultGridThree}>
           {results.map((s) => (
-            <Link key={s.id} href={`/find-salons/${s.id}`} style={{ textDecoration: "none" }}>
+            <Link key={s.id} href={`/find-salons/${s.id}`} className={layoutStyles.resultLink}>
             <Card interactive>
               <Photo seed={s.tone} aspect="4/3" />
               <CardBody>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div className={layoutStyles.cardHeader}>
                   <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)" }}>{s.name}</span>
                   {s.verified && <Badge variant="brand" dot>Verified</Badge>}
                 </div>
