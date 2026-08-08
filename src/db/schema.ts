@@ -93,6 +93,30 @@ export const paymentWebhookStatusEnum = pgEnum("payment_webhook_status", [
   "ignored",
 ]);
 
+export const verificationStatusEnum = pgEnum("verification_status", [
+  "draft",
+  "submitted",
+  "under_review",
+  "verified",
+  "rejected",
+  "expired",
+  "revoked",
+]);
+
+export const verificationEvidenceTypeEnum = pgEnum("verification_evidence_type", [
+  "identity",
+  "business_license",
+  "portfolio_proof",
+  "location",
+  "professional_credential",
+  "other",
+]);
+
+export const verificationEvidenceStatusEnum = pgEnum(
+  "verification_evidence_status",
+  ["submitted", "under_review", "approved", "rejected", "expired"]
+);
+
 // ─── Users ────────────────────────────────────────────────────────────────────
 // clerk_id links this row to the Clerk user record (source of truth for auth)
 
@@ -951,6 +975,114 @@ export const reviewReports = pgTable(
   ]
 );
 
+export const providerVerifications = pgTable(
+  "provider_verifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    ownerUserId: uuid("owner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: verificationStatusEnum("status").notNull().default("draft"),
+    submittedAt: timestamp("submitted_at"),
+    reviewedAt: timestamp("reviewed_at"),
+    expiresAt: timestamp("expires_at"),
+    reviewerUserId: uuid("reviewer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    adminNote: text("admin_note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("provider_verifications_provider_unique").on(table.providerId),
+    index("provider_verifications_owner_idx").on(table.ownerUserId),
+    index("provider_verifications_status_updated_idx").on(
+      table.status,
+      table.updatedAt
+    ),
+  ]
+);
+
+export const verificationEvidence = pgTable(
+  "verification_evidence",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    verificationId: uuid("verification_id")
+      .notNull()
+      .references(() => providerVerifications.id, { onDelete: "cascade" }),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => serviceProviders.id, { onDelete: "cascade" }),
+    submittedByUserId: uuid("submitted_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: verificationEvidenceTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    evidenceUrl: text("evidence_url"),
+    status: verificationEvidenceStatusEnum("status")
+      .notNull()
+      .default("submitted"),
+    reviewerNote: text("reviewer_note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("verification_evidence_verification_created_idx").on(
+      table.verificationId,
+      table.createdAt
+    ),
+    index("verification_evidence_provider_type_idx").on(
+      table.providerId,
+      table.type
+    ),
+    index("verification_evidence_status_idx").on(table.status),
+    check(
+      "verification_evidence_title_check",
+      sql`length(trim(${table.title})) between 3 and 140`
+    ),
+    check(
+      "verification_evidence_description_check",
+      sql`${table.description} is null or length(trim(${table.description})) <= 1200`
+    ),
+    check(
+      "verification_evidence_url_check",
+      sql`${table.evidenceUrl} is null or length(trim(${table.evidenceUrl})) <= 500`
+    ),
+  ]
+);
+
+export const verificationStatusHistory = pgTable(
+  "verification_status_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    verificationId: uuid("verification_id")
+      .notNull()
+      .references(() => providerVerifications.id, { onDelete: "cascade" }),
+    changedByUserId: uuid("changed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    previousStatus: verificationStatusEnum("previous_status"),
+    newStatus: verificationStatusEnum("new_status").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("verification_status_history_verification_created_idx").on(
+      table.verificationId,
+      table.createdAt
+    ),
+    index("verification_status_history_actor_idx").on(table.changedByUserId),
+    check(
+      "verification_status_history_note_check",
+      sql`${table.note} is null or length(trim(${table.note})) <= 1200`
+    ),
+  ]
+);
+
 export const notifications = pgTable(
   "notifications",
   {
@@ -1003,6 +1135,14 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   providerReviewResponses: many(providerReviewResponses),
   providerReviewResponseHistoryChanges: many(providerReviewResponseHistory),
   reviewReports: many(reviewReports),
+  providerVerifications: many(providerVerifications, {
+    relationName: "verificationOwner",
+  }),
+  verificationEvidenceSubmissions: many(verificationEvidence),
+  verificationStatusChanges: many(verificationStatusHistory),
+  verificationReviews: many(providerVerifications, {
+    relationName: "verificationReviewer",
+  }),
   bookingStatusChanges: many(bookingStatusHistory),
   bookingPayments: many(bookingPayments),
   notifications: many(notifications),
@@ -1066,6 +1206,10 @@ export const serviceProvidersRelations = relations(
     paymentAccount: one(providerPaymentAccounts, {
       fields: [serviceProviders.id],
       references: [providerPaymentAccounts.providerId],
+    }),
+    verification: one(providerVerifications, {
+      fields: [serviceProviders.id],
+      references: [providerVerifications.providerId],
     }),
   })
 );
@@ -1307,6 +1451,60 @@ export const reviewReportsRelations = relations(reviewReports, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const providerVerificationsRelations = relations(
+  providerVerifications,
+  ({ one, many }) => ({
+    provider: one(serviceProviders, {
+      fields: [providerVerifications.providerId],
+      references: [serviceProviders.id],
+    }),
+    owner: one(users, {
+      fields: [providerVerifications.ownerUserId],
+      references: [users.id],
+      relationName: "verificationOwner",
+    }),
+    reviewer: one(users, {
+      fields: [providerVerifications.reviewerUserId],
+      references: [users.id],
+      relationName: "verificationReviewer",
+    }),
+    evidence: many(verificationEvidence),
+    statusHistory: many(verificationStatusHistory),
+  })
+);
+
+export const verificationEvidenceRelations = relations(
+  verificationEvidence,
+  ({ one }) => ({
+    verification: one(providerVerifications, {
+      fields: [verificationEvidence.verificationId],
+      references: [providerVerifications.id],
+    }),
+    provider: one(serviceProviders, {
+      fields: [verificationEvidence.providerId],
+      references: [serviceProviders.id],
+    }),
+    submittedBy: one(users, {
+      fields: [verificationEvidence.submittedByUserId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const verificationStatusHistoryRelations = relations(
+  verificationStatusHistory,
+  ({ one }) => ({
+    verification: one(providerVerifications, {
+      fields: [verificationStatusHistory.verificationId],
+      references: [providerVerifications.id],
+    }),
+    changedBy: one(users, {
+      fields: [verificationStatusHistory.changedByUserId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const portfolioMediaRelations = relations(portfolioMedia, ({ one }) => ({
   braider: one(braiders, {

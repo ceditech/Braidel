@@ -28,6 +28,15 @@
   QA passed August 1, 2026 for response create/update, Client notification
   delivery, appointment drawer response visibility, response history, report
   intake, report status locking, and role-compatible access smoke checks.
+- **August 1, 2026:** Slice 6.3 implementation added the verification evidence
+  foundation. Migration `0017_flat_leopardon.sql` introduces
+  `provider_verifications`, `verification_evidence`, and
+  `verification_status_history`; Salon owners and Braiders now have a
+  provider-only `/dashboard/verification` workspace for evidence readiness,
+  metadata submission, submit-for-review, and status history. Sensitive file
+  upload, admin decisions, public trust badges, and external review operations
+  remain deferred to later slices. Manual QA is pending before marking this
+  slice complete.
 
 ## Purpose
 
@@ -94,14 +103,20 @@ Add verification data structures for trust badges and provider quality.
 Scope:
 
 - Verification profile/status for Salons and Braiders.
+  **Implemented; manual QA pending.**
 - Evidence records for identity, business/license, portfolio proof, location, or
   professional credentials.
+  **Implemented as metadata/reference records; sensitive upload policy remains
+  deferred.**
 - Status history for submitted, under review, approved, rejected, expired, or
   revoked.
+  **Implemented for provider verification status changes.**
 - Server-side authorization so users can submit only their own evidence.
+  **Implemented through provider-owned dashboard route and protected APIs.**
 
 Initial implementation can store metadata first and defer sensitive file upload
-policy until production storage rules are finalized.
+policy until production storage rules are finalized. **Current 6.3 slice follows
+this approach.**
 
 ### 6.4 Admin and Moderation Surface
 

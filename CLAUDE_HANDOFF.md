@@ -522,6 +522,17 @@ appointment drawer response visibility, response history, report intake, report
 status locking, and role-compatible access smoke checks. Next slices:
 verification evidence foundation, admin moderation, marketplace trust signals,
 and capped Client review reminders.
+Third slice implementation added: migration `0017_flat_leopardon.sql` creates
+`provider_verifications`, `verification_evidence`, and
+`verification_status_history`; Salon owners and Braiders can use the
+provider-only `/dashboard/verification` workspace to add evidence metadata,
+track checklist readiness, submit for review, and see status history. Protected
+APIs enforce provider ownership, block Clients, and lock submitted/approved
+profiles from further provider-side edits. Migration `0017_flat_leopardon.sql`
+has been applied to the configured development Neon database. Manual QA is
+pending before calling slice 6.3 complete. Admin approval, sensitive evidence
+file upload policy, public trust badges, and external review operations remain
+deferred to later slices.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

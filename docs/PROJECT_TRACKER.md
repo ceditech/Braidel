@@ -17,7 +17,7 @@
 | **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
 | **Phase 2** | Client Booking | 19 / 19 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | ~93% |
-| **Phase 4** | Reputation & Verification | 1 / 2 | ~75% |
+| **Phase 4** | Reputation & Verification | 6 / 9 | ~67% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
 | **Phase 6** | Braidel Supply | 0 / 1 | 0% |
 | **Phase 7** | Salon Franchise | 0 / 1 | 0% |
@@ -219,9 +219,12 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    booking reviews, provider-owned appointment links, rating distribution, and
    append-only review history. Slice 6.2 implementation now adds provider
    response publishing/edit history and provider report intake, with manual QA
-   passed August 1, 2026. Remaining planned slices: verification evidence
-   foundation, admin/moderation surface, marketplace trust signals, and capped
-   Client review reminders. Planning record:
+   passed August 1, 2026. Slice 6.3 verification evidence foundation now adds
+   provider verification profiles, evidence metadata/reference records, status
+   history, provider-only `/dashboard/verification`, and protected evidence
+   submission APIs; manual QA is pending. Remaining planned slices:
+   admin/moderation surface, marketplace trust signals, and capped Client review
+   reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -282,3 +285,10 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   development Neon database. Manual QA covered response create/update, Client
   notifications, appointment drawer response visibility, response history,
   report intake, report status locking, and role-compatible access smoke checks.
+- **August 1, 2026:** Workstream 6.3 verification evidence foundation
+  implementation added migration `0017_flat_leopardon.sql`, provider
+  verification profiles, evidence records, append-only verification status
+  history, provider-only `/dashboard/verification`, protected evidence
+  submission and submit-for-review APIs, and a self-notification when a provider
+  submits for review. The migration was applied to the configured development
+  Neon database. Manual QA remains pending before marking this slice complete.

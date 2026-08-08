@@ -72,6 +72,9 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "provider_review_responses table", status: "done", priority: "high", phase: 4 },
       { title: "provider_review_response_history table", status: "done", priority: "high", phase: 4 },
       { title: "review_reports table", status: "done", priority: "high", phase: 4 },
+      { title: "provider_verifications table", status: "done", priority: "high", phase: 4 },
+      { title: "verification_evidence table", status: "done", priority: "high", phase: 4 },
+      { title: "verification_status_history table", status: "done", priority: "high", phase: 4 },
     ],
   },
   {
@@ -135,6 +138,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Manage Applicants screen", status: "done", priority: "high", phase: 1 },
       { title: "Applicant profile + portfolio drawer", status: "done", priority: "high", phase: 1 },
       { title: "Appointments calendar + booking setup", status: "done", priority: "high", phase: 2 },
+      { title: "Verification evidence workspace", status: "in_progress", priority: "high", phase: 4, note: "Implementation added provider-owned evidence submission and review-readiness tracking. Manual QA is pending." },
     ],
   },
   {
@@ -148,6 +152,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Applications tracker", status: "done", priority: "high", phase: 1 },
       { title: "Profile editor + portfolio upload", status: "done", priority: "high", phase: 1 },
       { title: "Appointments calendar + booking setup", status: "done", priority: "high", phase: 2 },
+      { title: "Verification evidence workspace", status: "in_progress", priority: "high", phase: 4, note: "Implementation added provider-owned evidence submission and review-readiness tracking. Manual QA is pending." },
     ],
   },
   {
@@ -163,6 +168,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
       { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026 for provider access, client redirect protection, scoped data, drawer details, booking deep links, and responsive light/dark checks." },
       { title: "Provider review responses + report intake", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026. Migration 0016_absurd_slyde.sql added provider response create/update with Client notifications, response audit history, appointment drawer visibility, and one provider report per review." },
+      { title: "Verification evidence foundation", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migration 0017_flat_leopardon.sql, provider verification profiles, evidence records, status history, provider-only /dashboard/verification, and protected evidence/submit APIs. Manual QA is pending." },
     ],
   },
   {
@@ -187,6 +193,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Review audit history + update notification wiring", status: "done", priority: "high", phase: 2 },
       { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
       { title: "Provider review response/report APIs", status: "done", priority: "high", phase: 4 },
+      { title: "Provider verification evidence APIs", status: "in_progress", priority: "high", phase: 4 },
     ],
   },
   {
@@ -234,7 +241,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Remaining order: verification evidence foundation, admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation is implemented with migration 0017_flat_leopardon.sql and awaits manual QA. Remaining order: admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

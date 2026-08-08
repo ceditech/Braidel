@@ -294,7 +294,8 @@ own workstream ships.
 - **Trust and verification implementation:** Workstream 6 is planned in
   [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
   Provider reviews dashboard is manual-QA passed. Provider review responses and
-  report intake are implemented and manual-QA passed. Verification evidence,
+  report intake are implemented and manual-QA passed. Verification evidence
+  foundation is implemented pending manual QA. Sensitive evidence file upload,
   admin moderation, marketplace trust signals, and review reminders remain
   implementation work.
 
@@ -334,6 +335,8 @@ own workstream ships.
       appointment or booking conversation for Client, Braider, and Salon roles.
 - [ ] Verify completed Client bookings can create and edit exactly one provider
       review, while incomplete appointments and non-client roles cannot review.
+- [ ] Verify provider verification evidence submission, submit-for-review,
+      status history, role scoping, and locked submitted-state behavior.
 - [ ] Run a production smoke test without development/demo fallbacks.
 
 ## Security and Operations
@@ -467,3 +470,11 @@ Add dated entries here as production gates are verified.
   drawer response visibility, response history, report intake, report status
   locking, and role-compatible access smoke checks. Staging/production
   migration application remains a launch gate.
+- **August 1, 2026:** Workstream 6.3 verification evidence foundation
+  implementation added migration `0017_flat_leopardon.sql`, provider
+  verification profiles, evidence records, append-only status history,
+  provider-only `/dashboard/verification`, protected evidence submission and
+  submit-for-review APIs, and a provider self-notification after submission.
+  The migration was applied to the configured development Neon database. Manual
+  QA remains required before considering this slice complete, and
+  staging/production migration application remains a launch gate.
