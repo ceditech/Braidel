@@ -222,9 +222,10 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    passed August 1, 2026. Slice 6.3 verification evidence foundation now adds
    provider verification profiles, evidence metadata/reference records, status
    history, provider-only `/dashboard/verification`, and protected evidence
-   submission APIs; manual QA is pending. Remaining planned slices:
-   admin/moderation surface, marketplace trust signals, and capped Client review
-   reminders. Planning record:
+  submission APIs; manual QA passed August 9, 2026. Slice 6.4 admin/moderation
+  surface is implemented with development migration applied and awaits manual
+  QA. Remaining planned slices: marketplace trust signals and capped Client
+  review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -299,3 +300,17 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   UI now includes tooltips for acceptable public links, business/state registry
   pages, secure upload links, portfolio references, and private/offline fallback
   proof notes.
+- **August 9, 2026:** Workstream 6.3 manual QA passed after proof-quality
+  validation. Workstream 6.4 admin/moderation implementation started with
+  migration `0018_spooky_tattoo.sql`, allowlist-gated `/dashboard/admin`,
+  verification decision APIs, review report decision APIs,
+  `marketplace_admin_actions`, provider notifications, and verified-flag
+  updates. Migration `0018_spooky_tattoo.sql` was applied to the configured
+  development Neon database. Manual QA remains pending before marking 6.4
+  complete.
+- **August 9, 2026:** Admin access hardening added migration
+  `0019_curved_silver_centurion.sql` for the internal `admin` user role, plus
+  `/admin/sign-up`, `/admin/sign-in`, `/admin/setup`, and
+  `/api/admin/onboarding`. Allowlisted admins can activate internal access
+  without selecting a marketplace onboarding role or creating Salon/Braider/
+  Client profile records.

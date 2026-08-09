@@ -120,6 +120,20 @@
       "when": 1785566315892,
       "tag": "0017_flat_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786251962526,
+      "tag": "0018_spooky_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786256138933,
+      "tag": "0019_curved_silver_centurion",
+      "breakpoints": true
     }
   ]
 }

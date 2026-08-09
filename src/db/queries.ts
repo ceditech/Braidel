@@ -17,6 +17,7 @@ import {
   serviceProviders,
   users,
 } from "./schema";
+import type { UserRole } from "@/lib/roles";
 
 /* Shape returned to the UI — matches the fields the braider screens expect,
    so wiring a screen is just swapping the data source (see CLAUDE_HANDOFF §4). */
@@ -263,7 +264,7 @@ export async function getBraidStyles(): Promise<BraidStyleDTO[]> {
 export interface SettingsProfileDTO {
   user: {
     id: string;
-    role: "salon_owner" | "braider" | "client";
+    role: UserRole;
     firstName: string;
     lastName: string;
     email: string;

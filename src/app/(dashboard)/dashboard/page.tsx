@@ -9,11 +9,14 @@ import {
 } from "@/db/queries";
 import { requireOnboardedUser } from "@/lib/authenticated-user";
 import { DashboardClient } from "./DashboardClient";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireOnboardedUser();
+  if (user.role === "admin") redirect("/dashboard/admin");
+
   let salonOpportunities: OpportunityDTO[] = [];
   let salonApplicants: ApplicantDTO[] = [];
   let braiderOpportunities: OpportunityDTO[] = [];

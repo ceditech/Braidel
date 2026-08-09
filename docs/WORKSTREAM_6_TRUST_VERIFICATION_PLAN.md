@@ -35,8 +35,7 @@
   provider-only `/dashboard/verification` workspace for evidence readiness,
   metadata submission, submit-for-review, and status history. Sensitive file
   upload, admin decisions, public trust badges, and external review operations
-  remain deferred to later slices. Manual QA is pending before marking this
-  slice complete.
+  remain deferred to later slices.
 - **August 8, 2026:** Slice 6.3 QA follow-up tightened evidence quality without
   removing flexibility. Evidence records now need either a reviewer-accessible
   reference link or at least 40 characters of proof details; title-only records
@@ -44,6 +43,17 @@
   includes tooltips describing accepted proof sources such as provider profiles,
   portfolio galleries, business/state registry pages, secure upload links, and
   private/offline fallback notes.
+- **August 9, 2026:** Slice 6.3 manual QA passed after the proof-quality
+  follow-up. Slice 6.4 implementation started with migration
+  `0018_spooky_tattoo.sql`, the `marketplace_admin_actions` audit ledger,
+  allowlist-gated `/dashboard/admin`, verification decision APIs, review report
+  moderation APIs, provider notifications, and verified-flag updates. Migration
+  `0018_spooky_tattoo.sql` was applied to the configured development Neon
+  database; manual QA remains pending before marking 6.4 complete.
+- **August 9, 2026:** Admin access hardening added migration
+  `0019_curved_silver_centurion.sql` and a separate `/admin/sign-up` ->
+  `/admin/setup` activation path. Allowlisted admins now receive an internal
+  `admin` role without creating marketplace profile records.
 
 ## Purpose
 
@@ -110,7 +120,7 @@ Add verification data structures for trust badges and provider quality.
 Scope:
 
 - Verification profile/status for Salons and Braiders.
-  **Implemented; manual QA pending.**
+  **Implemented; manual QA passed August 9, 2026.**
 - Evidence records for identity, business/license, portfolio proof, location, or
   professional credentials.
   **Implemented as metadata/reference records; sensitive upload policy remains
@@ -132,10 +142,18 @@ Add internal marketplace operations tools.
 Scope:
 
 - Review verification submissions.
+  **Implemented as an allowlist-gated `/dashboard/admin` queue; manual QA
+  pending.**
 - Review reported/disputed reviews.
+  **Implemented for existing review reports; manual QA pending.**
 - Apply moderation decisions with audit history.
+  **Implemented through `marketplace_admin_actions` plus verification status
+  history; manual QA pending.**
 - Restrict, suspend, or reactivate accounts/listings.
+  **Deferred beyond initial 6.4 to avoid broad account-control risk before
+  moderation policy is finalized.**
 - Preserve evidence and decisions for audit.
+  **Implemented for admin decisions; sensitive file retention policy deferred.**
 
 This can begin as a protected internal dashboard route before adding more
 advanced queues or role-specific admin permissions.

@@ -168,7 +168,8 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
       { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026 for provider access, client redirect protection, scoped data, drawer details, booking deep links, and responsive light/dark checks." },
       { title: "Provider review responses + report intake", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026. Migration 0016_absurd_slyde.sql added provider response create/update with Client notifications, response audit history, appointment drawer visibility, and one provider report per review." },
-      { title: "Verification evidence foundation", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migration 0017_flat_leopardon.sql, provider verification profiles, evidence records, status history, provider-only /dashboard/verification, protected evidence/submit APIs, and proof-quality enforcement requiring a reference link or substantive proof notes. Manual QA is pending." },
+      { title: "Verification evidence foundation", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 9, 2026 after proof-quality enforcement was added. Migration 0017_flat_leopardon.sql added provider verification profiles, evidence records, status history, provider-only /dashboard/verification, and protected evidence/submit APIs." },
+      { title: "Admin and moderation surface", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migration 0018_spooky_tattoo.sql, marketplace_admin_actions, allowlist-gated /dashboard/admin, verification decision APIs, review report decision APIs, provider notifications, and verified-flag updates. Admin access hardening added migration 0019_curved_silver_centurion.sql plus /admin/sign-up and /admin/setup so allowlisted admins bypass marketplace role onboarding. Development migrations are applied; manual QA is pending." },
     ],
   },
   {
@@ -193,7 +194,8 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Review audit history + update notification wiring", status: "done", priority: "high", phase: 2 },
       { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
       { title: "Provider review response/report APIs", status: "done", priority: "high", phase: 4 },
-      { title: "Provider verification evidence APIs", status: "in_progress", priority: "high", phase: 4 },
+      { title: "Provider verification evidence APIs", status: "done", priority: "high", phase: 4 },
+      { title: "Marketplace admin decision APIs", status: "in_progress", priority: "high", phase: 4 },
     ],
   },
   {
@@ -241,7 +243,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation is implemented with migration 0017_flat_leopardon.sql and awaits manual QA. Remaining order: admin/moderation surface, trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation passed manual QA on August 9, 2026. Slice 6.4 admin/moderation surface is implemented with migrations 0018_spooky_tattoo.sql and 0019_curved_silver_centurion.sql applied to development and awaits manual QA. Remaining order: trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

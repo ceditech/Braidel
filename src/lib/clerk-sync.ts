@@ -10,7 +10,7 @@ export type ClerkSyncResult = {
   userId?: string;
 };
 
-const USER_ROLES = new Set<UserRole>(["salon_owner", "braider", "client"]);
+const USER_ROLES = new Set<UserRole>(["salon_owner", "braider", "client", "admin"]);
 
 function roleFromMetadata(metadata: UserJSON["public_metadata"]): UserRole {
   const candidate = (metadata as Record<string, unknown>).role;

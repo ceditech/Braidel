@@ -535,9 +535,27 @@ reviewer-accessible reference link or at least 40 characters of proof details;
 title-only evidence does not count toward checklist or submit readiness.
 Tooltips document acceptable proof ranges, including public profiles, portfolio
 links, business websites, state/city registry pages, secure upload links, and
-private/offline fallback notes. Manual QA is pending before calling slice 6.3
-complete. Admin approval, sensitive evidence file upload policy, public trust
-badges, and external review operations remain deferred to later slices.
+private/offline fallback notes. Manual QA passed on August 9, 2026, so slice
+6.3 can be treated as complete.
+Fourth slice implementation started: migration `0018_spooky_tattoo.sql` adds a
+`marketplace_admin_actions` audit ledger. A `BRAIDEL_ADMIN_EMAILS` allowlist now
+guards `/dashboard/admin` and the admin decision APIs. The internal moderation
+surface shows verification submissions and reported reviews, supports
+verification status decisions, review report resolution/dismissal, provider
+notifications, public verified flag updates, and audit-backed admin actions.
+Migration `0018_spooky_tattoo.sql` was applied to the configured development
+Neon database on August 9, 2026. Manual QA remains pending for non-admin access
+denial, verification approve/reject flows, review report resolution, audit
+ledger rows, notifications, and verified-flag readiness. Sensitive evidence
+file upload policy, public trust badges, and broader account/listing suspension
+tooling remain deferred to later slices.
+
+Follow-up admin access hardening added `0019_curved_silver_centurion.sql`,
+which introduces the internal `admin` user role. Allowlisted admins can now use
+`/admin/sign-up` or `/admin/sign-in`, land on `/admin/setup`, and activate an
+internal admin account without selecting a Salon/Braider/Client marketplace
+role or creating marketplace profile records. The normal `/onboarding` page
+redirects allowlisted, non-onboarded admins into this setup path.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
