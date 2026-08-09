@@ -37,6 +37,13 @@
   upload, admin decisions, public trust badges, and external review operations
   remain deferred to later slices. Manual QA is pending before marking this
   slice complete.
+- **August 8, 2026:** Slice 6.3 QA follow-up tightened evidence quality without
+  removing flexibility. Evidence records now need either a reviewer-accessible
+  reference link or at least 40 characters of proof details; title-only records
+  do not satisfy required evidence or submit readiness. The Verification UI now
+  includes tooltips describing accepted proof sources such as provider profiles,
+  portfolio galleries, business/state registry pages, secure upload links, and
+  private/offline fallback notes.
 
 ## Purpose
 

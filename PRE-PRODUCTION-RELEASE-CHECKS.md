@@ -478,3 +478,9 @@ Add dated entries here as production gates are verified.
   The migration was applied to the configured development Neon database. Manual
   QA remains required before considering this slice complete, and
   staging/production migration application remains a launch gate.
+- **August 8, 2026:** Workstream 6.3 QA follow-up added proof-quality
+  enforcement and reviewer guidance. Evidence requires either a
+  reviewer-accessible reference link or at least 40 characters of proof details;
+  title-only records do not count toward submit readiness. Pre-production QA
+  should confirm tooltip guidance, no-link fallback evidence, invalid URL
+  rejection, and title-only rejection across Salon owner and Braider accounts.

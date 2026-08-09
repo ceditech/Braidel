@@ -168,7 +168,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Payment system design insight page", status: "done", priority: "medium", phase: 3 },
       { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026 for provider access, client redirect protection, scoped data, drawer details, booking deep links, and responsive light/dark checks." },
       { title: "Provider review responses + report intake", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026. Migration 0016_absurd_slyde.sql added provider response create/update with Client notifications, response audit history, appointment drawer visibility, and one provider report per review." },
-      { title: "Verification evidence foundation", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migration 0017_flat_leopardon.sql, provider verification profiles, evidence records, status history, provider-only /dashboard/verification, and protected evidence/submit APIs. Manual QA is pending." },
+      { title: "Verification evidence foundation", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migration 0017_flat_leopardon.sql, provider verification profiles, evidence records, status history, provider-only /dashboard/verification, protected evidence/submit APIs, and proof-quality enforcement requiring a reference link or substantive proof notes. Manual QA is pending." },
     ],
   },
   {

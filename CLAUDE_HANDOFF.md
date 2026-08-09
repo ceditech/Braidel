@@ -529,10 +529,15 @@ provider-only `/dashboard/verification` workspace to add evidence metadata,
 track checklist readiness, submit for review, and see status history. Protected
 APIs enforce provider ownership, block Clients, and lock submitted/approved
 profiles from further provider-side edits. Migration `0017_flat_leopardon.sql`
-has been applied to the configured development Neon database. Manual QA is
-pending before calling slice 6.3 complete. Admin approval, sensitive evidence
-file upload policy, public trust badges, and external review operations remain
-deferred to later slices.
+has been applied to the configured development Neon database. QA follow-up
+tightened evidence quality: required evidence now needs either a
+reviewer-accessible reference link or at least 40 characters of proof details;
+title-only evidence does not count toward checklist or submit readiness.
+Tooltips document acceptable proof ranges, including public profiles, portfolio
+links, business websites, state/city registry pages, secure upload links, and
+private/offline fallback notes. Manual QA is pending before calling slice 6.3
+complete. Admin approval, sensitive evidence file upload policy, public trust
+badges, and external review operations remain deferred to later slices.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

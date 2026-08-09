@@ -292,3 +292,10 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   submission and submit-for-review APIs, and a self-notification when a provider
   submits for review. The migration was applied to the configured development
   Neon database. Manual QA remains pending before marking this slice complete.
+- **August 8, 2026:** Workstream 6.3 QA follow-up tightened verification
+  evidence readiness. Required evidence now needs either a reviewer-accessible
+  reference link or at least 40 characters of proof details; title-only records
+  do not count toward checklist or submit readiness. The provider Verification
+  UI now includes tooltips for acceptable public links, business/state registry
+  pages, secure upload links, portfolio references, and private/offline fallback
+  proof notes.

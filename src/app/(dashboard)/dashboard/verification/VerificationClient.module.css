@@ -59,7 +59,8 @@
 .checkItem p,
 .evidenceCard p,
 .timelineItem p,
-.lockNote {
+.lockNote,
+.checkHint {
   color: var(--text-muted);
   line-height: 1.55;
 }
@@ -69,7 +70,8 @@
 .emptyState p,
 .checkItem p,
 .evidenceCard p,
-.timelineItem p {
+.timelineItem p,
+.checkHint {
   margin: 0;
 }
 
@@ -160,6 +162,75 @@
   color: var(--text-strong);
   font-size: 13px;
   font-weight: 700;
+}
+
+.headingWithTooltip,
+.labelWithTooltip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headingWithTooltip {
+  margin-bottom: 10px;
+}
+
+.checkHint {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.tooltipWrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.tooltipButton {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--brand);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: help;
+}
+
+.tooltipButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--brand);
+}
+
+.tooltipBubble {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 20;
+  width: min(320px, 78vw);
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-body);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity var(--dur-fast), transform var(--dur-fast);
+}
+
+.tooltipWrap:hover .tooltipBubble,
+.tooltipButton:focus-visible + .tooltipBubble {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .fieldLabel select {

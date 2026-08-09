@@ -86,3 +86,65 @@ export const VERIFICATION_STATUS_LABELS: Record<ProviderVerificationStatus, stri
   expired: "Expired",
   revoked: "Revoked",
 };
+
+export const MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH = 40;
+
+export const VERIFICATION_EVIDENCE_GUIDANCE: Record<
+  VerificationEvidenceType,
+  {
+    purpose: string;
+    acceptedLinks: string;
+    fallbackProof: string;
+  }
+> = {
+  identity: {
+    purpose: "Confirms the provider or business owner is a real person tied to this account.",
+    acceptedLinks:
+      "A secure upload link, provider profile page, professional directory, or other reviewer-accessible reference.",
+    fallbackProof:
+      "If no link is available, describe the identity proof you can provide during review without posting sensitive ID numbers.",
+  },
+  business_license: {
+    purpose: "Shows the salon or provider has legitimate business standing where applicable.",
+    acceptedLinks:
+      "State business registry, city license lookup, permit profile, business website, or secure document upload.",
+    fallbackProof:
+      "If documents are offline, summarize the registration, issuing authority, business name, and how Braidel can verify it.",
+  },
+  portfolio_proof: {
+    purpose: "Shows the braider owns or can represent the work submitted in their portfolio.",
+    acceptedLinks:
+      "Portfolio website, Instagram/TikTok profile, public gallery, client-facing booking profile, or secure upload folder.",
+    fallbackProof:
+      "If no public link exists, describe the portfolio source, sample work, client references, or upload plan for review.",
+  },
+  location: {
+    purpose: "Confirms where the salon operates or where the provider accepts appointments.",
+    acceptedLinks:
+      "Business website, Google/Apple listing, state/city listing, lease-safe proof link, or secure upload.",
+    fallbackProof:
+      "If the address is sensitive, describe the service area, operating city, and what private document can verify it.",
+  },
+  professional_credential: {
+    purpose: "Supports training, experience, specialty skill, certification, or professional history claims.",
+    acceptedLinks:
+      "Certification page, school/training profile, professional profile, portfolio page, or secure document upload.",
+    fallbackProof:
+      "If no credential link exists, describe training, years of work, specialty evidence, references, or reviewable documents.",
+  },
+  other: {
+    purpose: "Adds context the review team should consider for a fair verification decision.",
+    acceptedLinks:
+      "Any reviewer-accessible URL that supports the claim, including secure upload links.",
+    fallbackProof:
+      "If no link exists, write a clear explanation of what can be verified and how.",
+  },
+};
+
+export function hasVerificationEvidenceProof(input: {
+  description?: string | null;
+  evidenceUrl?: string | null;
+}) {
+  return Boolean(input.evidenceUrl?.trim()) ||
+    (input.description?.trim().length ?? 0) >= MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH;
+}
