@@ -195,7 +195,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
       { title: "Provider review response/report APIs", status: "done", priority: "high", phase: 4 },
       { title: "Provider verification evidence APIs", status: "done", priority: "high", phase: 4 },
-      { title: "Marketplace admin decision APIs + explicit account/profile lifecycle controls", status: "in_progress", priority: "high", phase: 4, note: "Migration 0021_reflective_princess_powerful.sql splits moderation into accountStatus active/suspended for protected access and provider visibility listed/unlisted for public discovery/bookability. Admin actions now audit Suspend/Restore access separately from Unlist/Relist profile." },
+      { title: "Marketplace admin decision APIs + explicit account/profile lifecycle controls", status: "in_progress", priority: "high", phase: 4, note: "Migration 0021_reflective_princess_powerful.sql splits moderation into accountStatus active/suspended for protected access and provider visibility listed/unlisted for public discovery/bookability. Admin actions now audit Suspend/Restore access separately from Unlist/Relist profile. Deferred hardening: if the provider model expands beyond Salon owners/Braiders, replace provider-row inference with an explicit provider-role/domain helper. isMarketplaceAdmin now requires role='admin' in Neon in addition to an allowlisted BRAIDEL_ADMIN_EMAILS entry, closing an email-only privilege path. A new Promote admin action lets an existing admin grant the admin role to another user, gated on that user's email already being allowlisted." },
     ],
   },
   {
@@ -243,7 +243,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation passed manual QA on August 9, 2026. Slice 6.4 admin/moderation surface is implemented with migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, 0020_grey_turbo.sql, and 0021_reflective_princess_powerful.sql applied to development. Admin lifecycle controls now distinguish profile unlisting from account suspension. Manual QA remains pending. Remaining order: trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation passed manual QA on August 9, 2026. Slice 6.4 admin/moderation surface is implemented with migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, 0020_grey_turbo.sql, and 0021_reflective_princess_powerful.sql applied to development. Admin lifecycle controls now distinguish profile unlisting from account suspension. Deferred hardening is logged for an explicit provider-role helper if provider modeling expands. Manual QA remains pending. Remaining order: trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

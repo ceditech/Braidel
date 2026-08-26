@@ -71,7 +71,10 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
         : role === "admin"
           ? adminNav
           : clientNav;
-  const insightsNav = showAdmin ? [...buildNav, ...adminNav] : buildNav;
+  // Insights (Tracker/Market Study/Payment System Design) are internal admin
+  // material, not general marketplace nav — only show them to admins, and
+  // don't re-list "Admin Review" here since it's already the admin primary nav.
+  const insightsNav = showAdmin ? buildNav : [];
   const mobilePrimary = nav.slice(0, 4);
   const mobileMore = nav.slice(4);
 
@@ -155,7 +158,9 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
         })}
       </nav>
 
-      {/* Build / internal section */}
+      {/* Build / internal section — admin only */}
+      {insightsNav.length > 0 && (
+      <>
       <div
         className={styles.insightsLabel}
         style={{
@@ -198,6 +203,8 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
           );
         })}
       </nav>
+      </>
+      )}
 
         {/* User area */}
         <div
@@ -275,6 +282,7 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
             })}
           </div>
 
+          {insightsNav.length > 0 && (
           <div className={styles.moreSection}>
             <p className={styles.moreLabel}>Insights</p>
             {insightsNav.map(({ href, label, icon }) => {
@@ -292,6 +300,7 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
               );
             })}
           </div>
+          )}
 
           <div className={styles.mobileAccount}>
             <UserButton />

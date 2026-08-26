@@ -575,10 +575,22 @@ ambiguous “deactivate” moderation behavior with two explicit controls:
 Salon/Braider providers from public discovery/bookability while preserving
 account access; **Suspend account** updates `users.accountStatus` and blocks
 protected dashboard/API access until restored. `deletedAt` is now reserved for
-Clerk deletion/tombstone sync, not ordinary moderation. Money shows booking commissions while
-marking affiliate and subscription lanes as upcoming. The original verification
-and review-report moderation queues remain under the Moderation tab. Manual QA
-for the expanded 6.4 admin surface is next.
+Clerk deletion/tombstone sync, not ordinary moderation. Deferred hardening note:
+profile visibility actions currently infer provider eligibility from the
+presence of a `service_providers` row, which is correct while only Salon owners
+and Braiders can be providers. If provider identity expands, replace that
+data-shape inference with an explicit provider-role/domain helper. Money shows
+booking commissions while marking affiliate and subscription lanes as upcoming.
+The original verification and review-report moderation queues remain under the
+Moderation tab. `isMarketplaceAdmin` now requires both an allowlisted
+`BRAIDEL_ADMIN_EMAILS` entry and a Neon `users.role` of `admin` — email
+allowlisting alone is no longer sufficient, closing a path where a regular
+onboarding could have granted admin access purely by email match. A new
+**Promote admin** action (`PATCH /api/admin/users/[id]` with
+`action: "promote_admin"`) lets an existing admin grant the `admin` role to
+another user, but only succeeds if that user's email is already allowlisted —
+promotion cannot itself add a new trusted email. Manual QA for the expanded
+6.4 admin surface is next.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

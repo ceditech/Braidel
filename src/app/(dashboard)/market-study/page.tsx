@@ -3,6 +3,7 @@ import { PrintButton } from "@/components/dashboard/PrintButton";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
+import { requireMarketplaceAdmin } from "@/lib/admin-auth";
 import {
   MARKET_STATS,
   COMPETITORS,
@@ -25,7 +26,8 @@ const RELEVANCE_VARIANT = {
   "Very indirect": "neutral",
 } as const;
 
-export default function MarketStudyPage() {
+export default async function MarketStudyPage() {
+  await requireMarketplaceAdmin();
   return (
     <>
       <Topbar

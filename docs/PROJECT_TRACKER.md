@@ -231,8 +231,13 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `0021_reflective_princess_powerful.sql` adds `users.account_status` and
   `service_providers.visibility` so suspension blocks protected access while
   unlisting only hides public discovery/bookability. Development migrations are
-  applied and manual QA is pending. Remaining planned slices: marketplace trust
-  signals and capped Client review reminders. Planning record:
+  applied. Deferred hardening is logged to replace provider-row inference with
+  an explicit provider-role/domain helper if provider modeling expands beyond
+  Salon owners and Braiders. Admin access now also requires a Neon `users.role`
+  of `admin` in addition to an allowlisted `BRAIDEL_ADMIN_EMAILS` entry, and a
+  new **Promote admin** action lets an existing admin grant that role to
+  another allowlisted user. Manual QA is pending. Remaining planned slices:
+  marketplace trust signals and capped Client review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -330,3 +335,14 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `0021_reflective_princess_powerful.sql` later split lifecycle moderation into
   explicit account suspension/restoration and provider profile
   unlisting/relisting.
+- **August 26, 2026:** Logged a deferred Workstream 6 admin hardening item:
+  profile visibility actions currently infer provider eligibility from the
+  existence of a provider profile row. This is correct for the current
+  Salon-owner/Braider model, but should become an explicit provider-role/domain
+  helper if Braidel adds new provider types or changes provider identity rules.
+- **August 26, 2026:** Tightened `isMarketplaceAdmin` to require both an
+  allowlisted `BRAIDEL_ADMIN_EMAILS` entry and a Neon `users.role` of `admin`,
+  closing a path where a regular onboarding could have granted admin access on
+  email match alone. Added a **Promote admin** action so an existing admin can
+  grant the `admin` role to another user, gated on that user's email already
+  being allowlisted.

@@ -41,7 +41,7 @@ const reportDecisions: Array<{
 ];
 
 const stableItems = [
-  ["Secure", "Clerk owns identity. Admins use an allowlisted setup path."],
+  ["Secure", "Clerk owns identity. Admin access requires an allowlisted email and DB admin role."],
   ["Traceable", "User lifecycle changes are recorded in the admin action log."],
   ["Accountable", "Notes are captured for moderation and account actions."],
   ["Bounded", "Admins can unlist provider profiles or suspend accounts as separate actions."],
@@ -252,6 +252,7 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
       | "restore_account"
       | "unlist_profile"
       | "relist_profile"
+      | "promote_admin"
   ) {
     setState("saving");
     setMessage("");
@@ -360,11 +361,26 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
               Suspend account
             </button>
           )}
+          {user.role !== "admin" && (
+            <button
+              type="button"
+              disabled={state === "saving"}
+              className={`${styles.decisionButton} ${styles.positive}`}
+              onClick={() => runUserAction("promote_admin")}
+            >
+              Promote admin
+            </button>
+          )}
         </div>
       </section>
 
       <div className={styles.noticeBox}>
-        <strong>Create path</strong>
+        <strong>Access model</strong>
+        <p>
+          Admin access requires both an email listed in BRAIDEL_ADMIN_EMAILS and
+          a Neon user role of Admin. Promote admin only succeeds for allowlisted
+          emails.
+        </p>
         <p>
           Unlist hides a Salon/Braider from discovery and booking while keeping
           their account available for remediation. Suspend blocks authenticated

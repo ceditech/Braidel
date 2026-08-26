@@ -70,6 +70,19 @@
   discovery and bookability (`listed`/`unlisted`). Admin actions now expose
   **Suspend/Restore access** separately from **Unlist/Relist profile** and
   write audit rows to `marketplace_admin_actions`.
+- **August 26, 2026:** Deferred hardening note: profile unlisting is currently
+  gated by the presence of a provider profile row, which is correct while only
+  Salon owners and Braiders can have `service_providers` records. If Braidel
+  adds new provider roles or changes provider identity modeling, replace this
+  data-shape inference with an explicit provider-role/domain helper so the
+  admin gate fails loudly instead of silently drifting.
+- **August 26, 2026:** Closed an email-only privilege path: `isMarketplaceAdmin`
+  now requires both an allowlisted `BRAIDEL_ADMIN_EMAILS` entry and a Neon
+  `users.role` of `admin` — an allowlisted email alone is no longer sufficient
+  if the account onboarded through a non-admin path. Added a **Promote admin**
+  action so an existing admin can grant the `admin` role to another user,
+  gated on that user's email already being allowlisted so promotion cannot
+  itself add a new trusted email.
 
 ## Purpose
 
@@ -249,6 +262,8 @@ Manual QA should include:
 - Full moderation policy and appeal workflow.
 - Public dispute labels.
 - External email/push reminder delivery.
+- Explicit provider-role helper for admin profile visibility actions if the
+  provider model evolves beyond Salon owners and Braiders.
 - Background worker or cron implementation for review reminders.
 - Legal copy for review guidelines, verification standards, and evidence
   retention.
