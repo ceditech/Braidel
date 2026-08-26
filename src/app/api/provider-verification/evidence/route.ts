@@ -5,7 +5,11 @@ import { verificationEvidence } from "@/db/schema";
 import { getProviderForUser } from "@/db/booking-queries";
 import { ensureProviderVerification } from "@/db/verification-queries";
 import { getAuthenticatedDbUser } from "@/lib/authenticated-user";
-import type { VerificationEvidenceType } from "@/lib/verification-domain";
+import {
+  hasVerificationEvidenceProof,
+  MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH,
+  type VerificationEvidenceType,
+} from "@/lib/verification-domain";
 
 const VALID_EVIDENCE_TYPES = new Set<VerificationEvidenceType>([
   "identity",
@@ -78,6 +82,14 @@ export async function POST(req: NextRequest) {
   if (evidenceUrl.length > 500 || !isValidEvidenceUrl(evidenceUrl)) {
     return NextResponse.json(
       { error: "Evidence link must be a valid http or https URL" },
+      { status: 400 }
+    );
+  }
+  if (!hasVerificationEvidenceProof({ description, evidenceUrl })) {
+    return NextResponse.json(
+      {
+        error: `Add a reference link or at least ${MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH} characters of proof details for the reviewer.`,
+      },
       { status: 400 }
     );
   }

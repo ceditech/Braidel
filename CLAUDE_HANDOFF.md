@@ -93,12 +93,18 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Nineteen tables, all migrated and live: users/profiles, marketplace listings,
+Core marketplace tables are migrated and live: users/profiles, marketplace listings,
 opportunities/applications, booking/availability, messages, ratings,
 `rating_history`, portfolio media, notifications, and notification preferences.
 Full definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
+- `users.accountStatus` controls authenticated platform access. `active`
+  accounts can use protected dashboard/API flows; `suspended` accounts are
+  redirected to `/account-suspended`.
+- `service_providers.visibility` controls public marketplace presence.
+  `unlisted` providers are hidden from Find Braiders, Find Salons, public
+  Opportunities, and bookable provider discovery without locking the account.
 - `users.onboardedAt` distinguishes identity rows created by Clerk sync from
   accounts that have explicitly completed role selection. Migration `0010`
   backfills existing accounts and leaves future pre-onboarding rows nullable.
@@ -529,10 +535,50 @@ provider-only `/dashboard/verification` workspace to add evidence metadata,
 track checklist readiness, submit for review, and see status history. Protected
 APIs enforce provider ownership, block Clients, and lock submitted/approved
 profiles from further provider-side edits. Migration `0017_flat_leopardon.sql`
-has been applied to the configured development Neon database. Manual QA is
-pending before calling slice 6.3 complete. Admin approval, sensitive evidence
-file upload policy, public trust badges, and external review operations remain
-deferred to later slices.
+has been applied to the configured development Neon database. QA follow-up
+tightened evidence quality: required evidence now needs either a
+reviewer-accessible reference link or at least 40 characters of proof details;
+title-only evidence does not count toward checklist or submit readiness.
+Tooltips document acceptable proof ranges, including public profiles, portfolio
+links, business websites, state/city registry pages, secure upload links, and
+private/offline fallback notes. Manual QA passed on August 9, 2026, so slice
+6.3 can be treated as complete.
+Fourth slice implementation started: migration `0018_spooky_tattoo.sql` adds a
+`marketplace_admin_actions` audit ledger. A `BRAIDEL_ADMIN_EMAILS` allowlist now
+guards `/dashboard/admin` and the admin decision APIs. The internal moderation
+surface shows verification submissions and reported reviews, supports
+verification status decisions, review report resolution/dismissal, provider
+notifications, public verified flag updates, and audit-backed admin actions.
+Migration `0018_spooky_tattoo.sql` was applied to the configured development
+Neon database on August 9, 2026. Manual QA remains pending for non-admin access
+denial, verification approve/reject flows, review report resolution, audit
+ledger rows, notifications, and verified-flag readiness. Sensitive evidence
+file upload policy, public trust badges, and broader account/listing suspension
+tooling remain deferred to later slices.
+
+Follow-up admin access hardening added `0019_curved_silver_centurion.sql`,
+which introduces the internal `admin` user role. Allowlisted admins can now use
+`/admin/sign-up` or `/admin/sign-in`, land on `/admin/setup`, and activate an
+internal admin account without selecting a Salon/Braider/Client marketplace
+role or creating marketplace profile records. The normal `/onboarding` page
+redirects allowlisted, non-onboarded admins into this setup path.
+
+Admin portal expansion added `0020_grey_turbo.sql`, widening
+`marketplace_admin_actions` so user-account lifecycle changes can be audited.
+`/dashboard/admin` now has Performance, Users, Money, and Moderation tabs.
+Performance reads live Neon KPIs for users, providers, messages,
+notifications, booking lifecycle totals, and booking commissions. Users adds
+search/filter, profile-name editing, and a visible STABLE governance framework.
+Follow-up migration `0021_reflective_princess_powerful.sql` replaced the
+ambiguous “deactivate” moderation behavior with two explicit controls:
+**Unlist profile** updates `service_providers.visibility` and removes
+Salon/Braider providers from public discovery/bookability while preserving
+account access; **Suspend account** updates `users.accountStatus` and blocks
+protected dashboard/API access until restored. `deletedAt` is now reserved for
+Clerk deletion/tombstone sync, not ordinary moderation. Money shows booking commissions while
+marking affiliate and subscription lanes as upcoming. The original verification
+and review-report moderation queues remain under the Moderation tab. Manual QA
+for the expanded 6.4 admin surface is next.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

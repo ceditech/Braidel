@@ -22,6 +22,17 @@ export const userRoleEnum = pgEnum("user_role", [
   "salon_owner",
   "braider",
   "client",
+  "admin",
+]);
+
+export const accountStatusEnum = pgEnum("account_status", [
+  "active",
+  "suspended",
+]);
+
+export const providerVisibilityEnum = pgEnum("provider_visibility", [
+  "listed",
+  "unlisted",
 ]);
 
 export const opportunityTypeEnum = pgEnum("opportunity_type", [
@@ -124,6 +135,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   clerkId: text("clerk_id").notNull().unique(),
   role: userRoleEnum("role").notNull(),
+  accountStatus: accountStatusEnum("account_status").notNull().default("active"),
   email: text("email").notNull().unique(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -247,6 +259,7 @@ export const serviceProviders = pgTable(
       onDelete: "cascade",
     }),
     timezone: text("timezone").notNull().default("UTC"),
+    visibility: providerVisibilityEnum("visibility").notNull().default("listed"),
     isAcceptingBookings: boolean("is_accepting_bookings")
       .notNull()
       .default(false),
@@ -1083,6 +1096,42 @@ export const verificationStatusHistory = pgTable(
   ]
 );
 
+export const marketplaceAdminActions = pgTable(
+  "marketplace_admin_actions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    targetType: text("target_type").notNull(),
+    targetId: uuid("target_id").notNull(),
+    action: text("action").notNull(),
+    previousState: text("previous_state"),
+    newState: text("new_state").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("marketplace_admin_actions_target_created_idx").on(
+      table.targetType,
+      table.targetId,
+      table.createdAt
+    ),
+    index("marketplace_admin_actions_actor_created_idx").on(
+      table.actorUserId,
+      table.createdAt
+    ),
+    check(
+      "marketplace_admin_actions_target_type_check",
+      sql`${table.targetType} in ('provider_verification', 'review_report', 'user_account', 'provider_profile')`
+    ),
+    check(
+      "marketplace_admin_actions_note_check",
+      sql`${table.note} is null or length(trim(${table.note})) <= 1200`
+    ),
+  ]
+);
+
 export const notifications = pgTable(
   "notifications",
   {
@@ -1138,6 +1187,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   providerVerifications: many(providerVerifications, {
     relationName: "verificationOwner",
   }),
+  marketplaceAdminActions: many(marketplaceAdminActions),
   verificationEvidenceSubmissions: many(verificationEvidence),
   verificationStatusChanges: many(verificationStatusHistory),
   verificationReviews: many(providerVerifications, {
@@ -1501,6 +1551,16 @@ export const verificationStatusHistoryRelations = relations(
     }),
     changedBy: one(users, {
       fields: [verificationStatusHistory.changedByUserId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const marketplaceAdminActionsRelations = relations(
+  marketplaceAdminActions,
+  ({ one }) => ({
+    actor: one(users, {
+      fields: [marketplaceAdminActions.actorUserId],
       references: [users.id],
     }),
   })

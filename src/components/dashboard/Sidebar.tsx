@@ -46,6 +46,7 @@ const roleLabels: Record<Role, string> = {
   salon: "Salon owner",
   braider: "Braider",
   client: "Client",
+  admin: "Admin",
 };
 
 const buildNav = [
@@ -54,11 +55,23 @@ const buildNav = [
   { href: "/payment-system-design", label: "Payment System Design", icon: <PaymentIcon /> },
 ];
 
-export function Sidebar() {
+const adminNav = [
+  { href: "/dashboard/admin", label: "Admin Review", icon: <ShieldIcon /> },
+];
+
+export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
   const pathname = usePathname();
   const { role } = useRole();
   const [moreOpen, setMoreOpen] = useState(false);
-  const nav = role === "salon" ? salonNav : role === "braider" ? braiderNav : clientNav;
+  const nav =
+    role === "salon"
+      ? salonNav
+      : role === "braider"
+        ? braiderNav
+        : role === "admin"
+          ? adminNav
+          : clientNav;
+  const insightsNav = showAdmin ? [...buildNav, ...adminNav] : buildNav;
   const mobilePrimary = nav.slice(0, 4);
   const mobileMore = nav.slice(4);
 
@@ -157,7 +170,7 @@ export function Sidebar() {
         Insights
       </div>
       <nav className={styles.insightsNav} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>
-        {buildNav.map(({ href, label, icon }) => {
+        {insightsNav.map(({ href, label, icon }) => {
           const active = pathname === href || pathname.startsWith(href);
           return (
             <Link
@@ -264,7 +277,7 @@ export function Sidebar() {
 
           <div className={styles.moreSection}>
             <p className={styles.moreLabel}>Insights</p>
-            {buildNav.map(({ href, label, icon }) => {
+            {insightsNav.map(({ href, label, icon }) => {
               const active = pathname === href || pathname.startsWith(href);
               return (
                 <Link

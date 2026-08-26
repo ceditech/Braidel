@@ -17,6 +17,7 @@ import {
   serviceProviders,
   users,
 } from "./schema";
+import type { UserRole } from "@/lib/roles";
 
 /* Shape returned to the UI — matches the fields the braider screens expect,
    so wiring a screen is just swapping the data source (see CLAUDE_HANDOFF §4). */
@@ -113,7 +114,13 @@ export async function getBraiders(): Promise<BraiderDTO[]> {
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
-    .where(isNull(users.deletedAt));
+    .where(
+      and(
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    );
   return rows.map(mapRow);
 }
 
@@ -123,7 +130,14 @@ export async function getBraiderBySlug(slug: string): Promise<BraiderDTO | null>
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
-    .where(and(eq(braiders.slug, slug), isNull(users.deletedAt)))
+    .where(
+      and(
+        eq(braiders.slug, slug),
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    )
     .limit(1);
   if (!rows.length) return null;
 
@@ -212,7 +226,13 @@ export async function getSalons(): Promise<SalonDTO[]> {
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
-    .where(isNull(users.deletedAt));
+    .where(
+      and(
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    );
   return rows.map(mapSalon);
 }
 
@@ -222,7 +242,14 @@ export async function getSalonBySlug(slug: string): Promise<SalonDTO | null> {
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
-    .where(and(eq(salons.slug, slug), isNull(users.deletedAt)))
+    .where(
+      and(
+        eq(salons.slug, slug),
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    )
     .limit(1);
   return rows.length ? mapSalon(rows[0]) : null;
 }
@@ -263,7 +290,7 @@ export async function getBraidStyles(): Promise<BraidStyleDTO[]> {
 export interface SettingsProfileDTO {
   user: {
     id: string;
-    role: "salon_owner" | "braider" | "client";
+    role: UserRole;
     firstName: string;
     lastName: string;
     email: string;
@@ -556,7 +583,16 @@ export async function getOpportunities(): Promise<OpportunityDTO[]> {
     .select(OPPORTUNITY_SELECTION)
     .from(opportunities)
     .innerJoin(salons, eq(opportunities.salonId, salons.id))
+    .innerJoin(users, eq(salons.ownerId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
     .leftJoin(applications, eq(applications.opportunityId, opportunities.id))
+    .where(
+      and(
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    )
     .groupBy(opportunities.id, salons.id)
     .orderBy(desc(opportunities.createdAt));
   return rows.map(mapOpportunity);
@@ -589,8 +625,17 @@ export async function getActiveOpportunities(): Promise<OpportunityDTO[]> {
     .select(OPPORTUNITY_SELECTION)
     .from(opportunities)
     .innerJoin(salons, eq(opportunities.salonId, salons.id))
+    .innerJoin(users, eq(salons.ownerId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
     .leftJoin(applications, eq(applications.opportunityId, opportunities.id))
-    .where(eq(opportunities.isActive, true))
+    .where(
+      and(
+        eq(opportunities.isActive, true),
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    )
     .groupBy(opportunities.id, salons.id)
     .orderBy(desc(opportunities.createdAt));
   return rows.map(mapOpportunity);
@@ -601,8 +646,17 @@ export async function getOpportunityBySlug(slug: string): Promise<OpportunityDTO
     .select(OPPORTUNITY_SELECTION)
     .from(opportunities)
     .innerJoin(salons, eq(opportunities.salonId, salons.id))
+    .innerJoin(users, eq(salons.ownerId, users.id))
+    .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
     .leftJoin(applications, eq(applications.opportunityId, opportunities.id))
-    .where(eq(opportunities.slug, slug))
+    .where(
+      and(
+        eq(opportunities.slug, slug),
+        isNull(users.deletedAt),
+        eq(users.accountStatus, "active"),
+        or(isNull(serviceProviders.id), eq(serviceProviders.visibility, "listed"))
+      )
+    )
     .groupBy(opportunities.id, salons.id)
     .limit(1);
   return rows.length ? mapOpportunity(rows[0]) : null;

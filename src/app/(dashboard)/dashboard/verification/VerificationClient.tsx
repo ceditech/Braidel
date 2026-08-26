@@ -15,8 +15,11 @@ import type {
   VerificationStatusHistoryDTO,
 } from "@/lib/verification-domain";
 import {
+  MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH,
   VERIFICATION_EVIDENCE_LABELS,
+  VERIFICATION_EVIDENCE_GUIDANCE,
   VERIFICATION_STATUS_LABELS,
+  hasVerificationEvidenceProof,
 } from "@/lib/verification-domain";
 import styles from "./VerificationClient.module.css";
 
@@ -61,7 +64,11 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
     () =>
       new Set(
         evidence
-          .filter((item) => initialWorkspace.requiredEvidence.includes(item.type))
+          .filter(
+            (item) =>
+              initialWorkspace.requiredEvidence.includes(item.type) &&
+              hasVerificationEvidenceProof(item)
+          )
           .map((item) => item.type)
       ),
     [evidence, initialWorkspace.requiredEvidence]
@@ -73,6 +80,7 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
     (submittedRequiredTypes.size / initialWorkspace.requiredEvidence.length) * 100
   );
   const isLocked = LOCKED_STATUSES.includes(verification.status);
+  const selectedGuidance = VERIFICATION_EVIDENCE_GUIDANCE[type];
 
   async function addEvidence() {
     setEvidenceState("saving");
@@ -182,6 +190,9 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
                       <div>
                         <strong>{VERIFICATION_EVIDENCE_LABELS[item]}</strong>
                         <p>{checklistCopy(item)}</p>
+                        <p className={styles.checkHint}>
+                          {VERIFICATION_EVIDENCE_GUIDANCE[item].purpose}
+                        </p>
                       </div>
                       <Badge variant={matches.length ? "success" : "neutral"}>
                         {matches.length ? "Added" : "Needed"}
@@ -236,10 +247,27 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
           <aside className={styles.sideColumn}>
             <section className={styles.panel}>
               <p className={styles.eyebrow}>Add evidence</p>
-              <h2>Provider-owned submission</h2>
+              <div className={styles.headingWithTooltip}>
+                <h2>Provider-owned submission</h2>
+                <InfoTooltip
+                  label="Evidence guidance"
+                  text="Braidel accepts flexible proof: public profile links, state or city lookup pages, business websites, portfolio galleries, secure upload links, or detailed notes for private/offline documents."
+                />
+              </div>
+              <p className={styles.panelText}>
+                Add either a reviewer-accessible link or clear proof details.
+                Sensitive documents should be referenced carefully until secure
+                upload rules are finalized.
+              </p>
               <fieldset disabled={isLocked} className={styles.formStack}>
                 <label className={styles.fieldLabel}>
-                  Evidence type
+                  <span className={styles.labelWithTooltip}>
+                    Evidence type
+                    <InfoTooltip
+                      label={`${VERIFICATION_EVIDENCE_LABELS[type]} guidance`}
+                      text={`${selectedGuidance.purpose} Accepted links: ${selectedGuidance.acceptedLinks} If no link exists: ${selectedGuidance.fallbackProof}`}
+                    />
+                  </span>
                   <select
                     value={type}
                     onChange={(event) => setType(event.target.value as VerificationEvidenceType)}
@@ -263,12 +291,14 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                   rows={5}
+                  hint={`Required when no link is provided. Add at least ${MIN_VERIFICATION_PROOF_DESCRIPTION_LENGTH} characters describing what can be verified and how.`}
                 />
                 <Input
                   label="Reference link"
                   placeholder="https://..."
                   value={evidenceUrl}
                   onChange={(event) => setEvidenceUrl(event.target.value)}
+                  hint="Accepted: public profile, portfolio, business website, state/city registry, document portal, or secure upload URL. HTTP and HTTPS links are accepted."
                 />
               </fieldset>
               <Button
@@ -289,7 +319,8 @@ export function VerificationClient({ initialWorkspace }: VerificationClientProps
               <p className={styles.eyebrow}>Review readiness</p>
               <h2>Submit profile</h2>
               <p className={styles.panelText}>
-                Submit when every required evidence type has at least one record.
+                Submit when every required evidence type has at least one
+                proof-backed record. A title alone does not count as proof.
               </p>
               <Button
                 fullWidth
@@ -382,4 +413,17 @@ function CheckIcon() {
 
 function ShieldIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+}
+
+function InfoTooltip({ label, text }: { label: string; text: string }) {
+  return (
+    <span className={styles.tooltipWrap}>
+      <button type="button" className={styles.tooltipButton} aria-label={label}>
+        ?
+      </button>
+      <span className={styles.tooltipBubble} role="tooltip">
+        {text}
+      </span>
+    </span>
+  );
 }

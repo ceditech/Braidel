@@ -9,6 +9,7 @@ import {
 } from "@/db/schema";
 import type { BookingProviderDTO } from "@/lib/booking-domain";
 import type { AuthenticatedDbUser } from "@/lib/authenticated-user";
+import { hasVerificationEvidenceProof } from "@/lib/verification-domain";
 import type {
   ProviderVerificationDTO,
   ProviderVerificationWorkspaceDTO,
@@ -100,7 +101,12 @@ export async function getProviderVerificationWorkspace(
   const checklistEligibleStatuses = new Set(["submitted", "under_review", "approved"]);
   const submittedTypes = new Set(
     evidenceRows
-      .filter((item) => requiredEvidence.includes(item.type) && checklistEligibleStatuses.has(item.status))
+      .filter(
+        (item) =>
+          requiredEvidence.includes(item.type) &&
+          checklistEligibleStatuses.has(item.status) &&
+          hasVerificationEvidenceProof(item)
+      )
       .map((item) => item.type)
   );
 
@@ -143,7 +149,11 @@ export async function getEvidenceTypesForVerification(
   requiredEvidence: VerificationEvidenceType[]
 ) {
   const rows = await db
-    .select({ type: verificationEvidence.type })
+    .select({
+      type: verificationEvidence.type,
+      description: verificationEvidence.description,
+      evidenceUrl: verificationEvidence.evidenceUrl,
+    })
     .from(verificationEvidence)
     .where(
       and(
@@ -158,7 +168,7 @@ export async function getEvidenceTypesForVerification(
     );
 
   return rows
-    .filter((row) => requiredEvidence.includes(row.type))
+    .filter((row) => requiredEvidence.includes(row.type) && hasVerificationEvidenceProof(row))
     .map((row) => row.type);
 }
 

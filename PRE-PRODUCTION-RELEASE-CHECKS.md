@@ -295,8 +295,9 @@ own workstream ships.
   [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
   Provider reviews dashboard is manual-QA passed. Provider review responses and
   report intake are implemented and manual-QA passed. Verification evidence
-  foundation is implemented pending manual QA. Sensitive evidence file upload,
-  admin moderation, marketplace trust signals, and review reminders remain
+  foundation is implemented and manual-QA passed. Admin moderation is
+  implemented with development migration applied and awaits manual QA. Sensitive
+  evidence file upload, marketplace trust signals, and review reminders remain
   implementation work.
 
 ## Storage and Media
@@ -476,5 +477,27 @@ Add dated entries here as production gates are verified.
   provider-only `/dashboard/verification`, protected evidence submission and
   submit-for-review APIs, and a provider self-notification after submission.
   The migration was applied to the configured development Neon database. Manual
-  QA remains required before considering this slice complete, and
-  staging/production migration application remains a launch gate.
+  QA passed August 9, 2026, and staging/production migration application
+  remains a launch gate.
+- **August 8, 2026:** Workstream 6.3 QA follow-up added proof-quality
+  enforcement and reviewer guidance. Evidence requires either a
+  reviewer-accessible reference link or at least 40 characters of proof details;
+  title-only records do not count toward submit readiness. Pre-production QA
+  should confirm tooltip guidance, no-link fallback evidence, invalid URL
+  rejection, and title-only rejection across Salon owner and Braider accounts.
+- **August 9, 2026:** Workstream 6.3 manual QA passed. Workstream 6.4
+  admin/moderation implementation added migration `0018_spooky_tattoo.sql`,
+  `marketplace_admin_actions`, allowlist-gated `/dashboard/admin`, verification
+  decision APIs, review report decision APIs, provider notifications, and
+  verified-flag updates. Migration `0018_spooky_tattoo.sql` was applied to the
+  configured development Neon database. Before production, configure
+  `BRAIDEL_ADMIN_EMAILS`, apply the migration in staging/production, and
+  manually QA non-admin access denial, verification approve/reject flows, review
+  report resolution, audit ledger rows, notifications, and verified badge
+  readiness.
+- **August 9, 2026:** Admin onboarding hardening added migration
+  `0019_curved_silver_centurion.sql`, the internal `admin` user role, and a
+  dedicated `/admin/sign-up` -> `/admin/setup` activation path. Pre-production
+  QA must confirm allowlisted admins are not forced through marketplace role
+  onboarding and that existing onboarded marketplace accounts are not silently
+  converted into admin accounts.
