@@ -18,6 +18,7 @@ export interface AuthenticatedDbUser {
   id: string;
   clerkId: string;
   role: DbUserRole;
+  accountStatus: "active" | "suspended";
   firstName: string;
   lastName: string;
   email: string;
@@ -25,20 +26,27 @@ export interface AuthenticatedDbUser {
 }
 
 export async function getDbUserByClerkId(
-  clerkId: string
+  clerkId: string,
+  options: { includeSuspended?: boolean } = {}
 ): Promise<AuthenticatedDbUser | null> {
+  const conditions = [eq(users.clerkId, clerkId), isNull(users.deletedAt)];
+  if (!options.includeSuspended) {
+    conditions.push(eq(users.accountStatus, "active"));
+  }
+
   const [user] = await db
     .select({
       id: users.id,
       clerkId: users.clerkId,
       role: users.role,
+      accountStatus: users.accountStatus,
       firstName: users.firstName,
       lastName: users.lastName,
       email: users.email,
       onboardedAt: users.onboardedAt,
     })
     .from(users)
-    .where(and(eq(users.clerkId, clerkId), isNull(users.deletedAt)))
+    .where(and(...conditions))
     .limit(1);
 
   return user ?? null;
@@ -53,7 +61,8 @@ export async function requireOnboardedUser(): Promise<AuthenticatedDbUser> {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const user = await getDbUserByClerkId(userId);
+  const user = await getDbUserByClerkId(userId, { includeSuspended: true });
+  if (user?.accountStatus === "suspended") redirect("/account-suspended");
   if (!user?.onboardedAt) redirect("/onboarding");
 
   return user;

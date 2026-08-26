@@ -44,8 +44,8 @@ const stableItems = [
   ["Secure", "Clerk owns identity. Admins use an allowlisted setup path."],
   ["Traceable", "User lifecycle changes are recorded in the admin action log."],
   ["Accountable", "Notes are captured for moderation and account actions."],
-  ["Bounded", "Admins can soft-deactivate users but cannot self-deactivate."],
-  ["Lifecycle-safe", "Accounts are deactivated, not hard-deleted, for recovery."],
+  ["Bounded", "Admins can unlist provider profiles or suspend accounts as separate actions."],
+  ["Lifecycle-safe", "Suspension blocks access while unlisting only removes public discovery."],
   ["Evidence-ready", "Verification, reviews, and user actions remain auditable."],
 ];
 
@@ -118,7 +118,7 @@ function OverviewPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO 
         <Metric value={kpis.users.salons} label={`Salon owners - ${kpis.users.salonRate}%`} />
         <Metric value={kpis.users.braiders} label={`Braiders - ${kpis.users.braiderRate}%`} />
         <Metric value={kpis.users.clients} label={`Clients - ${kpis.users.clientRate}%`} />
-        <Metric value={kpis.users.deactivated} label="Deactivated users" />
+        <Metric value={kpis.users.suspended} label={`Suspended users - ${kpis.users.deleted} deleted records`} />
         <Metric value={kpis.messages.total} label={`${kpis.messages.last7Days} messages in 7 days`} />
         <Metric value={kpis.notifications.total} label={`${kpis.notifications.processed} notifications processed`} />
         <Metric value={kpis.bookings.completed} label="Completed bookings" />
@@ -203,12 +203,17 @@ function UsersPanel({ users }: { users: AdminUserDTO[] }) {
             >
               <span className={styles.itemTopline}>
                 <strong>{user.firstName} {user.lastName}</strong>
-                <Badge variant={user.deletedAt ? "danger" : "success"} dot>
-                  {user.deletedAt ? "deactivated" : "active"}
+                <Badge variant={user.accountStatus === "suspended" ? "danger" : "success"} dot>
+                  {user.accountStatus}
                 </Badge>
               </span>
               <span className={styles.itemMeta}>{user.profileLabel} - {user.email}</span>
-              {user.profileName && <span className={styles.itemMeta}>{user.profileName}</span>}
+              {user.profileName && (
+                <span className={styles.itemMeta}>
+                  {user.profileName}
+                  {user.providerVisibility ? ` - ${user.providerVisibility}` : ""}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -240,7 +245,14 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
   const [state, setState] = useState<"idle" | "saving">("idle");
   const [message, setMessage] = useState("");
 
-  async function runUserAction(action: "update_profile" | "deactivate" | "reactivate") {
+  async function runUserAction(
+    action:
+      | "update_profile"
+      | "suspend_account"
+      | "restore_account"
+      | "unlist_profile"
+      | "relist_profile"
+  ) {
     setState("saving");
     setMessage("");
     const response = await fetch(`/api/admin/users/${user.id}`, {
@@ -265,14 +277,15 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
           <h2>{user.firstName} {user.lastName}</h2>
           <p>{user.email}</p>
         </div>
-        <Badge variant={user.deletedAt ? "danger" : "success"} dot>
-          {user.deletedAt ? "deactivated" : "active"}
+        <Badge variant={user.accountStatus === "suspended" ? "danger" : "success"} dot>
+          {user.accountStatus}
         </Badge>
       </div>
 
       <div className={styles.userMetaGrid}>
         <InfoTile label="Role" value={user.profileLabel} />
         <InfoTile label="Profile" value={user.profileName || "Not linked"} />
+        <InfoTile label="Listing visibility" value={user.providerVisibility ?? "Not a provider"} />
         <InfoTile label="Joined" value={formatDate(user.createdAt)} />
         <InfoTile label="Onboarding" value={user.onboardedAt ? "Completed" : "Pending"} />
       </div>
@@ -309,23 +322,42 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
           >
             Save profile
           </button>
-          {user.deletedAt ? (
+          {user.providerVisibility === "unlisted" ? (
             <button
               type="button"
               disabled={state === "saving"}
               className={`${styles.decisionButton} ${styles.positive}`}
-              onClick={() => runUserAction("reactivate")}
+              onClick={() => runUserAction("relist_profile")}
             >
-              Reactivate
+              Relist profile
+            </button>
+          ) : user.providerVisibility === "listed" ? (
+            <button
+              type="button"
+              disabled={state === "saving"}
+              className={`${styles.decisionButton} ${styles.danger}`}
+              onClick={() => runUserAction("unlist_profile")}
+            >
+              Unlist profile
+            </button>
+          ) : null}
+          {user.accountStatus === "suspended" ? (
+            <button
+              type="button"
+              disabled={state === "saving"}
+              className={`${styles.decisionButton} ${styles.positive}`}
+              onClick={() => runUserAction("restore_account")}
+            >
+              Restore access
             </button>
           ) : (
             <button
               type="button"
               disabled={state === "saving"}
               className={`${styles.decisionButton} ${styles.danger}`}
-              onClick={() => runUserAction("deactivate")}
+              onClick={() => runUserAction("suspend_account")}
             >
-              Deactivate
+              Suspend account
             </button>
           )}
         </div>
@@ -334,9 +366,9 @@ function UserDetail({ user }: { user: AdminUserDTO }) {
       <div className={styles.noticeBox}>
         <strong>Create path</strong>
         <p>
-          Marketplace users should be created through the standard sign-up and
-          onboarding flows. Internal admins are created through the allowlisted
-          admin sign-up path to avoid orphaned authentication records.
+          Unlist hides a Salon/Braider from discovery and booking while keeping
+          their account available for remediation. Suspend blocks authenticated
+          dashboard and API access until an admin restores the account.
         </p>
       </div>
     </div>

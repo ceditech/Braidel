@@ -58,9 +58,18 @@
   `0020_grey_turbo.sql`, allowing `marketplace_admin_actions` to audit
   `user_account` lifecycle changes. `/dashboard/admin` now includes Performance,
   Users, Money, and Moderation tabs with Neon-backed KPIs, safe profile editing,
-  soft deactivation/reactivation, booking commission visibility, upcoming
-  affiliate/subscription lanes, and a User STABLE framework. Manual QA remains
-  pending before marking 6.4 complete.
+  initial user lifecycle controls, booking commission visibility, upcoming
+  affiliate/subscription lanes, and a User STABLE framework. Migration `0021`
+  later clarifies those lifecycle controls into explicit account suspension and
+  provider profile unlisting. Manual QA remains pending before marking 6.4
+  complete.
+- **August 26, 2026:** Slice 6.4 moderation semantics were split into two
+  explicit concepts with migration `0021_reflective_princess_powerful.sql`.
+  `users.account_status` now governs protected platform access
+  (`active`/`suspended`), while `service_providers.visibility` governs public
+  discovery and bookability (`listed`/`unlisted`). Admin actions now expose
+  **Suspend/Restore access** separately from **Unlist/Relist profile** and
+  write audit rows to `marketplace_admin_actions`.
 
 ## Purpose
 
@@ -156,10 +165,11 @@ Scope:
 - Apply moderation decisions with audit history.
   **Implemented through `marketplace_admin_actions` plus verification status
   history; manual QA pending.**
-- Restrict, suspend, or reactivate accounts/listings.
-  **Initial user-account lifecycle controls are implemented as soft
-  deactivation/reactivation with admin audit rows. Listing-level suspension and
-  appeal policy remain deferred.**
+- Restrict, suspend, restore, unlist, or relist accounts/listings.
+  **Implemented as two separate controls: account suspension blocks protected
+  dashboard/API access, while provider profile unlisting hides public discovery
+  and booking without locking remediation access. Appeals/dispute policy remains
+  deferred.**
 - Preserve evidence and decisions for audit.
   **Implemented for admin decisions; sensitive file retention policy deferred.**
 - Monitor marketplace KPIs and earnings.

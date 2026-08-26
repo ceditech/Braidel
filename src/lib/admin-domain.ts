@@ -71,7 +71,8 @@ export interface AdminKpiDTO {
   users: {
     total: number;
     active: number;
-    deactivated: number;
+    suspended: number;
+    deleted: number;
     salons: number;
     braiders: number;
     clients: number;
@@ -120,6 +121,8 @@ export interface AdminUserDTO {
   avatarUrl: string;
   onboardedAt: string | null;
   deletedAt: string | null;
+  accountStatus: "active" | "suspended";
+  providerVisibility: "listed" | "unlisted" | null;
   createdAt: string;
   profileLabel: string;
   profileName: string;

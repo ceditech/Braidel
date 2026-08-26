@@ -1,14 +1,20 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { withBookingTransaction } from "@/db/booking-db";
-import { marketplaceAdminActions, users } from "@/db/schema";
+import { braiders, marketplaceAdminActions, salons, serviceProviders, users } from "@/db/schema";
 import { getMarketplaceAdminForApi } from "@/lib/admin-auth";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const USER_ACTIONS = new Set(["update_profile", "deactivate", "reactivate"]);
+const USER_ACTIONS = new Set([
+  "update_profile",
+  "suspend_account",
+  "restore_account",
+  "unlist_profile",
+  "relist_profile",
+]);
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -61,8 +67,17 @@ export async function PATCH(
         firstName: users.firstName,
         lastName: users.lastName,
         deletedAt: users.deletedAt,
+        accountStatus: users.accountStatus,
+        providerId: serviceProviders.id,
+        providerVisibility: serviceProviders.visibility,
       })
       .from(users)
+      .leftJoin(salons, eq(users.id, salons.ownerId))
+      .leftJoin(braiders, eq(users.id, braiders.userId))
+      .leftJoin(
+        serviceProviders,
+        or(eq(serviceProviders.salonId, salons.id), eq(serviceProviders.braiderId, braiders.id))
+      )
       .where(eq(users.id, id))
       .limit(1)
   );
@@ -70,9 +85,15 @@ export async function PATCH(
   if (!targetUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
-  if (action === "deactivate" && targetUser.id === admin.id) {
+  if (action === "suspend_account" && targetUser.id === admin.id) {
     return NextResponse.json(
-      { error: "Admins cannot deactivate their own account" },
+      { error: "Admins cannot suspend their own account" },
+      { status: 400 }
+    );
+  }
+  if ((action === "unlist_profile" || action === "relist_profile") && !targetUser.providerId) {
+    return NextResponse.json(
+      { error: "This user does not have a provider profile to manage" },
       { status: 400 }
     );
   }
@@ -83,6 +104,9 @@ export async function PATCH(
     firstName: targetUser.firstName,
     lastName: targetUser.lastName,
     deletedAt: targetUser.deletedAt?.toISOString() ?? null,
+    accountStatus: targetUser.accountStatus,
+    providerId: targetUser.providerId ?? null,
+    providerVisibility: targetUser.providerVisibility ?? null,
   };
 
   let newState = previousState;
@@ -101,32 +125,50 @@ export async function PATCH(
       };
     }
 
-    if (action === "deactivate") {
+    if (action === "suspend_account") {
       await tx
         .update(users)
-        .set({ deletedAt: now, updatedAt: now })
+        .set({ accountStatus: "suspended", updatedAt: now })
         .where(eq(users.id, id));
       newState = {
         ...previousState,
-        deletedAt: now.toISOString(),
+        accountStatus: "suspended",
       };
     }
 
-    if (action === "reactivate") {
+    if (action === "restore_account") {
       await tx
         .update(users)
-        .set({ deletedAt: null, updatedAt: now })
+        .set({ accountStatus: "active", updatedAt: now })
         .where(eq(users.id, id));
       newState = {
         ...previousState,
-        deletedAt: null,
+        accountStatus: "active",
+      };
+    }
+
+    if (action === "unlist_profile" || action === "relist_profile") {
+      const providerVisibility = action === "unlist_profile" ? "unlisted" : "listed";
+      await tx
+        .update(serviceProviders)
+        .set({ visibility: providerVisibility, updatedAt: now })
+        .where(eq(serviceProviders.id, targetUser.providerId!));
+      newState = {
+        ...previousState,
+        providerVisibility,
       };
     }
 
     await tx.insert(marketplaceAdminActions).values({
       actorUserId: admin.id,
-      targetType: "user_account",
-      targetId: id,
+      targetType:
+        action === "unlist_profile" || action === "relist_profile"
+          ? "provider_profile"
+          : "user_account",
+      targetId:
+        action === "unlist_profile" || action === "relist_profile"
+          ? targetUser.providerId!
+          : id,
       action: `user_${action}`,
       previousState: JSON.stringify(previousState),
       newState: JSON.stringify(newState),

@@ -25,6 +25,16 @@ export const userRoleEnum = pgEnum("user_role", [
   "admin",
 ]);
 
+export const accountStatusEnum = pgEnum("account_status", [
+  "active",
+  "suspended",
+]);
+
+export const providerVisibilityEnum = pgEnum("provider_visibility", [
+  "listed",
+  "unlisted",
+]);
+
 export const opportunityTypeEnum = pgEnum("opportunity_type", [
   "full_time",
   "part_time",
@@ -125,6 +135,7 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   clerkId: text("clerk_id").notNull().unique(),
   role: userRoleEnum("role").notNull(),
+  accountStatus: accountStatusEnum("account_status").notNull().default("active"),
   email: text("email").notNull().unique(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -248,6 +259,7 @@ export const serviceProviders = pgTable(
       onDelete: "cascade",
     }),
     timezone: text("timezone").notNull().default("UTC"),
+    visibility: providerVisibilityEnum("visibility").notNull().default("listed"),
     isAcceptingBookings: boolean("is_accepting_bookings")
       .notNull()
       .default(false),
@@ -1111,7 +1123,7 @@ export const marketplaceAdminActions = pgTable(
     ),
     check(
       "marketplace_admin_actions_target_type_check",
-      sql`${table.targetType} in ('provider_verification', 'review_report', 'user_account')`
+      sql`${table.targetType} in ('provider_verification', 'review_report', 'user_account', 'provider_profile')`
     ),
     check(
       "marketplace_admin_actions_note_check",

@@ -263,14 +263,17 @@ export async function getBookableProviders(): Promise<BookableProviderDTO[]> {
     .where(
       and(
         eq(serviceProviders.isAcceptingBookings, true),
+        eq(serviceProviders.visibility, "listed"),
         or(
           and(
             eq(serviceProviders.providerType, "salon"),
-            isNull(salonOwner.deletedAt)
+            isNull(salonOwner.deletedAt),
+            eq(salonOwner.accountStatus, "active")
           ),
           and(
             eq(serviceProviders.providerType, "braider"),
-            isNull(braiderUser.deletedAt)
+            isNull(braiderUser.deletedAt),
+            eq(braiderUser.accountStatus, "active")
           )
         )
       )

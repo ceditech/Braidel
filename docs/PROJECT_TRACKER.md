@@ -172,6 +172,7 @@ _Data routes & business logic_
 | ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
 | ✅ | Review audit history + update notification wiring | High | 2 |
 | ✅ | Payment foundation schema + fee split helpers | High | 3 |
+| 🔄 | Marketplace admin decision APIs + explicit account/profile lifecycle controls | High | 4 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -224,10 +225,14 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    history, provider-only `/dashboard/verification`, and protected evidence
   submission APIs; manual QA passed August 9, 2026. Slice 6.4 admin/moderation
   surface is implemented with the admin portal expanded to include live KPI
-  dashboard metrics, user lifecycle management, money/earning visibility, the
-  User STABLE framework, and the original moderation queues. Development
-  migrations are applied and manual QA is pending. Remaining planned slices:
-  marketplace trust signals and capped Client review reminders. Planning record:
+  dashboard metrics, explicit account suspension versus provider profile
+  unlisting controls, money/earning visibility, the User STABLE framework, and
+  the original moderation queues. Migration
+  `0021_reflective_princess_powerful.sql` adds `users.account_status` and
+  `service_providers.visibility` so suspension blocks protected access while
+  unlisting only hides public discovery/bookability. Development migrations are
+  applied and manual QA is pending. Remaining planned slices: marketplace trust
+  signals and capped Client review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -320,5 +325,8 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `0020_grey_turbo.sql`, extending `marketplace_admin_actions` to audit
   `user_account` lifecycle changes. `/dashboard/admin` now includes Performance,
   Users, Money, and Moderation tabs with Neon-backed KPIs, safe user profile
-  editing, soft deactivation/reactivation, booking commission visibility,
-  upcoming affiliate/subscription lanes, and a User STABLE governance panel.
+  editing, booking commission visibility, upcoming affiliate/subscription lanes,
+  and a User STABLE governance panel. Migration
+  `0021_reflective_princess_powerful.sql` later split lifecycle moderation into
+  explicit account suspension/restoration and provider profile
+  unlisting/relisting.

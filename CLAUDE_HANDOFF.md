@@ -93,12 +93,18 @@ src/
 
 ## 4. Database Schema (Neon)
 
-Nineteen tables, all migrated and live: users/profiles, marketplace listings,
+Core marketplace tables are migrated and live: users/profiles, marketplace listings,
 opportunities/applications, booking/availability, messages, ratings,
 `rating_history`, portfolio media, notifications, and notification preferences.
 Full definitions and relations are in [`src/db/schema.ts`](src/db/schema.ts).
 
 - `users.clerkId` links a row to the Clerk user (auth source of truth).
+- `users.accountStatus` controls authenticated platform access. `active`
+  accounts can use protected dashboard/API flows; `suspended` accounts are
+  redirected to `/account-suspended`.
+- `service_providers.visibility` controls public marketplace presence.
+  `unlisted` providers are hidden from Find Braiders, Find Salons, public
+  Opportunities, and bookable provider discovery without locking the account.
 - `users.onboardedAt` distinguishes identity rows created by Clerk sync from
   accounts that have explicitly completed role selection. Migration `0010`
   backfills existing accounts and leaves future pre-onboarding rows nullable.
@@ -562,8 +568,14 @@ Admin portal expansion added `0020_grey_turbo.sql`, widening
 `/dashboard/admin` now has Performance, Users, Money, and Moderation tabs.
 Performance reads live Neon KPIs for users, providers, messages,
 notifications, booking lifecycle totals, and booking commissions. Users adds
-search/filter, profile-name editing, soft deactivation/reactivation, and a
-visible STABLE governance framework. Money shows booking commissions while
+search/filter, profile-name editing, and a visible STABLE governance framework.
+Follow-up migration `0021_reflective_princess_powerful.sql` replaced the
+ambiguous “deactivate” moderation behavior with two explicit controls:
+**Unlist profile** updates `service_providers.visibility` and removes
+Salon/Braider providers from public discovery/bookability while preserving
+account access; **Suspend account** updates `users.accountStatus` and blocks
+protected dashboard/API access until restored. `deletedAt` is now reserved for
+Clerk deletion/tombstone sync, not ordinary moderation. Money shows booking commissions while
 marking affiliate and subscription lanes as upcoming. The original verification
 and review-report moderation queues remain under the Moderation tab. Manual QA
 for the expanded 6.4 admin surface is next.

@@ -169,7 +169,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Provider reviews dashboard", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026 for provider access, client redirect protection, scoped data, drawer details, booking deep links, and responsive light/dark checks." },
       { title: "Provider review responses + report intake", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 1, 2026. Migration 0016_absurd_slyde.sql added provider response create/update with Client notifications, response audit history, appointment drawer visibility, and one provider report per review." },
       { title: "Verification evidence foundation", status: "done", priority: "high", phase: 4, note: "Manual QA passed August 9, 2026 after proof-quality enforcement was added. Migration 0017_flat_leopardon.sql added provider verification profiles, evidence records, status history, provider-only /dashboard/verification, and protected evidence/submit APIs." },
-      { title: "Admin and moderation surface", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, and 0020_grey_turbo.sql. /dashboard/admin now has Performance, Users, Money, and Moderation tabs with live KPIs, safe user profile edits, soft deactivation/reactivation, user-account audit actions, booking commission visibility, and the original verification/review-report moderation queues. Development migrations are applied; manual QA is pending." },
+      { title: "Admin and moderation surface", status: "in_progress", priority: "high", phase: 4, note: "Implementation added migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, 0020_grey_turbo.sql, and 0021_reflective_princess_powerful.sql. /dashboard/admin now has Performance, Users, Money, and Moderation tabs with live KPIs, safe user profile edits, explicit account suspension/restoration, provider profile unlisting/relisting, audited admin actions, booking commission visibility, and the original verification/review-report moderation queues. Development migrations are applied; manual QA is pending." },
     ],
   },
   {
@@ -195,7 +195,7 @@ export const ROADMAP: RoadmapGroup[] = [
       { title: "Payment foundation schema + fee split helpers", status: "done", priority: "high", phase: 3 },
       { title: "Provider review response/report APIs", status: "done", priority: "high", phase: 4 },
       { title: "Provider verification evidence APIs", status: "done", priority: "high", phase: 4 },
-      { title: "Marketplace admin decision APIs + user lifecycle controls", status: "in_progress", priority: "high", phase: 4 },
+      { title: "Marketplace admin decision APIs + explicit account/profile lifecycle controls", status: "in_progress", priority: "high", phase: 4, note: "Migration 0021_reflective_princess_powerful.sql splits moderation into accountStatus active/suspended for protected access and provider visibility listed/unlisted for public discovery/bookability. Admin actions now audit Suspend/Restore access separately from Unlist/Relist profile." },
     ],
   },
   {
@@ -243,7 +243,7 @@ export const ROADMAP: RoadmapGroup[] = [
         status: "in_progress",
         priority: "high",
         phase: 4,
-        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation passed manual QA on August 9, 2026. Slice 6.4 admin/moderation surface is implemented with migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, and 0020_grey_turbo.sql applied to development and awaits manual QA. Remaining order: trust signals in marketplace discovery, then capped Client review reminders.",
+        note: "Provider reviews dashboard and Slice 6.2 provider responses/report intake both passed manual QA on August 1, 2026. Slice 6.3 verification evidence foundation passed manual QA on August 9, 2026. Slice 6.4 admin/moderation surface is implemented with migrations 0018_spooky_tattoo.sql, 0019_curved_silver_centurion.sql, 0020_grey_turbo.sql, and 0021_reflective_princess_powerful.sql applied to development. Admin lifecycle controls now distinguish profile unlisting from account suspension. Manual QA remains pending. Remaining order: trust signals in marketplace discovery, then capped Client review reminders.",
       },
       {
         title: "7. Ecosystem expansion: Academy, Supply, Franchise + mobile",

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
@@ -91,12 +91,13 @@ export async function getAdminKpis(): Promise<AdminKpiDTO> {
     db
       .select({
         total: sql<number>`count(*)::int`,
-        active: sql<number>`count(*) filter (where ${users.deletedAt} is null)::int`,
-        deactivated: sql<number>`count(*) filter (where ${users.deletedAt} is not null)::int`,
-        salons: sql<number>`count(*) filter (where ${users.role} = 'salon_owner' and ${users.deletedAt} is null)::int`,
-        braiders: sql<number>`count(*) filter (where ${users.role} = 'braider' and ${users.deletedAt} is null)::int`,
-        clients: sql<number>`count(*) filter (where ${users.role} = 'client' and ${users.deletedAt} is null)::int`,
-        admins: sql<number>`count(*) filter (where ${users.role} = 'admin' and ${users.deletedAt} is null)::int`,
+        active: sql<number>`count(*) filter (where ${users.deletedAt} is null and ${users.accountStatus} = 'active')::int`,
+        suspended: sql<number>`count(*) filter (where ${users.deletedAt} is null and ${users.accountStatus} = 'suspended')::int`,
+        deleted: sql<number>`count(*) filter (where ${users.deletedAt} is not null)::int`,
+        salons: sql<number>`count(*) filter (where ${users.role} = 'salon_owner' and ${users.deletedAt} is null and ${users.accountStatus} = 'active')::int`,
+        braiders: sql<number>`count(*) filter (where ${users.role} = 'braider' and ${users.deletedAt} is null and ${users.accountStatus} = 'active')::int`,
+        clients: sql<number>`count(*) filter (where ${users.role} = 'client' and ${users.deletedAt} is null and ${users.accountStatus} = 'active')::int`,
+        admins: sql<number>`count(*) filter (where ${users.role} = 'admin' and ${users.deletedAt} is null and ${users.accountStatus} = 'active')::int`,
       })
       .from(users),
     db
@@ -151,7 +152,8 @@ export async function getAdminKpis(): Promise<AdminKpiDTO> {
     users: {
       total: userCounts?.total ?? 0,
       active: activeUsers,
-      deactivated: userCounts?.deactivated ?? 0,
+      suspended: userCounts?.suspended ?? 0,
+      deleted: userCounts?.deleted ?? 0,
       salons: userCounts?.salons ?? 0,
       braiders: userCounts?.braiders ?? 0,
       clients: userCounts?.clients ?? 0,
@@ -203,6 +205,8 @@ export async function getAdminUsers(): Promise<AdminUserDTO[]> {
       avatarUrl: users.avatarUrl,
       onboardedAt: users.onboardedAt,
       deletedAt: users.deletedAt,
+      accountStatus: users.accountStatus,
+      providerVisibility: serviceProviders.visibility,
       createdAt: users.createdAt,
       salonName: salons.name,
       braiderSlug: braiders.slug,
@@ -211,6 +215,10 @@ export async function getAdminUsers(): Promise<AdminUserDTO[]> {
     .from(users)
     .leftJoin(salons, eq(users.id, salons.ownerId))
     .leftJoin(braiders, eq(users.id, braiders.userId))
+    .leftJoin(
+      serviceProviders,
+      or(eq(serviceProviders.salonId, salons.id), eq(serviceProviders.braiderId, braiders.id))
+    )
     .orderBy(desc(users.createdAt))
     .limit(80);
 
@@ -223,6 +231,8 @@ export async function getAdminUsers(): Promise<AdminUserDTO[]> {
     avatarUrl: row.avatarUrl ?? "",
     onboardedAt: row.onboardedAt?.toISOString() ?? null,
     deletedAt: row.deletedAt?.toISOString() ?? null,
+    accountStatus: row.accountStatus,
+    providerVisibility: row.providerVisibility ?? null,
     createdAt: row.createdAt.toISOString(),
     profileLabel: roleLabel(row.role),
     profileName:
