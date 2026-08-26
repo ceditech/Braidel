@@ -1111,7 +1111,7 @@ export const marketplaceAdminActions = pgTable(
     ),
     check(
       "marketplace_admin_actions_target_type_check",
-      sql`${table.targetType} in ('provider_verification', 'review_report')`
+      sql`${table.targetType} in ('provider_verification', 'review_report', 'user_account')`
     ),
     check(
       "marketplace_admin_actions_note_check",

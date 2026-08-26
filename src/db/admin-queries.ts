@@ -4,9 +4,12 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
+  bookingPayments,
   bookings,
   braiders,
   marketplaceAdminActions,
+  messages,
+  notifications,
   providerVerifications,
   ratings,
   reviewReports,
@@ -17,7 +20,9 @@ import {
   verificationStatusHistory,
 } from "@/db/schema";
 import type {
+  AdminKpiDTO,
   AdminReviewReportQueueItemDTO,
+  AdminUserDTO,
   AdminVerificationQueueItemDTO,
   MarketplaceAdminDashboardDTO,
 } from "@/lib/admin-domain";
@@ -48,7 +53,9 @@ const REVIEW_REPORT_QUEUE_STATUSES = [
 ] as const;
 
 export async function getMarketplaceAdminDashboard(): Promise<MarketplaceAdminDashboardDTO> {
-  const [verifications, reviewReports, [completedDecisions]] = await Promise.all([
+  const [kpis, usersList, verifications, reviewReports, [completedDecisions]] = await Promise.all([
+    getAdminKpis(),
+    getAdminUsers(),
     getAdminVerificationQueue(),
     getAdminReviewReportQueue(),
     db
@@ -57,6 +64,8 @@ export async function getMarketplaceAdminDashboard(): Promise<MarketplaceAdminDa
   ]);
 
   return {
+    kpis,
+    users: usersList,
     stats: {
       pendingVerifications: verifications.filter((item) => item.status === "submitted").length,
       reportedReviews: reviewReports.filter((item) => item.status === "submitted").length,
@@ -68,6 +77,159 @@ export async function getMarketplaceAdminDashboard(): Promise<MarketplaceAdminDa
     verifications,
     reviewReports,
   };
+}
+
+export async function getAdminKpis(): Promise<AdminKpiDTO> {
+  const [
+    [userCounts],
+    [providerCounts],
+    [messageCounts],
+    [notificationCounts],
+    [bookingCounts],
+    [moneyCounts],
+  ] = await Promise.all([
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        active: sql<number>`count(*) filter (where ${users.deletedAt} is null)::int`,
+        deactivated: sql<number>`count(*) filter (where ${users.deletedAt} is not null)::int`,
+        salons: sql<number>`count(*) filter (where ${users.role} = 'salon_owner' and ${users.deletedAt} is null)::int`,
+        braiders: sql<number>`count(*) filter (where ${users.role} = 'braider' and ${users.deletedAt} is null)::int`,
+        clients: sql<number>`count(*) filter (where ${users.role} = 'client' and ${users.deletedAt} is null)::int`,
+        admins: sql<number>`count(*) filter (where ${users.role} = 'admin' and ${users.deletedAt} is null)::int`,
+      })
+      .from(users),
+    db
+      .select({
+        salons: sql<number>`count(*)::int`,
+        verifiedSalons: sql<number>`count(*) filter (where ${salons.isVerified} = true)::int`,
+      })
+      .from(salons),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        last7Days: sql<number>`count(*) filter (where ${messages.createdAt} >= now() - interval '7 days')::int`,
+      })
+      .from(messages),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        unread: sql<number>`count(*) filter (where ${notifications.readAt} is null)::int`,
+        processed: sql<number>`count(*) filter (where ${notifications.readAt} is not null)::int`,
+      })
+      .from(notifications),
+    db
+      .select({
+        total: sql<number>`count(*)::int`,
+        requested: sql<number>`count(*) filter (where ${bookings.status} = 'requested')::int`,
+        confirmed: sql<number>`count(*) filter (where ${bookings.status} = 'confirmed')::int`,
+        completed: sql<number>`count(*) filter (where ${bookings.status} = 'completed')::int`,
+        cancelled: sql<number>`count(*) filter (where ${bookings.status} = 'cancelled')::int`,
+        declined: sql<number>`count(*) filter (where ${bookings.status} = 'declined')::int`,
+        noShow: sql<number>`count(*) filter (where ${bookings.status} = 'no_show')::int`,
+      })
+      .from(bookings),
+    db
+      .select({
+        bookingCommissionsCents: sql<number>`coalesce(sum(${bookingPayments.applicationFeeCents}) filter (where ${bookingPayments.status} in ('succeeded', 'partially_refunded')), 0)::int`,
+      })
+      .from(bookingPayments),
+  ]);
+
+  const providerBraiderCounts = await db
+    .select({
+      braiders: sql<number>`count(*)::int`,
+      verifiedBraiders: sql<number>`count(*) filter (where ${braiders.isVerified} = true)::int`,
+    })
+    .from(braiders);
+
+  const activeUsers = userCounts?.active ?? 0;
+  const share = (count: number) =>
+    activeUsers > 0 ? Math.round((count / activeUsers) * 100) : 0;
+
+  return {
+    users: {
+      total: userCounts?.total ?? 0,
+      active: activeUsers,
+      deactivated: userCounts?.deactivated ?? 0,
+      salons: userCounts?.salons ?? 0,
+      braiders: userCounts?.braiders ?? 0,
+      clients: userCounts?.clients ?? 0,
+      admins: userCounts?.admins ?? 0,
+      salonRate: share(userCounts?.salons ?? 0),
+      braiderRate: share(userCounts?.braiders ?? 0),
+      clientRate: share(userCounts?.clients ?? 0),
+    },
+    providers: {
+      salons: providerCounts?.salons ?? 0,
+      braiders: providerBraiderCounts[0]?.braiders ?? 0,
+      verifiedSalons: providerCounts?.verifiedSalons ?? 0,
+      verifiedBraiders: providerBraiderCounts[0]?.verifiedBraiders ?? 0,
+    },
+    messages: {
+      total: messageCounts?.total ?? 0,
+      last7Days: messageCounts?.last7Days ?? 0,
+    },
+    notifications: {
+      total: notificationCounts?.total ?? 0,
+      unread: notificationCounts?.unread ?? 0,
+      processed: notificationCounts?.processed ?? 0,
+    },
+    bookings: {
+      total: bookingCounts?.total ?? 0,
+      requested: bookingCounts?.requested ?? 0,
+      confirmed: bookingCounts?.confirmed ?? 0,
+      completed: bookingCounts?.completed ?? 0,
+      cancelled: bookingCounts?.cancelled ?? 0,
+      declined: bookingCounts?.declined ?? 0,
+      noShow: bookingCounts?.noShow ?? 0,
+    },
+    money: {
+      bookingCommissionsCents: moneyCounts?.bookingCommissionsCents ?? 0,
+      affiliateCommissionsCents: 0,
+      subscriptionEarningsCents: 0,
+    },
+  };
+}
+
+export async function getAdminUsers(): Promise<AdminUserDTO[]> {
+  const rows = await db
+    .select({
+      id: users.id,
+      role: users.role,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      avatarUrl: users.avatarUrl,
+      onboardedAt: users.onboardedAt,
+      deletedAt: users.deletedAt,
+      createdAt: users.createdAt,
+      salonName: salons.name,
+      braiderSlug: braiders.slug,
+      clientCity: sql<string | null>`null`,
+    })
+    .from(users)
+    .leftJoin(salons, eq(users.id, salons.ownerId))
+    .leftJoin(braiders, eq(users.id, braiders.userId))
+    .orderBy(desc(users.createdAt))
+    .limit(80);
+
+  return rows.map((row) => ({
+    id: row.id,
+    role: row.role,
+    email: row.email,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    avatarUrl: row.avatarUrl ?? "",
+    onboardedAt: row.onboardedAt?.toISOString() ?? null,
+    deletedAt: row.deletedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    profileLabel: roleLabel(row.role),
+    profileName:
+      row.salonName ??
+      (row.role === "braider" ? row.braiderSlug ?? "Braider profile" : "") ??
+      "",
+  }));
 }
 
 export async function getAdminVerificationQueue(): Promise<AdminVerificationQueueItemDTO[]> {
@@ -253,6 +415,13 @@ export async function getReviewReportForAdminDecision(id: string) {
 
 export function adminQueuePaths() {
   return ["/dashboard/admin", "/dashboard/verification", "/dashboard/reviews"];
+}
+
+function roleLabel(role: AdminUserDTO["role"]) {
+  if (role === "salon_owner") return "Salon owner";
+  if (role === "braider") return "Braider";
+  if (role === "client") return "Client";
+  return "Admin";
 }
 
 function mapVerificationHistory(item: VerificationHistoryRow): VerificationStatusHistoryDTO {

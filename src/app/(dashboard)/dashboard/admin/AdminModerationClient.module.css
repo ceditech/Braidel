@@ -1,8 +1,115 @@
 .page {
   width: 100%;
-  max-width: 1600px;
+  max-width: 1680px;
   margin: 0 auto;
   padding: 32px;
+}
+
+.portalTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.portalTabs button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.portalTabActive {
+  border-color: var(--border-default) !important;
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-card)) !important;
+  color: var(--text-strong) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.portalStack {
+  display: grid;
+  gap: 20px;
+}
+
+.heroPanel,
+.panelCard,
+.metricCard,
+.queuePanel,
+.detailPanel,
+.moneyCard {
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.heroPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .46fr);
+  gap: 24px;
+  align-items: end;
+  min-height: 260px;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  overflow: hidden;
+}
+
+.heroPanel h2,
+.panelCard h2 {
+  max-width: 780px;
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(28px, 4vw, 56px);
+  line-height: 1.02;
+}
+
+.heroPanel p,
+.panelCard p,
+.moneyCard p,
+.stableGrid p,
+.noticeBox p {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  line-height: 1.58;
+}
+
+.heroNumbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.heroNumbers div,
+.lifecycleGrid div,
+.userMetaGrid div,
+.stableGrid article,
+.noticeBox {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  padding: 14px;
+}
+
+.heroNumbers strong {
+  display: block;
+  color: var(--text-strong);
+  font-size: 24px;
+}
+
+.heroNumbers span,
+.lifecycleGrid span,
+.userMetaGrid span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .statsGrid {
@@ -10,14 +117,6 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 20px;
-}
-
-.metricCard,
-.queuePanel,
-.detailPanel {
-  border: 1px solid var(--border-default);
-  background: var(--surface-card);
-  box-shadow: var(--shadow-sm);
 }
 
 .metricCard {
@@ -40,11 +139,74 @@
   color: var(--text-muted);
 }
 
+.splitGrid,
+.moneyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.moneyGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panelCard,
+.moneyCard {
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.lifecycleGrid,
+.userMetaGrid,
+.stableGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.lifecycleGrid strong,
+.userMetaGrid strong,
+.stableGrid strong {
+  display: block;
+  color: var(--text-strong);
+}
+
+.lifecycleGrid strong {
+  font-size: 28px;
+}
+
+.moneyCard {
+  min-height: 240px;
+}
+
+.moneyCard span {
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.moneyCard h2 {
+  margin: 28px 0 8px;
+  color: var(--text-strong);
+  font-size: clamp(34px, 4vw, 54px);
+}
+
+.moneyCard strong {
+  color: var(--text-strong);
+}
+
 .workspace {
   display: grid;
-  grid-template-columns: minmax(300px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: minmax(300px, .42fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+.fullSpan {
+  grid-column: 1 / -1;
 }
 
 .queuePanel,
@@ -54,6 +216,36 @@
 
 .queuePanel {
   overflow: hidden;
+}
+
+.filterBar {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+
+.filterBar input,
+.filterBar select,
+.decisionBox input,
+.decisionBox textarea {
+  width: 100%;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-body);
+  padding: 12px;
+  font: inherit;
+}
+
+.filterBar input:focus-visible,
+.filterBar select:focus-visible,
+.decisionBox input:focus-visible,
+.decisionBox textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--shadow-focus);
 }
 
 .tabs {
@@ -236,18 +428,6 @@
 .decisionBox textarea {
   min-height: 104px;
   resize: vertical;
-  border: 1.5px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  color: var(--text-body);
-  padding: 12px;
-  font: inherit;
-}
-
-.decisionBox textarea:focus-visible {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: var(--shadow-focus);
 }
 
 .decisionButton {
@@ -299,18 +479,46 @@
   min-height: 220px;
 }
 
-.emptyState strong {
+.emptyState strong,
+.noticeBox strong {
   color: var(--text-strong);
 }
 
-@media (max-width: 920px) {
-  .page {
-    padding: 20px 16px 96px;
+@media (max-width: 1100px) {
+  .heroPanel,
+  .splitGrid,
+  .moneyGrid,
+  .workspace {
+    grid-template-columns: 1fr;
   }
 
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px 14px 96px;
+  }
+
+  .portalTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heroPanel,
+  .panelCard,
+  .detailPanel {
+    padding: 18px;
+  }
+
+  .heroNumbers,
   .statsGrid,
-  .workspace,
-  .evidenceGrid {
+  .evidenceGrid,
+  .lifecycleGrid,
+  .userMetaGrid,
+  .stableGrid {
     grid-template-columns: 1fr;
   }
 

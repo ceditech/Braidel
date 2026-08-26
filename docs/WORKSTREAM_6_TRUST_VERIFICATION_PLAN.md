@@ -4,7 +4,7 @@
 >
 > Status: in progress.
 >
-> Last updated: August 1, 2026
+> Last updated: August 9, 2026
 
 ## Progress Notes
 
@@ -54,6 +54,13 @@
   `0019_curved_silver_centurion.sql` and a separate `/admin/sign-up` ->
   `/admin/setup` activation path. Allowlisted admins now receive an internal
   `admin` role without creating marketplace profile records.
+- **August 9, 2026:** Slice 6.4 admin portal expansion added migration
+  `0020_grey_turbo.sql`, allowing `marketplace_admin_actions` to audit
+  `user_account` lifecycle changes. `/dashboard/admin` now includes Performance,
+  Users, Money, and Moderation tabs with Neon-backed KPIs, safe profile editing,
+  soft deactivation/reactivation, booking commission visibility, upcoming
+  affiliate/subscription lanes, and a User STABLE framework. Manual QA remains
+  pending before marking 6.4 complete.
 
 ## Purpose
 
@@ -150,10 +157,15 @@ Scope:
   **Implemented through `marketplace_admin_actions` plus verification status
   history; manual QA pending.**
 - Restrict, suspend, or reactivate accounts/listings.
-  **Deferred beyond initial 6.4 to avoid broad account-control risk before
-  moderation policy is finalized.**
+  **Initial user-account lifecycle controls are implemented as soft
+  deactivation/reactivation with admin audit rows. Listing-level suspension and
+  appeal policy remain deferred.**
 - Preserve evidence and decisions for audit.
   **Implemented for admin decisions; sensitive file retention policy deferred.**
+- Monitor marketplace KPIs and earnings.
+  **Implemented with live admin Performance and Money tabs. Affiliate and
+  subscription earnings remain upcoming placeholders until business rules are
+  finalized.**
 
 This can begin as a protected internal dashboard route before adding more
 advanced queues or role-specific admin permissions.

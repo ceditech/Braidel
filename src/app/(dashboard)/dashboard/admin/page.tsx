@@ -12,8 +12,8 @@ export default async function AdminModerationPage() {
   return (
     <>
       <Topbar
-        title="Admin moderation"
-        subtitle="Review verification submissions and reported reviews with audit-backed decisions."
+        title="Admin portal"
+        subtitle="Monitor marketplace performance, manage user lifecycle, and review trust queues."
       />
       <AdminModerationClient initialDashboard={dashboard} />
     </>

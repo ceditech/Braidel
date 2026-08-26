@@ -557,6 +557,17 @@ internal admin account without selecting a Salon/Braider/Client marketplace
 role or creating marketplace profile records. The normal `/onboarding` page
 redirects allowlisted, non-onboarded admins into this setup path.
 
+Admin portal expansion added `0020_grey_turbo.sql`, widening
+`marketplace_admin_actions` so user-account lifecycle changes can be audited.
+`/dashboard/admin` now has Performance, Users, Money, and Moderation tabs.
+Performance reads live Neon KPIs for users, providers, messages,
+notifications, booking lifecycle totals, and booking commissions. Users adds
+search/filter, profile-name editing, soft deactivation/reactivation, and a
+visible STABLE governance framework. Money shows booking commissions while
+marking affiliate and subscription lanes as upcoming. The original verification
+and review-report moderation queues remain under the Moderation tab. Manual QA
+for the expanded 6.4 admin surface is next.
+
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation
 remains deferred until a stable staging or production URL exists.

@@ -223,9 +223,11 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    provider verification profiles, evidence metadata/reference records, status
    history, provider-only `/dashboard/verification`, and protected evidence
   submission APIs; manual QA passed August 9, 2026. Slice 6.4 admin/moderation
-  surface is implemented with development migration applied and awaits manual
-  QA. Remaining planned slices: marketplace trust signals and capped Client
-  review reminders. Planning record:
+  surface is implemented with the admin portal expanded to include live KPI
+  dashboard metrics, user lifecycle management, money/earning visibility, the
+  User STABLE framework, and the original moderation queues. Development
+  migrations are applied and manual QA is pending. Remaining planned slices:
+  marketplace trust signals and capped Client review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -314,3 +316,9 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `/api/admin/onboarding`. Allowlisted admins can activate internal access
   without selecting a marketplace onboarding role or creating Salon/Braider/
   Client profile records.
+- **August 9, 2026:** Admin portal expansion added migration
+  `0020_grey_turbo.sql`, extending `marketplace_admin_actions` to audit
+  `user_account` lifecycle changes. `/dashboard/admin` now includes Performance,
+  Users, Money, and Moderation tabs with Neon-backed KPIs, safe user profile
+  editing, soft deactivation/reactivation, booking commission visibility,
+  upcoming affiliate/subscription lanes, and a User STABLE governance panel.

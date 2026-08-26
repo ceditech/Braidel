@@ -67,7 +67,67 @@ export interface AdminReviewReportQueueItemDTO {
   updatedAt: string;
 }
 
+export interface AdminKpiDTO {
+  users: {
+    total: number;
+    active: number;
+    deactivated: number;
+    salons: number;
+    braiders: number;
+    clients: number;
+    admins: number;
+    salonRate: number;
+    braiderRate: number;
+    clientRate: number;
+  };
+  providers: {
+    salons: number;
+    braiders: number;
+    verifiedSalons: number;
+    verifiedBraiders: number;
+  };
+  messages: {
+    total: number;
+    last7Days: number;
+  };
+  notifications: {
+    total: number;
+    unread: number;
+    processed: number;
+  };
+  bookings: {
+    total: number;
+    requested: number;
+    confirmed: number;
+    completed: number;
+    cancelled: number;
+    declined: number;
+    noShow: number;
+  };
+  money: {
+    bookingCommissionsCents: number;
+    affiliateCommissionsCents: number;
+    subscriptionEarningsCents: number;
+  };
+}
+
+export interface AdminUserDTO {
+  id: string;
+  role: "salon_owner" | "braider" | "client" | "admin";
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+  onboardedAt: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  profileLabel: string;
+  profileName: string;
+}
+
 export interface MarketplaceAdminDashboardDTO {
+  kpis: AdminKpiDTO;
+  users: AdminUserDTO[];
   stats: {
     pendingVerifications: number;
     reportedReviews: number;

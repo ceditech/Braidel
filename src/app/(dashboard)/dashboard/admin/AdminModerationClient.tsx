@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import type {
   AdminReviewReportDecision,
   AdminReviewReportQueueItemDTO,
+  AdminUserDTO,
   AdminVerificationDecision,
   AdminVerificationQueueItemDTO,
   MarketplaceAdminDashboardDTO,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/verification-domain";
 import styles from "./AdminModerationClient.module.css";
 
+type PortalTab = "overview" | "users" | "money" | "moderation";
 type QueueTab = "verifications" | "reports";
 
 const verificationDecisions: Array<{
@@ -38,18 +40,352 @@ const reportDecisions: Array<{
   { value: "dismissed", label: "Dismiss", intent: "danger" },
 ];
 
+const stableItems = [
+  ["Secure", "Clerk owns identity. Admins use an allowlisted setup path."],
+  ["Traceable", "User lifecycle changes are recorded in the admin action log."],
+  ["Accountable", "Notes are captured for moderation and account actions."],
+  ["Bounded", "Admins can soft-deactivate users but cannot self-deactivate."],
+  ["Lifecycle-safe", "Accounts are deactivated, not hard-deleted, for recovery."],
+  ["Evidence-ready", "Verification, reviews, and user actions remain auditable."],
+];
+
 export function AdminModerationClient({
   initialDashboard,
 }: {
   initialDashboard: MarketplaceAdminDashboardDTO;
 }) {
   const [dashboard] = useState(initialDashboard);
+  const [portalTab, setPortalTab] = useState<PortalTab>("overview");
+
+  return (
+    <main className={styles.page}>
+      <nav className={styles.portalTabs} aria-label="Admin portal sections">
+        <TabButton label="Performance" active={portalTab === "overview"} onClick={() => setPortalTab("overview")} />
+        <TabButton label="Users" active={portalTab === "users"} onClick={() => setPortalTab("users")} />
+        <TabButton label="Money" active={portalTab === "money"} onClick={() => setPortalTab("money")} />
+        <TabButton label="Moderation" active={portalTab === "moderation"} onClick={() => setPortalTab("moderation")} />
+      </nav>
+
+      {portalTab === "overview" && <OverviewPanel dashboard={dashboard} />}
+      {portalTab === "users" && <UsersPanel users={dashboard.users} />}
+      {portalTab === "money" && <MoneyPanel dashboard={dashboard} />}
+      {portalTab === "moderation" && <ModerationPanel dashboard={dashboard} />}
+    </main>
+  );
+}
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={active ? styles.portalTabActive : undefined}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+}
+
+function OverviewPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO }) {
+  const { kpis } = dashboard;
+  return (
+    <div className={styles.portalStack}>
+      <section className={styles.heroPanel}>
+        <div>
+          <p className={styles.eyebrow}>Marketplace command center</p>
+          <h2>Operational visibility across trust, bookings, users, and revenue.</h2>
+          <p>
+            These metrics are pulled from Neon so admins can read the health of the
+            marketplace before making moderation or lifecycle decisions.
+          </p>
+        </div>
+        <div className={styles.heroNumbers}>
+          <MiniStat value={kpis.users.active} label="Active users" />
+          <MiniStat value={kpis.bookings.total} label="Bookings" />
+          <MiniStat value={formatCurrency(kpis.money.bookingCommissionsCents)} label="Booking commissions" />
+        </div>
+      </section>
+
+      <section className={styles.statsGrid} aria-label="Admin KPI summary">
+        <Metric value={kpis.users.salons} label={`Salon owners - ${kpis.users.salonRate}%`} />
+        <Metric value={kpis.users.braiders} label={`Braiders - ${kpis.users.braiderRate}%`} />
+        <Metric value={kpis.users.clients} label={`Clients - ${kpis.users.clientRate}%`} />
+        <Metric value={kpis.users.deactivated} label="Deactivated users" />
+        <Metric value={kpis.messages.total} label={`${kpis.messages.last7Days} messages in 7 days`} />
+        <Metric value={kpis.notifications.total} label={`${kpis.notifications.processed} notifications processed`} />
+        <Metric value={kpis.bookings.completed} label="Completed bookings" />
+        <Metric value={dashboard.stats.completedDecisions} label="Admin decisions" />
+      </section>
+
+      <section className={styles.splitGrid}>
+        <div className={styles.panelCard}>
+          <p className={styles.eyebrow}>Booking lifecycle</p>
+          <LifecycleGrid
+            items={[
+              ["Requested", kpis.bookings.requested],
+              ["Confirmed", kpis.bookings.confirmed],
+              ["Completed", kpis.bookings.completed],
+              ["Cancelled", kpis.bookings.cancelled],
+              ["Declined", kpis.bookings.declined],
+              ["No-show", kpis.bookings.noShow],
+            ]}
+          />
+        </div>
+        <div className={styles.panelCard}>
+          <p className={styles.eyebrow}>Provider verification</p>
+          <LifecycleGrid
+            items={[
+              ["Salon profiles", kpis.providers.salons],
+              ["Verified salons", kpis.providers.verifiedSalons],
+              ["Braider profiles", kpis.providers.braiders],
+              ["Verified braiders", kpis.providers.verifiedBraiders],
+              ["Verification queue", dashboard.stats.pendingVerifications],
+              ["Reported reviews", dashboard.stats.reportedReviews],
+            ]}
+          />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function UsersPanel({ users }: { users: AdminUserDTO[] }) {
+  const [selectedId, setSelectedId] = useState(users[0]?.id ?? "");
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState("all");
+  const selectedUser =
+    users.find((user) => user.id === selectedId) ?? users[0] ?? null;
+
+  const filteredUsers = users.filter((user) => {
+    const haystack = `${user.firstName} ${user.lastName} ${user.email} ${user.profileLabel}`.toLowerCase();
+    const matchesQuery = haystack.includes(query.toLowerCase());
+    const matchesRole = role === "all" || user.role === role;
+    return matchesQuery && matchesRole;
+  });
+
+  return (
+    <section className={styles.workspace}>
+      <aside className={styles.queuePanel}>
+        <div className={styles.filterBar}>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search users"
+            aria-label="Search users"
+          />
+          <select
+            value={role}
+            onChange={(event) => setRole(event.target.value)}
+            aria-label="Filter by role"
+          >
+            <option value="all">All roles</option>
+            <option value="salon_owner">Salon owners</option>
+            <option value="braider">Braiders</option>
+            <option value="client">Clients</option>
+            <option value="admin">Admins</option>
+          </select>
+        </div>
+        <div className={styles.queueList}>
+          {filteredUsers.map((user) => (
+            <button
+              type="button"
+              key={user.id}
+              className={`${styles.queueItem} ${selectedUser?.id === user.id ? styles.queueItemActive : ""}`}
+              onClick={() => setSelectedId(user.id)}
+            >
+              <span className={styles.itemTopline}>
+                <strong>{user.firstName} {user.lastName}</strong>
+                <Badge variant={user.deletedAt ? "danger" : "success"} dot>
+                  {user.deletedAt ? "deactivated" : "active"}
+                </Badge>
+              </span>
+              <span className={styles.itemMeta}>{user.profileLabel} - {user.email}</span>
+              {user.profileName && <span className={styles.itemMeta}>{user.profileName}</span>}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <section className={styles.detailPanel}>
+        {selectedUser ? <UserDetail user={selectedUser} /> : <EmptyState title="No users found" />}
+      </section>
+
+      <section className={`${styles.panelCard} ${styles.fullSpan}`}>
+        <p className={styles.eyebrow}>User STABLE framework</p>
+        <div className={styles.stableGrid}>
+          {stableItems.map(([title, body]) => (
+            <article key={title}>
+              <strong>{title}</strong>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function UserDetail({ user }: { user: AdminUserDTO }) {
+  const [firstName, setFirstName] = useState(user.firstName);
+  const [lastName, setLastName] = useState(user.lastName);
+  const [note, setNote] = useState("");
+  const [state, setState] = useState<"idle" | "saving">("idle");
+  const [message, setMessage] = useState("");
+
+  async function runUserAction(action: "update_profile" | "deactivate" | "reactivate") {
+    setState("saving");
+    setMessage("");
+    const response = await fetch(`/api/admin/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, firstName, lastName, note }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setMessage(typeof payload.error === "string" ? payload.error : "User action failed");
+      setState("idle");
+      return;
+    }
+    window.location.reload();
+  }
+
+  return (
+    <div className={styles.detailContent}>
+      <div className={styles.detailHeader}>
+        <div>
+          <p className={styles.eyebrow}>User management</p>
+          <h2>{user.firstName} {user.lastName}</h2>
+          <p>{user.email}</p>
+        </div>
+        <Badge variant={user.deletedAt ? "danger" : "success"} dot>
+          {user.deletedAt ? "deactivated" : "active"}
+        </Badge>
+      </div>
+
+      <div className={styles.userMetaGrid}>
+        <InfoTile label="Role" value={user.profileLabel} />
+        <InfoTile label="Profile" value={user.profileName || "Not linked"} />
+        <InfoTile label="Joined" value={formatDate(user.createdAt)} />
+        <InfoTile label="Onboarding" value={user.onboardedAt ? "Completed" : "Pending"} />
+      </div>
+
+      <section className={styles.decisionBox}>
+        <label htmlFor="first-name">First name</label>
+        <input
+          id="first-name"
+          value={firstName}
+          maxLength={80}
+          onChange={(event) => setFirstName(event.target.value)}
+        />
+        <label htmlFor="last-name">Last name</label>
+        <input
+          id="last-name"
+          value={lastName}
+          maxLength={80}
+          onChange={(event) => setLastName(event.target.value)}
+        />
+        <label htmlFor="user-note">Admin note</label>
+        <textarea
+          id="user-note"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          placeholder="Add context for lifecycle or profile changes."
+        />
+        {message && <p className={styles.error}>{message}</p>}
+        <div className={styles.actionRow}>
+          <button
+            type="button"
+            disabled={state === "saving"}
+            className={`${styles.decisionButton} ${styles.neutral}`}
+            onClick={() => runUserAction("update_profile")}
+          >
+            Save profile
+          </button>
+          {user.deletedAt ? (
+            <button
+              type="button"
+              disabled={state === "saving"}
+              className={`${styles.decisionButton} ${styles.positive}`}
+              onClick={() => runUserAction("reactivate")}
+            >
+              Reactivate
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={state === "saving"}
+              className={`${styles.decisionButton} ${styles.danger}`}
+              onClick={() => runUserAction("deactivate")}
+            >
+              Deactivate
+            </button>
+          )}
+        </div>
+      </section>
+
+      <div className={styles.noticeBox}>
+        <strong>Create path</strong>
+        <p>
+          Marketplace users should be created through the standard sign-up and
+          onboarding flows. Internal admins are created through the allowlisted
+          admin sign-up path to avoid orphaned authentication records.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MoneyPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO }) {
+  const { money } = dashboard.kpis;
+  return (
+    <div className={styles.portalStack}>
+      <section className={styles.moneyGrid}>
+        <MoneyCard
+          title="Booking commissions"
+          value={formatCurrency(money.bookingCommissionsCents)}
+          body="Platform fees collected or marked as succeeded through booking payments."
+        />
+        <MoneyCard
+          title="Affiliate commissions"
+          value={formatCurrency(money.affiliateCommissionsCents)}
+          body="Upcoming. Reserved for partner and referral revenue tracking."
+          upcoming
+        />
+        <MoneyCard
+          title="Subscriptions"
+          value="Upcoming"
+          body="Reserved for future salon, provider, or featured-listing plans."
+          upcoming
+        />
+      </section>
+      <section className={styles.panelCard}>
+        <p className={styles.eyebrow}>Affiliate management</p>
+        <h2>Partner payouts and referral programs are intentionally staged.</h2>
+        <p>
+          The admin surface reserves this lane now, but transactions should not
+          be activated until partner contracts, payout rules, tax handling, and
+          reconciliation reporting are defined.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function ModerationPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO }) {
   const [tab, setTab] = useState<QueueTab>("verifications");
   const [selectedVerificationId, setSelectedVerificationId] = useState(
-    initialDashboard.verifications[0]?.id ?? ""
+    dashboard.verifications[0]?.id ?? ""
   );
   const [selectedReportId, setSelectedReportId] = useState(
-    initialDashboard.reviewReports[0]?.id ?? ""
+    dashboard.reviewReports[0]?.id ?? ""
   );
   const [note, setNote] = useState("");
   const [state, setState] = useState<"idle" | "saving">("idle");
@@ -101,7 +437,7 @@ export function AdminModerationClient({
   }
 
   return (
-    <main className={styles.page}>
+    <>
       <section className={styles.statsGrid} aria-label="Moderation summary">
         <Metric value={dashboard.stats.pendingVerifications} label="Verification queue" />
         <Metric value={dashboard.stats.reportedReviews} label="Reported reviews" />
@@ -189,16 +525,68 @@ export function AdminModerationClient({
           )}
         </section>
       </section>
-    </main>
+    </>
   );
 }
 
-function Metric({ value, label }: { value: number; label: string }) {
+function Metric({ value, label }: { value: number | string; label: string }) {
   return (
     <div className={styles.metricCard}>
       <strong>{value}</strong>
       <span>{label}</span>
     </div>
+  );
+}
+
+function MiniStat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div>
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function LifecycleGrid({ items }: { items: Array<[string, number]> }) {
+  return (
+    <div className={styles.lifecycleGrid}>
+      {items.map(([label, value]) => (
+        <div key={label}>
+          <strong>{value}</strong>
+          <span>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MoneyCard({
+  title,
+  value,
+  body,
+  upcoming,
+}: {
+  title: string;
+  value: string;
+  body: string;
+  upcoming?: boolean;
+}) {
+  return (
+    <article className={styles.moneyCard}>
+      <span>{upcoming ? "Upcoming" : "Live"}</span>
+      <h2>{value}</h2>
+      <strong>{title}</strong>
+      <p>{body}</p>
+    </article>
   );
 }
 
@@ -226,7 +614,7 @@ function VerificationQueue({
             <StatusBadge status={item.status} />
           </span>
           <span className={styles.itemMeta}>
-            {item.providerType} · {item.ownerEmail}
+            {item.providerType} - {item.ownerEmail}
           </span>
           <span className={styles.itemMeta}>{item.evidenceCount} evidence records</span>
         </button>
@@ -259,7 +647,7 @@ function ReportQueue({
             <ReportStatusBadge status={item.status} />
           </span>
           <span className={styles.itemMeta}>
-            {item.category.replace("_", " ")} · {item.reporterEmail}
+            {item.category.replace("_", " ")} - {item.reporterEmail}
           </span>
           <span className={styles.itemMeta}>{item.score}-star review</span>
         </button>
@@ -289,7 +677,7 @@ function VerificationDetail({
         <div>
           <p className={styles.eyebrow}>Verification review</p>
           <h2>{item.providerName}</h2>
-          <p>{item.ownerName} · {item.ownerEmail}</p>
+          <p>{item.ownerName} - {item.ownerEmail}</p>
         </div>
         <StatusBadge status={item.status} />
       </div>
@@ -345,14 +733,14 @@ function ReportDetail({
         <div>
           <p className={styles.eyebrow}>Review report</p>
           <h2>{item.providerName}</h2>
-          <p>{item.serviceName} · reported by {item.reporterName}</p>
+          <p>{item.serviceName} - reported by {item.reporterName}</p>
         </div>
         <ReportStatusBadge status={item.status} />
       </div>
 
       <div className={styles.reviewBox}>
         <div>
-          <span className={styles.rating}>{item.score}.0 ★</span>
+          <span className={styles.rating}>{item.score}.0 star</span>
           <strong>Client review</strong>
         </div>
         <p>{item.reviewComment || "No written comment."}</p>
@@ -434,20 +822,48 @@ function Timeline({ entries }: { entries: AdminVerificationQueueItemDTO["history
 
 function StatusBadge({ status }: { status: AdminVerificationQueueItemDTO["status"] }) {
   const variant =
-    status === "verified" ? "success" : status === "rejected" || status === "revoked" ? "danger" : "warning";
-  return <Badge variant={variant} dot>{VERIFICATION_STATUS_LABELS[status]}</Badge>;
+    status === "verified"
+      ? "success"
+      : status === "rejected" || status === "revoked"
+        ? "danger"
+        : "warning";
+  return (
+    <Badge variant={variant} dot>
+      {VERIFICATION_STATUS_LABELS[status]}
+    </Badge>
+  );
 }
 
 function ReportStatusBadge({ status }: { status: AdminReviewReportQueueItemDTO["status"] }) {
   const variant = status === "resolved" ? "success" : status === "dismissed" ? "danger" : "warning";
-  return <Badge variant={variant} dot>{status.replace("_", " ")}</Badge>;
+  return (
+    <Badge variant={variant} dot>
+      {status.replace("_", " ")}
+    </Badge>
+  );
 }
 
 function EmptyState({ title, compact }: { title: string; compact?: boolean }) {
   return (
     <div className={`${styles.emptyState} ${compact ? styles.emptyStateCompact : ""}`}>
       <strong>{title}</strong>
-      <p>Nothing needs action in this queue right now.</p>
+      <p>Nothing needs action in this section right now.</p>
     </div>
   );
+}
+
+function formatCurrency(cents: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
 }
