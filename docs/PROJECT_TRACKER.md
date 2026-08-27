@@ -5,19 +5,24 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~92% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~91% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
 > clean, architecture-aligned, low-regression, expandable, stepwise.
+>
+> Numbers below are computed from `overallCounts()`/`phaseProgress()` in
+> [`src/lib/roadmap.ts`](../src/lib/roadmap.ts), not hand-counted — the phase
+> field can be a single number or an array, so always regenerate via that
+> logic rather than grepping the file.
 
 ### Progress by phase
 
-| Phase | Focus | Done | % |
-|-------|-------|------|---|
-| **Phase 1** | Workforce & Staffing | 64 / 69 | ~93% |
-| **Phase 2** | Client Booking | 19 / 19 | 100% |
-| **Phase 3** | Online Payments | 6 / 7 | ~93% |
-| **Phase 4** | Reputation & Verification | 6 / 9 | ~67% |
+| Phase | Focus | Done | In progress | % |
+|-------|-------|------|--------------|---|
+| **Phase 1** | Workforce & Staffing | 64 / 69 | 0 | ~93% |
+| **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
+| **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
+| **Phase 4** | Reputation & Verification | 11 / 18 | 7 | ~81% |
 | **Phase 5** | Braidel Academy | 0 / 1 | 0% |
 | **Phase 6** | Braidel Supply | 0 / 1 | 0% |
 | **Phase 7** | Salon Franchise | 0 / 1 | 0% |
@@ -173,6 +178,8 @@ _Data routes & business logic_
 | ✅ | Review audit history + update notification wiring | High | 2 |
 | ✅ | Payment foundation schema + fee split helpers | High | 3 |
 | 🔄 | Marketplace admin decision APIs + explicit account/profile lifecycle controls | High | 4 |
+| 🔄 | Admin "preview as" mode (Salon/Braider/Client) for UI review and QA | Medium | 4 |
+| 🔄 | Admin dashboard insight charts (donut/bar/line) | Medium | 4 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -231,8 +238,29 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `0021_reflective_princess_powerful.sql` adds `users.account_status` and
   `service_providers.visibility` so suspension blocks protected access while
   unlisting only hides public discovery/bookability. Development migrations are
-  applied and manual QA is pending. Remaining planned slices: marketplace trust
-  signals and capped Client review reminders. Planning record:
+  applied. Deferred hardening is logged to replace provider-row inference with
+  an explicit provider-role/domain helper if provider modeling expands beyond
+  Salon owners and Braiders. Admin access now also requires a Neon `users.role`
+  of `admin` in addition to an allowlisted `BRAIDEL_ADMIN_EMAILS` entry, and a
+  new **Promote admin** action lets an existing admin grant that role to
+  another allowlisted user. The Performance tab now also includes SVG donut,
+  bar, and line charts (user composition, booking lifecycle, provider
+  verification, and a 14-day bookings-created trend) built as dependency-free
+  primitives in `src/components/ui/`, alongside — not replacing — the existing
+  numeric grids. The user-composition and booking-lifecycle categories are
+  fully data-driven — `getAdminUserRoleDistribution()`/
+  `getAdminBookingStatusDistribution()` GROUP BY `users.role`/`bookings.status`
+  live in Neon, so a future enum value appears automatically rather than
+  needing a chart code change (Provider verification stays a fixed 4-metric
+  bar, since it's inherently a 2-type structure, not an enum list). All three
+  charts show an animated tooltip on hover and animate in on mount (donut
+  sweep, bar grow, line reveal). Allowlisted admins can additionally toggle a
+  **Preview as**
+  Salon/Braider/Client mode via a new `/api/admin/preview` cookie route, purely
+  for UI review/QA; it never exposes another user's data since queries stay
+  scoped to the admin's own (empty) records. Manual QA is pending for both.
+  Remaining planned slices:
+  marketplace trust signals and capped Client review reminders. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -330,3 +358,52 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `0021_reflective_princess_powerful.sql` later split lifecycle moderation into
   explicit account suspension/restoration and provider profile
   unlisting/relisting.
+- **August 26, 2026:** Logged a deferred Workstream 6 admin hardening item:
+  profile visibility actions currently infer provider eligibility from the
+  existence of a provider profile row. This is correct for the current
+  Salon-owner/Braider model, but should become an explicit provider-role/domain
+  helper if Braidel adds new provider types or changes provider identity rules.
+- **August 26, 2026:** Tightened `isMarketplaceAdmin` to require both an
+  allowlisted `BRAIDEL_ADMIN_EMAILS` entry and a Neon `users.role` of `admin`,
+  closing a path where a regular onboarding could have granted admin access on
+  email match alone. Added a **Promote admin** action so an existing admin can
+  grant the `admin` role to another user, gated on that user's email already
+  being allowlisted.
+- **August 26, 2026:** Fixed a sidebar regression (pre-dating this admin work)
+  where "Admin Review" appeared twice and Project Tracker/Market Study/Payment
+  System Design were visible to every authenticated user, not admins only.
+  Added `requireMarketplaceAdmin()` to all three pages (splitting
+  `tracker/page.tsx` into a server wrapper + `TrackerClient.tsx` since it was a
+  full client component) so non-admins are redirected server-side, not just
+  hidden from the nav.
+- **August 26, 2026:** Added an admin **"Preview as"** mode (Salon/Braider/
+  Client) for UI review and QA. `POST /api/admin/preview` sets an httpOnly
+  cookie after re-checking admin status server-side; `requireDashboardRole`
+  and `dashboard/page.tsx` honor it via a new `getEffectiveDashboardRole`
+  helper. Scoped deliberately narrow: previewing never grants access to
+  another user's data, since every query still resolves against the admin's
+  own `clerkId` (which owns no salon/braider profile, so the preview renders
+  each role's genuine empty-state shell).
+- **August 26, 2026:** Added SVG donut/bar/line chart primitives
+  (`DonutChart`, `BarChart`, `TrendLineChart` in `src/components/ui/`) and
+  wired them into the admin Performance tab for user composition, booking
+  lifecycle, provider verification, and a 14-day bookings-created trend. The
+  trend query (`getAdminBookingTrend`) is new and isolated in its own
+  try/catch so a query failure degrades to an empty chart instead of failing
+  the admin dashboard fetch; verified directly against dev Neon via
+  `scripts/verify-booking-trend.ts` before wiring it in. Existing numeric
+  grids were left in place — charts are additive, not a replacement.
+- **August 26, 2026:** Made the user-composition and booking-lifecycle chart
+  categories fully data-driven. Added `getAdminUserRoleDistribution()` and
+  `getAdminBookingStatusDistribution()` — live `GROUP BY` queries over
+  `users.role`/`bookings.status` — so any category that actually exists in
+  the data appears on the chart automatically (a curated label/color for
+  known values, a title-cased fallback + rotating palette color otherwise).
+  Verified against dev Neon via `scripts/verify-admin-distributions.ts`
+  before wiring in. Also added an animated, elegantly styled tooltip to each
+  chart on hover, and a mount-in micro-animation (donut arcs sweep in
+  staggered, bars grow from 0, the line reveals left-to-right via an
+  animated `clipPath`) — all plain CSS/inline-style transitions, no new
+  dependency, consistent with the codebase's existing dependency-free SVG
+  approach. The "Provider verification" bar and all existing `LifecycleGrid`
+  numeric displays were left unchanged.

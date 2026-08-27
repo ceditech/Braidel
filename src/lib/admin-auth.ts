@@ -29,8 +29,8 @@ export function emailFromClerkUser(user: User) {
   );
 }
 
-export function isMarketplaceAdmin(user: Pick<AuthenticatedDbUser, "email">) {
-  return isConfiguredAdminEmail(user.email);
+export function isMarketplaceAdmin(user: Pick<AuthenticatedDbUser, "email" | "role">) {
+  return user.role === "admin" && isConfiguredAdminEmail(user.email);
 }
 
 export async function requireMarketplaceAdmin(): Promise<AuthenticatedDbUser> {

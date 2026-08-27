@@ -70,6 +70,38 @@
   discovery and bookability (`listed`/`unlisted`). Admin actions now expose
   **Suspend/Restore access** separately from **Unlist/Relist profile** and
   write audit rows to `marketplace_admin_actions`.
+- **August 26, 2026:** Deferred hardening note: profile unlisting is currently
+  gated by the presence of a provider profile row, which is correct while only
+  Salon owners and Braiders can have `service_providers` records. If Braidel
+  adds new provider roles or changes provider identity modeling, replace this
+  data-shape inference with an explicit provider-role/domain helper so the
+  admin gate fails loudly instead of silently drifting.
+- **August 26, 2026:** Closed an email-only privilege path: `isMarketplaceAdmin`
+  now requires both an allowlisted `BRAIDEL_ADMIN_EMAILS` entry and a Neon
+  `users.role` of `admin` — an allowlisted email alone is no longer sufficient
+  if the account onboarded through a non-admin path. Added a **Promote admin**
+  action so an existing admin can grant the `admin` role to another user,
+  gated on that user's email already being allowlisted so promotion cannot
+  itself add a new trusted email.
+- **August 26, 2026:** Fixed a sidebar regression pre-dating this admin work
+  (introduced in `caae426`): "Admin Review" appeared twice, and the internal
+  Project Tracker/Market Study/Payment System Design pages had no server-side
+  admin check at all — the sidebar was the only thing hiding them from
+  non-admins, and it was hiding them incorrectly. Added
+  `requireMarketplaceAdmin()` to all three pages; `tracker/page.tsx` was split
+  into a server wrapper + `TrackerClient.tsx` since it was a full client
+  component.
+- **August 26, 2026:** Added an admin **Preview as** Salon/Braider/Client mode
+  for UI review and QA (`POST /api/admin/preview`, admin-gated cookie).
+  Deliberately scoped so it never exposes another user's data — preview
+  queries stay bound to the admin's own `clerkId`, which owns no
+  salon/braider profile, so each role renders its genuine empty-state shell.
+- **August 26, 2026:** Added SVG donut/bar/line chart primitives to the admin
+  Performance tab (user composition, booking lifecycle, provider
+  verification, and a 14-day bookings-created trend). Dependency-free,
+  matching the codebase's existing hand-rolled-SVG convention. The new trend
+  query is isolated in its own try/catch so a failure there can't take down
+  the rest of the admin dashboard.
 
 ## Purpose
 
@@ -249,6 +281,8 @@ Manual QA should include:
 - Full moderation policy and appeal workflow.
 - Public dispute labels.
 - External email/push reminder delivery.
+- Explicit provider-role helper for admin profile visibility actions if the
+  provider model evolves beyond Salon owners and Braiders.
 - Background worker or cron implementation for review reminders.
 - Legal copy for review guidelines, verification standards, and evidence
   retention.

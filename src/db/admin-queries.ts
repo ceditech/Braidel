@@ -79,6 +79,79 @@ export async function getMarketplaceAdminDashboard(): Promise<MarketplaceAdminDa
   };
 }
 
+const BOOKING_TREND_DAYS = 14;
+
+/** Bookings created per day for the trailing window, zero-filled so charts
+ * never show gaps. Isolated and defensive: a failure here degrades to an
+ * empty trend rather than failing the whole admin dashboard fetch. */
+async function getAdminBookingTrend(): Promise<AdminKpiDTO["bookingTrend"]> {
+  try {
+    const rows = await db
+      .select({
+        day: sql<string>`date_trunc('day', ${bookings.createdAt})`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(bookings)
+      // Keep this window in sync with BOOKING_TREND_DAYS above.
+      .where(sql`${bookings.createdAt} >= now() - interval '14 days'`)
+      .groupBy(sql`date_trunc('day', ${bookings.createdAt})`)
+      .orderBy(sql`date_trunc('day', ${bookings.createdAt})`);
+
+    const countsByDay = new Map(
+      rows.map((row) => [new Date(row.day).toISOString().slice(0, 10), row.count])
+    );
+
+    const trend: AdminKpiDTO["bookingTrend"] = [];
+    for (let i = BOOKING_TREND_DAYS - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setUTCHours(0, 0, 0, 0);
+      date.setUTCDate(date.getUTCDate() - i);
+      const key = date.toISOString().slice(0, 10);
+      trend.push({ date: key, count: countsByDay.get(key) ?? 0 });
+    }
+    return trend;
+  } catch {
+    return [];
+  }
+}
+
+/** Live GROUP BY over users.role — genuinely data-driven: any role value
+ * that exists in the data appears here automatically, with no hardcoded
+ * list of roles to keep in sync. Isolated/defensive like the trend query. */
+async function getAdminUserRoleDistribution(): Promise<AdminKpiDTO["userRoleDistribution"]> {
+  try {
+    const rows = await db
+      .select({
+        role: users.role,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(users)
+      .where(sql`${users.deletedAt} is null and ${users.accountStatus} = 'active'`)
+      .groupBy(users.role);
+    return rows.map((row) => ({ role: row.role, count: row.count }));
+  } catch {
+    return [];
+  }
+}
+
+/** Live GROUP BY over bookings.status — same rationale: a future booking
+ * status added to the enum shows up automatically once it's used, with no
+ * chart code changes required. */
+async function getAdminBookingStatusDistribution(): Promise<AdminKpiDTO["bookingStatusDistribution"]> {
+  try {
+    const rows = await db
+      .select({
+        status: bookings.status,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(bookings)
+      .groupBy(bookings.status);
+    return rows.map((row) => ({ status: row.status, count: row.count }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getAdminKpis(): Promise<AdminKpiDTO> {
   const [
     [userCounts],
@@ -87,6 +160,9 @@ export async function getAdminKpis(): Promise<AdminKpiDTO> {
     [notificationCounts],
     [bookingCounts],
     [moneyCounts],
+    bookingTrend,
+    userRoleDistribution,
+    bookingStatusDistribution,
   ] = await Promise.all([
     db
       .select({
@@ -135,6 +211,9 @@ export async function getAdminKpis(): Promise<AdminKpiDTO> {
         bookingCommissionsCents: sql<number>`coalesce(sum(${bookingPayments.applicationFeeCents}) filter (where ${bookingPayments.status} in ('succeeded', 'partially_refunded')), 0)::int`,
       })
       .from(bookingPayments),
+    getAdminBookingTrend(),
+    getAdminUserRoleDistribution(),
+    getAdminBookingStatusDistribution(),
   ]);
 
   const providerBraiderCounts = await db
@@ -186,6 +265,9 @@ export async function getAdminKpis(): Promise<AdminKpiDTO> {
       declined: bookingCounts?.declined ?? 0,
       noShow: bookingCounts?.noShow ?? 0,
     },
+    bookingTrend,
+    userRoleDistribution,
+    bookingStatusDistribution,
     money: {
       bookingCommissionsCents: moneyCounts?.bookingCommissionsCents ?? 0,
       affiliateCommissionsCents: 0,

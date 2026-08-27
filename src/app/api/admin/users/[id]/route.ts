@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { withBookingTransaction } from "@/db/booking-db";
 import { braiders, marketplaceAdminActions, salons, serviceProviders, users } from "@/db/schema";
-import { getMarketplaceAdminForApi } from "@/lib/admin-auth";
+import { getMarketplaceAdminForApi, isConfiguredAdminEmail } from "@/lib/admin-auth";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -14,6 +14,7 @@ const USER_ACTIONS = new Set([
   "restore_account",
   "unlist_profile",
   "relist_profile",
+  "promote_admin",
 ]);
 
 function stringValue(value: unknown) {
@@ -97,6 +98,12 @@ export async function PATCH(
       { status: 400 }
     );
   }
+  if (action === "promote_admin" && !isConfiguredAdminEmail(targetUser.email)) {
+    return NextResponse.json(
+      { error: "Add this email to BRAIDEL_ADMIN_EMAILS before promoting admin access" },
+      { status: 400 }
+    );
+  }
 
   const now = new Date();
   const previousState = {
@@ -144,6 +151,17 @@ export async function PATCH(
       newState = {
         ...previousState,
         accountStatus: "active",
+      };
+    }
+
+    if (action === "promote_admin") {
+      await tx
+        .update(users)
+        .set({ role: "admin", updatedAt: now })
+        .where(eq(users.id, id));
+      newState = {
+        ...previousState,
+        role: "admin",
       };
     }
 

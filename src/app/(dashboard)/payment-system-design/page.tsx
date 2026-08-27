@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { requireMarketplaceAdmin } from "@/lib/admin-auth";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -53,6 +54,7 @@ async function getPaymentDiagram() {
 }
 
 export default async function PaymentSystemDesignPage() {
+  await requireMarketplaceAdmin();
   const paymentDiagram = await getPaymentDiagram();
 
   return (

@@ -105,6 +105,15 @@ export interface AdminKpiDTO {
     declined: number;
     noShow: number;
   };
+  /** Bookings created per day, oldest first. Empty if the trend query fails
+   * or returns no rows — charts render an empty state rather than crash. */
+  bookingTrend: Array<{ date: string; count: number }>;
+  /** Live GROUP BY over users.role — whatever roles actually exist in the
+   * data, not a hardcoded list. Powers the user-composition chart. */
+  userRoleDistribution: Array<{ role: string; count: number }>;
+  /** Live GROUP BY over bookings.status — same rationale. Powers the
+   * booking-lifecycle chart. */
+  bookingStatusDistribution: Array<{ status: string; count: number }>;
   money: {
     bookingCommissionsCents: number;
     affiliateCommissionsCents: number;
