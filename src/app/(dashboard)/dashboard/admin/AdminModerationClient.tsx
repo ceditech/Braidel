@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { DonutChart } from "@/components/ui/DonutChart";
+import { BarChart } from "@/components/ui/BarChart";
+import { TrendLineChart } from "@/components/ui/TrendLineChart";
 import type {
   AdminReviewReportDecision,
   AdminReviewReportQueueItemDTO,
@@ -39,6 +42,66 @@ const reportDecisions: Array<{
   { value: "resolved", label: "Resolve", intent: "positive" },
   { value: "dismissed", label: "Dismiss", intent: "danger" },
 ];
+
+/* ── Chart category labels/colors ────────────────────────────────────────
+   Data itself is fully dynamic (GROUP BY in admin-queries.ts — any future
+   role/status value appears automatically). These maps only supply a nicer
+   display label + curated color for KNOWN values; anything unrecognized
+   still renders correctly via the title-cased fallback + rotating palette,
+   it just won't have a hand-picked color/label yet. */
+const ROLE_LABELS: Record<string, string> = {
+  salon_owner: "Salon owners",
+  braider: "Braiders",
+  client: "Clients",
+  admin: "Admins",
+};
+const ROLE_ORDER = ["salon_owner", "braider", "client", "admin"];
+const STATUS_LABELS: Record<string, string> = {
+  requested: "Requested",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  declined: "Declined",
+  no_show: "No-show",
+};
+const STATUS_ORDER = ["requested", "confirmed", "completed", "cancelled", "declined", "no_show"];
+const CHART_PALETTE = [
+  "var(--brand)",
+  "var(--color-gold)",
+  "var(--color-info)",
+  "var(--color-success)",
+  "var(--color-danger)",
+  "var(--border-strong)",
+];
+
+function titleCase(value: string) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function sortByPreferredOrder<T>(items: T[], key: (item: T) => string, order: string[]): T[] {
+  const rank = new Map(order.map((value, i) => [value, i]));
+  return [...items].sort((a, b) => {
+    const ra = rank.get(key(a)) ?? Number.MAX_SAFE_INTEGER;
+    const rb = rank.get(key(b)) ?? Number.MAX_SAFE_INTEGER;
+    return ra !== rb ? ra - rb : key(a).localeCompare(key(b));
+  });
+}
+
+function toChartData(
+  rows: Array<{ count: number } & Record<string, unknown>>,
+  keyOf: (row: Record<string, unknown>) => string,
+  labels: Record<string, string>,
+  order: string[]
+) {
+  return sortByPreferredOrder(rows, keyOf, order).map((row, i) => {
+    const key = keyOf(row);
+    return {
+      label: labels[key] ?? titleCase(key),
+      value: row.count,
+      color: CHART_PALETTE[i % CHART_PALETTE.length],
+    };
+  });
+}
 
 const stableItems = [
   ["Secure", "Clerk owns identity. Admin access requires an allowlisted email and DB admin role."],
@@ -96,6 +159,19 @@ function TabButton({
 
 function OverviewPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO }) {
   const { kpis } = dashboard;
+
+  // Fully data-driven: derived from a live GROUP BY, not a hardcoded list of
+  // roles/statuses. A future enum value appears here automatically once it's
+  // used, with a sensible fallback label/color — no chart code change needed.
+  const roleChartData = useMemo(
+    () => toChartData(kpis.userRoleDistribution, (row) => String(row.role), ROLE_LABELS, ROLE_ORDER),
+    [kpis.userRoleDistribution]
+  );
+  const bookingStatusChartData = useMemo(
+    () => toChartData(kpis.bookingStatusDistribution, (row) => String(row.status), STATUS_LABELS, STATUS_ORDER),
+    [kpis.bookingStatusDistribution]
+  );
+
   return (
     <div className={styles.portalStack}>
       <section className={styles.heroPanel}>
@@ -125,9 +201,21 @@ function OverviewPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO 
         <Metric value={dashboard.stats.completedDecisions} label="Admin decisions" />
       </section>
 
+      <section className={styles.splitGrid} aria-label="Admin insight charts">
+        <div className={styles.panelCard}>
+          <p className={styles.eyebrow}>User composition</p>
+          <DonutChart data={roleChartData} />
+        </div>
+        <div className={styles.panelCard}>
+          <p className={styles.eyebrow}>Bookings created — last 14 days</p>
+          <TrendLineChart data={kpis.bookingTrend} />
+        </div>
+      </section>
+
       <section className={styles.splitGrid}>
         <div className={styles.panelCard}>
           <p className={styles.eyebrow}>Booking lifecycle</p>
+          <BarChart data={bookingStatusChartData} />
           <LifecycleGrid
             items={[
               ["Requested", kpis.bookings.requested],
@@ -141,6 +229,14 @@ function OverviewPanel({ dashboard }: { dashboard: MarketplaceAdminDashboardDTO 
         </div>
         <div className={styles.panelCard}>
           <p className={styles.eyebrow}>Provider verification</p>
+          <BarChart
+            data={[
+              { label: "Salon profiles", value: kpis.providers.salons, color: "var(--border-strong)" },
+              { label: "Verified salons", value: kpis.providers.verifiedSalons, color: "var(--brand)" },
+              { label: "Braider profiles", value: kpis.providers.braiders, color: "var(--border-strong)" },
+              { label: "Verified braiders", value: kpis.providers.verifiedBraiders, color: "var(--color-gold)" },
+            ]}
+          />
           <LifecycleGrid
             items={[
               ["Salon profiles", kpis.providers.salons],

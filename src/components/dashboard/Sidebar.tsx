@@ -1,12 +1,20 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { BraidelLogo } from "@/components/ui/BraidelLogo";
 import { Drawer } from "@/components/ui/Drawer";
 import { useRole, type Role } from "@/components/dashboard/RoleContext";
 import styles from "./Sidebar.module.css";
+
+type AdminPreviewRole = "salon" | "braider" | "client";
+
+const PREVIEW_OPTIONS: { value: AdminPreviewRole; label: string }[] = [
+  { value: "salon", label: "Salon" },
+  { value: "braider", label: "Braider" },
+  { value: "client", label: "Client" },
+];
 
 const salonNav = [
   { href: "/dashboard",              label: "Dashboard",     icon: <GridIcon /> },
@@ -59,10 +67,34 @@ const adminNav = [
   { href: "/dashboard/admin", label: "Admin Review", icon: <ShieldIcon /> },
 ];
 
-export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
+export function Sidebar({
+  showAdmin = false,
+  previewRole = null,
+}: {
+  showAdmin?: boolean;
+  previewRole?: AdminPreviewRole | null;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
   const { role } = useRole();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [previewSaving, setPreviewSaving] = useState(false);
+
+  async function setPreview(next: AdminPreviewRole | null) {
+    setPreviewSaving(true);
+    try {
+      await fetch("/api/admin/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: next }),
+      });
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setPreviewSaving(false);
+    }
+  }
+
   const nav =
     role === "salon"
       ? salonNav
@@ -125,7 +157,97 @@ export function Sidebar({ showAdmin = false }: { showAdmin?: boolean }) {
         }}
       >
         {roleLabels[role]}
+        {previewRole && (
+          <span
+            style={{
+              marginLeft: 8,
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: ".04em",
+              color: "var(--terracotta-300)",
+            }}
+          >
+            Preview
+          </span>
+        )}
       </div>
+
+      {/* Admin "preview as" — QA/review only. Does not grant access to
+          any other user's data; queries stay scoped to the admin's own
+          (empty) records. */}
+      {showAdmin && (
+        <div
+          style={{
+            margin: "0 16px 16px",
+            padding: 12,
+            borderRadius: "var(--radius-md)",
+            background: "rgba(255,255,255,.04)",
+            border: "1px solid rgba(255,255,255,.08)",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 10,
+              letterSpacing: ".1em",
+              textTransform: "uppercase",
+              color: "var(--taupe-400)",
+              marginBottom: 8,
+            }}
+          >
+            Preview as
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {PREVIEW_OPTIONS.map((option) => {
+              const active = previewRole === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  disabled={previewSaving}
+                  onClick={() => setPreview(active ? null : option.value)}
+                  style={{
+                    border: "none",
+                    borderRadius: "var(--radius-pill)",
+                    padding: "6px 12px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: previewSaving ? "default" : "pointer",
+                    opacity: previewSaving ? 0.6 : 1,
+                    background: active ? "var(--terracotta-500)" : "rgba(255,255,255,.08)",
+                    color: active ? "#fff" : "var(--cream-200)",
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          {previewRole && (
+            <button
+              type="button"
+              disabled={previewSaving}
+              onClick={() => setPreview(null)}
+              style={{
+                marginTop: 8,
+                width: "100%",
+                border: "1px solid rgba(255,255,255,.14)",
+                borderRadius: "var(--radius-sm)",
+                padding: "6px 0",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: previewSaving ? "default" : "pointer",
+                opacity: previewSaving ? 0.6 : 1,
+                background: "transparent",
+                color: "var(--cream-200)",
+              }}
+            >
+              Exit preview
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Nav items */}
       <nav className={styles.primaryNav} style={{ display: "flex", flexDirection: "column", gap: 3, padding: "0 12px" }}>

@@ -589,8 +589,65 @@ onboarding could have granted admin access purely by email match. A new
 **Promote admin** action (`PATCH /api/admin/users/[id]` with
 `action: "promote_admin"`) lets an existing admin grant the `admin` role to
 another user, but only succeeds if that user's email is already allowlisted —
-promotion cannot itself add a new trusted email. Manual QA for the expanded
-6.4 admin surface is next.
+promotion cannot itself add a new trusted email.
+
+A sidebar regression that pre-dated this admin work (introduced in `caae426`,
+before real accounts had `role="admin"`) was found and fixed: "Admin Review"
+appeared twice, and Project Tracker/Market Study/Payment System Design were
+visible to **every** authenticated user, not just admins — the sidebar was
+the only thing hiding them, with no server-side check at all. Fixed by
+correcting the sidebar's `insightsNav` logic and adding
+`requireMarketplaceAdmin()` to all three pages; `tracker/page.tsx` (a full
+client component) was split into a thin async server wrapper +
+`TrackerClient.tsx` to allow the server-side check, mirroring the
+`admin/page.tsx` + `AdminModerationClient.tsx` pattern.
+
+Allowlisted admins can also toggle a **Preview as** Salon/Braider/Client mode
+from the sidebar, for UI review and QA. `POST /api/admin/preview` sets an
+httpOnly cookie after re-checking admin status server-side (`getMarketplaceAdminForApi`);
+`requireDashboardRole` and `dashboard/page.tsx` honor it via a new
+`getEffectiveDashboardRole` helper in `authenticated-user.ts`. This is
+deliberately scoped narrow: it never grants access to another user's data —
+every query still resolves against the admin's own `clerkId`, which owns no
+salon/braider profile, so preview renders each role's genuine empty-state
+shell rather than impersonating a real user.
+
+The Performance tab now includes SVG donut, bar, and line charts — dependency
+-free primitives (`DonutChart`, `BarChart`, `TrendLineChart` in
+`src/components/ui/`) rather than a new charting library, matching the
+codebase's existing hand-rolled-SVG convention. They cover user role
+composition, booking lifecycle, provider verification, and a 14-day
+bookings-created trend backed by a new `getAdminBookingTrend()` query. That
+query is isolated in its own try/catch and zero-fills the date range, so a
+query failure degrades to an empty chart instead of failing the whole admin
+dashboard fetch; it was verified directly against dev Neon via
+`scripts/verify-booking-trend.ts` before being wired in. The existing numeric
+grids (`LifecycleGrid`) were left in place — charts are additive.
+
+The user-composition and booking-lifecycle chart categories are now fully
+data-driven rather than a hardcoded list: `getAdminUserRoleDistribution()`
+and `getAdminBookingStatusDistribution()` (`src/db/admin-queries.ts`) run a
+live `GROUP BY` over `users.role`/`bookings.status`, so a category that
+doesn't exist in the data today (e.g. a future booking status) will appear
+on the chart automatically the moment it's used — no code change required.
+Known values get a curated label/color (see `ROLE_LABELS`/`STATUS_LABELS` in
+`AdminModerationClient.tsx`); anything unrecognized falls back to a
+title-cased label and a color from a rotating palette, so an unexpected enum
+value degrades gracefully instead of being silently dropped. "Provider
+verification" intentionally stays a fixed 4-metric bar — it's a 2-type
+structure (salon/braider), not an enum list that benefits from the same
+treatment. All three charts also gained an animated tooltip on hover
+(positioned via each chart's own coordinate math — arc midpoint for the
+donut, fill-end for the bar, viewBox-percentage for the line, so it stays
+aligned under the responsive line chart's scaling) and a mount-in
+micro-animation (donut arcs sweep in staggered, bars grow from 0, the line
+reveals left-to-right via an animated `clipPath`). All of this is plain
+CSS/inline-style transitions — no animation library was added. Both new
+distribution queries were verified against dev Neon via
+`scripts/verify-admin-distributions.ts` before being wired in.
+
+Manual QA for the expanded 6.4 admin surface (KPIs, user actions, preview
+mode, and charts together) is next.
 
 CI/deployment, legal and trust content, Pricing, How It Works, and secondary
 public content remain parallel launch-readiness work. Clerk webhook activation

@@ -83,6 +83,25 @@
   action so an existing admin can grant the `admin` role to another user,
   gated on that user's email already being allowlisted so promotion cannot
   itself add a new trusted email.
+- **August 26, 2026:** Fixed a sidebar regression pre-dating this admin work
+  (introduced in `caae426`): "Admin Review" appeared twice, and the internal
+  Project Tracker/Market Study/Payment System Design pages had no server-side
+  admin check at all — the sidebar was the only thing hiding them from
+  non-admins, and it was hiding them incorrectly. Added
+  `requireMarketplaceAdmin()` to all three pages; `tracker/page.tsx` was split
+  into a server wrapper + `TrackerClient.tsx` since it was a full client
+  component.
+- **August 26, 2026:** Added an admin **Preview as** Salon/Braider/Client mode
+  for UI review and QA (`POST /api/admin/preview`, admin-gated cookie).
+  Deliberately scoped so it never exposes another user's data — preview
+  queries stay bound to the admin's own `clerkId`, which owns no
+  salon/braider profile, so each role renders its genuine empty-state shell.
+- **August 26, 2026:** Added SVG donut/bar/line chart primitives to the admin
+  Performance tab (user composition, booking lifecycle, provider
+  verification, and a 14-day bookings-created trend). Dependency-free,
+  matching the codebase's existing hand-rolled-SVG convention. The new trend
+  query is isolated in its own try/catch so a failure there can't take down
+  the rest of the admin dashboard.
 
 ## Purpose
 
