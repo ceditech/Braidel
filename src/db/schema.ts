@@ -893,6 +893,33 @@ export const ratingHistory = pgTable(
   ]
 );
 
+/** Append-only audit trail of sent review reminders, capped at 5 per booking
+ *  (Workstream 6.6). The unique constraint on (bookingId, reminderNumber)
+ *  is what makes the opportunistic backfill idempotent — re-evaluating a
+ *  booking can never send the same numbered reminder twice. */
+export const reviewReminderEvents = pgTable(
+  "review_reminder_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    reminderNumber: integer("reminder_number").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("review_reminder_events_booking_number_unique").on(
+      table.bookingId,
+      table.reminderNumber
+    ),
+    index("review_reminder_events_booking_idx").on(table.bookingId),
+    check(
+      "review_reminder_events_number_check",
+      sql`${table.reminderNumber} between 1 and 5`
+    ),
+  ]
+);
+
 export const providerReviewResponses = pgTable(
   "provider_review_responses",
   {

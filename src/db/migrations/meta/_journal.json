@@ -148,6 +148,13 @@
       "when": 1787770669908,
       "tag": "0021_reflective_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787963935820,
+      "tag": "0022_messy_red_hulk",
+      "breakpoints": true
     }
   ]
 }

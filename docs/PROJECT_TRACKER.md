@@ -259,8 +259,14 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   Salon/Braider/Client mode via a new `/api/admin/preview` cookie route, purely
   for UI review/QA; it never exposes another user's data since queries stay
   scoped to the admin's own (empty) records. Manual QA is pending for both.
-  Remaining planned slices:
-  marketplace trust signals and capped Client review reminders. Planning record:
+  Slice 6.5 trust signals in marketplace discovery is implemented: real
+  booking-verified reviews and a completed-booking count replace previously
+  hardcoded review/response-time copy on the public braider/salon profile
+  pages, and verified-status claims are now gated on the real `isVerified`
+  flag. Manual QA pending.
+  Slice 6.6 capped Client review reminders is implemented and **QA-passed**
+  (August 29, 2026) — see the dated entry below for what was found and fixed
+  during that live session. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
@@ -393,6 +399,96 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   the admin dashboard fetch; verified directly against dev Neon via
   `scripts/verify-booking-trend.ts` before wiring it in. Existing numeric
   grids were left in place — charts are additive, not a replacement.
+- **August 27, 2026:** Workstream 6.5 (trust signals in marketplace discovery)
+  implemented. `/find-braiders/[id]` and `/find-salons/[id]` previously showed
+  hardcoded fake reviews and an unconditional "Identity verified"/"Verified
+  business" claim on every profile regardless of actual verification status —
+  a direct violation of the plan's own honesty rule. Both are now fixed:
+  `getPublicProviderReviews()` and `getCompletedBookingCount()` (additive,
+  `src/db/queries.ts`) surface real booking-verified reviews (reviewer shown
+  as first name + last initial only, no email) and a real completed-booking
+  count, reusing the existing `ratings` and `providerReviewResponses` tables —
+  no schema change. The verified-claim line now only renders when the
+  provider's real `isVerified` flag is true; fabricated "Replies in ~1 hr" /
+  "Responds quickly" copy was removed since no data backs it. `tsc`/lint
+  clean; manually spot-checked against dev Neon (verified vs. unverified
+  braider, salon with no reviews yet). Manual QA pending.
+- **August 27, 2026:** Follow-up fix to Slice 6.5: the public rating badge
+  (`braiders.ratingAvg`/`ratingCount`, `salons.ratingAvg`/`ratingCount`) was
+  found to be a write-once seed literal never recomputed from real reviews —
+  a live staleness bug, not just a seed-data inconsistency. `getBraiders()`/
+  `getBraiderBySlug()`/`getSalons()`/`getSalonBySlug()` now join a live
+  `GROUP BY` aggregate over booking-scoped `ratings` instead of reading the
+  frozen columns. `db/seed.ts` now seeds real completed bookings + ratings
+  rows (`seedCompletedBookingReviews()`) so dev data is honest instead of
+  fabricated, and the seed cleanup query was fixed to explicitly delete seed
+  bookings before the cascading user delete (`bookings.provider_id` is
+  `ON DELETE RESTRICT`, so re-running the seed script would otherwise break
+  once any bookings exist — verified re-runnable with two consecutive
+  `npm run db:seed` runs). The salon "manage applicants" query still reads
+  the legacy stored columns — intentionally left out of scope, logged as a
+  follow-up. `tsc`/`eslint` clean; verified live against dev Neon, including a
+  real (non-seed) account with genuine reviews from earlier manual testing.
+  Manual QA pending.
+- **August 27, 2026:** Two more Slice 6.5 signals added. Portfolio-photo-count
+  is braider-profile-only — `portfolio_media` has no `salonId` column, so a
+  salon equivalent would be a fabricated signal, not a real one. Response-rate
+  ("Responds to X% of reviews") is computed by a new
+  `getProviderResponseRate()` over the *full* review set (not the
+  display-limited review list, so it stays correct once a provider has more
+  than 10 reviews), and is shown on both profile pages only when the rate is
+  above 0% — no public dispute/report status is ever surfaced, per an explicit
+  product decision. Verified live by temporarily inserting one real
+  `provider_review_responses` row, confirming the profile correctly rendered
+  "Responds to 20% of reviews" (1 of 5), then deleting the test row. `tsc`/
+  `eslint` clean. Manual QA pending.
+- **August 29, 2026:** Workstream 6 complete — capped Client review reminders
+  (Slice 6.6) implemented. A new `review_reminder_events` table (migration
+  `0022_messy_red_hulk.sql`) is the append-only, idempotent audit trail: a
+  unique `(booking_id, reminder_number)` constraint means re-evaluating a
+  booking can never send the same numbered reminder twice. This app has no
+  cron/scheduler, so `backfillDueReviewReminders()`
+  (`src/lib/review-reminders.ts`) runs opportunistically inside
+  `GET /api/notifications` — already polled by the notification bell on every
+  dashboard navigation — for client-role users, sending at most one due
+  reminder per booking per call so a client who hasn't opened the app in a
+  while catches up gradually rather than getting a flooded backlog. Honors
+  the existing "Account activity" notification preference toggle (no new
+  schema needed). Isolated in try/catch so a reminder-logic failure can never
+  break the notification bell. Verified against dev Neon: created a
+  completed, unreviewed booking 2 days old, confirmed reminder #1 (the 24h
+  tier) fires with correct copy, confirmed a second call is a no-op
+  (idempotent), then cleaned up the test data. Fixed a copy bug caught during
+  verification — the notification body previously appended a hardcoded
+  "appointment" suffix, duplicating the word for braider service names that
+  already end in "appointment" (e.g. "Knotless appointment appointment").
+  `tsc`/`eslint` clean. Manual QA pending.
+- **August 29, 2026:** Live manual QA session with the project owner covering
+  Slice 6.5 (trust signals) and Slice 6.6 (review reminders), plus the live
+  rating aggregation fix. Confirmed visually: verified/unverified braiders and
+  salons correctly show/hide "Identity verified"/"Verified business"; real
+  reviews render with honest empty states; completed-booking and
+  portfolio-photo counts show only when > 0; the seed script re-runs cleanly.
+  For review reminders specifically, testing live surfaced and fixed two real
+  issues: (1) the notifications page's own server render didn't run the
+  backfill, so a due reminder showed in the bell's unread count but not in
+  the visible list until a reload — fixed by also calling
+  `backfillDueReviewReminders()` from `dashboard/notifications/page.tsx`, not
+  just the API route; (2) with two opportunistic call sites now firing on one
+  visit, a booking with a multi-tier backlog (e.g. 4 days overdue, both the
+  24h and 3-day tiers due) could have two tiers advanced in a single visit
+  instead of one. Fixed with a 1-hour minimum gap between reminders for the
+  *same booking* (`MIN_GAP_BETWEEN_REMINDERS_MS`) — deliberately scoped
+  per-booking rather than per-user-per-day so a client with two separate
+  unreviewed bookings still gets each its own legitimate reminder; this floor
+  becomes a no-op once a real cron replaces the opportunistic call sites
+  (cron runs are naturally ~24h apart), so no rework is needed at that
+  transition. Both fixes re-verified end to end: created a 4-day-overdue
+  unreviewed booking, confirmed only one reminder fires across both hook
+  points in one visit, added a review, confirmed reminders stop immediately.
+  All QA test data and scratch verification scripts were cleaned up. `tsc`/
+  `eslint` clean throughout. Slice 6.6 (capped Client review reminders) is now
+  QA-passed; Slices 6.4 and 6.5 still await their own manual QA pass.
 - **August 26, 2026:** Made the user-composition and booking-lifecycle chart
   categories fully data-driven. Added `getAdminUserRoleDistribution()` and
   `getAdminBookingStatusDistribution()` — live `GROUP BY` queries over
