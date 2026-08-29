@@ -16,7 +16,6 @@ const cols = [
     links: [
       { label: "Post an opportunity", href: "/dashboard/opportunities" },
       { label: "Find braiders", href: "/find-braiders" },
-      { label: "Pricing", href: "/pricing" },
     ],
   },
   {
@@ -96,11 +95,21 @@ export function Footer() {
           padding: "20px var(--gutter)",
           maxWidth: "var(--container-max)",
           margin: "0 auto",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
           fontSize: 13,
           color: "var(--taupe-400)",
         }}
       >
-        © 2026 braid.el. Made for the culture.
+        <span>© 2026 braid.el. Made for the culture.</span>
+        <div style={{ display: "flex", gap: 20 }}>
+          <Link href="/faq" style={{ color: "var(--taupe-400)" }}>FAQ</Link>
+          <Link href="/terms" style={{ color: "var(--taupe-400)" }}>Terms</Link>
+          <Link href="/privacy" style={{ color: "var(--taupe-400)" }}>Privacy</Link>
+        </div>
       </div>
     </footer>
   );
