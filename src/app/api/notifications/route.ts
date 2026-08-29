@@ -3,12 +3,13 @@ import { and, count, eq, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { notifications, users } from "@/db/schema";
+import { backfillDueReviewReminders } from "@/lib/review-reminders";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 async function getUser(clerkId: string) {
   const [user] = await db
-    .select({ id: users.id })
+    .select({ id: users.id, role: users.role })
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
@@ -31,6 +32,17 @@ export async function GET() {
 
   const user = await getUser(clerkUser.id);
   if (!user) return NextResponse.json({ unreadCount: 0 });
+
+  if (user.role === "client") {
+    // Opportunistic — no cron in this app yet. Failure here must never break
+    // the notification bell, so it's isolated and logged, not rethrown.
+    try {
+      await backfillDueReviewReminders(user.id);
+    } catch (error) {
+      console.error("backfillDueReviewReminders failed", error);
+    }
+  }
+
   return NextResponse.json({ unreadCount: await unreadCount(user.id) });
 }
 

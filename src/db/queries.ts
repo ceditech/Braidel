@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import {
@@ -12,6 +12,7 @@ import {
   notifications,
   opportunities,
   portfolioMedia,
+  providerReviewResponses,
   ratings,
   salons,
   serviceProviders,
@@ -35,6 +36,9 @@ export interface BraiderDTO {
   portfolio: PortfolioMediaDTO[];
   bookingProviderId: string | null;
   isAcceptingBookings: boolean;
+  completedBookingCount: number;
+  reviews: PublicReviewDTO[];
+  responseRate: number | null;
 }
 
 export interface PortfolioMediaDTO {
@@ -44,6 +48,96 @@ export interface PortfolioMediaDTO {
   mimeType: string;
   sizeBytes: number;
   sortOrder: number;
+}
+
+/** A real, booking-verified review shown on public discovery pages.
+ *  Reviewer identity is intentionally reduced to first name + last initial. */
+export interface PublicReviewDTO {
+  id: string;
+  score: number;
+  comment: string;
+  createdAt: string;
+  reviewerName: string;
+  providerResponse: string | null;
+}
+
+/** Reviews left on completed bookings for a provider, newest first.
+ *  Excludes legacy job-application ratings (those have no bookingId). */
+async function getPublicProviderReviews(
+  target: { braiderId: string } | { salonId: string },
+  limit = 10
+): Promise<PublicReviewDTO[]> {
+  const targetCondition =
+    "braiderId" in target
+      ? eq(ratings.braiderId, target.braiderId)
+      : eq(ratings.salonId, target.salonId);
+
+  const rows = await db
+    .select({
+      id: ratings.id,
+      score: ratings.score,
+      comment: ratings.comment,
+      createdAt: ratings.createdAt,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      responseBody: providerReviewResponses.body,
+    })
+    .from(ratings)
+    .innerJoin(bookings, eq(ratings.bookingId, bookings.id))
+    .innerJoin(clientProfiles, eq(bookings.clientProfileId, clientProfiles.id))
+    .innerJoin(users, eq(clientProfiles.userId, users.id))
+    .leftJoin(providerReviewResponses, eq(providerReviewResponses.ratingId, ratings.id))
+    .where(and(targetCondition, isNotNull(ratings.bookingId), eq(bookings.status, "completed")))
+    .orderBy(desc(ratings.createdAt))
+    .limit(limit);
+
+  return rows.map((r) => ({
+    id: r.id,
+    score: r.score,
+    comment: r.comment ?? "",
+    createdAt: r.createdAt.toISOString(),
+    reviewerName: `${r.firstName} ${r.lastName?.[0] ?? ""}.`.trim(),
+    providerResponse: r.responseBody ?? null,
+  }));
+}
+
+/** Count of completed bookings for a provider — an honest activity signal
+ *  independent of ratings. Returns 0 when the profile has no booking provider. */
+async function getCompletedBookingCount(providerId: string | null): Promise<number> {
+  if (!providerId) return 0;
+  const [row] = await db
+    .select({ count: count() })
+    .from(bookings)
+    .where(and(eq(bookings.providerId, providerId), eq(bookings.status, "completed")));
+  return row?.count ?? 0;
+}
+
+/** Percentage of a provider's real, booking-verified reviews that received a
+ *  public response, computed over the full set (not the display-limited
+ *  review list, so it stays correct once a provider has more than a
+ *  handful of reviews). Returns null when there are no reviews yet — a rate
+ *  needs a denominator. Publicly surfaced only as a positive signal; the
+ *  caller decides whether a 0% rate is worth showing. */
+async function getProviderResponseRate(
+  target: { braiderId: string } | { salonId: string }
+): Promise<number | null> {
+  const targetCondition =
+    "braiderId" in target
+      ? eq(ratings.braiderId, target.braiderId)
+      : eq(ratings.salonId, target.salonId);
+
+  const [row] = await db
+    .select({
+      total: count(),
+      responded: sql<number>`count(${providerReviewResponses.id})::int`,
+    })
+    .from(ratings)
+    .innerJoin(bookings, eq(ratings.bookingId, bookings.id))
+    .leftJoin(providerReviewResponses, eq(providerReviewResponses.ratingId, ratings.id))
+    .where(and(targetCondition, isNotNull(ratings.bookingId), eq(bookings.status, "completed")));
+
+  if (!row || row.total === 0) return null;
+  return Math.round((Number(row.responded) / row.total) * 100);
 }
 
 /** Deterministic placeholder tone per braider so list and detail colors match. */
@@ -58,13 +152,29 @@ function deriveBadge(isVerified: boolean, ratingCount: number): BraiderDTO["badg
   return ratingCount < 80 ? "New" : "Top rated";
 }
 
+/** Live rating aggregate from real, booking-verified reviews only (excludes
+ *  legacy job-application ratings, which have no bookingId). Built fresh per
+ *  call site since a Drizzle subquery is tied to the query it's joined into. */
+function braiderRatingAgg() {
+  return db
+    .select({
+      braiderId: ratings.braiderId,
+      // Postgres returns avg()/count() as strings over this driver; cast so
+      // the app layer gets real numbers, not strings that break .toFixed().
+      avgScore: sql<number>`avg(${ratings.score})::float`.as("avg_score"),
+      reviewCount: sql<number>`count(*)::int`.as("review_count"),
+    })
+    .from(ratings)
+    .where(isNotNull(ratings.bookingId))
+    .groupBy(ratings.braiderId)
+    .as("braider_rating_agg");
+}
+
 const SELECTION = {
   braiderId: braiders.id,
   slug: braiders.slug,
   city: braiders.city,
   specialties: braiders.specialties,
-  ratingAvg: braiders.ratingAvg,
-  ratingCount: braiders.ratingCount,
   priceRange: braiders.priceRange,
   isVerified: braiders.isVerified,
   bio: braiders.bio,
@@ -80,7 +190,7 @@ type Row = {
   city: string | null;
   specialties: string[] | null;
   ratingAvg: number | null;
-  ratingCount: number;
+  ratingCount: number | null;
   priceRange: string | null;
   isVerified: boolean;
   bio: string | null;
@@ -91,29 +201,35 @@ type Row = {
 };
 
 function mapRow(r: Row): BraiderDTO {
+  const ratingCount = Number(r.ratingCount ?? 0);
   return {
     id: r.slug,
     name: `${r.firstName} ${r.lastName}`.replace(/\s*—$/, "").trim(),
     city: r.city ?? "",
     specs: r.specialties ?? [],
-    rate: r.ratingAvg ?? 0,
-    rev: r.ratingCount,
-    badge: deriveBadge(r.isVerified, r.ratingCount),
+    rate: r.ratingAvg != null ? Number(r.ratingAvg) : 0,
+    rev: ratingCount,
+    badge: deriveBadge(r.isVerified, ratingCount),
     price: r.priceRange ?? "",
     tone: toneFromSlug(r.slug),
     bio: r.bio ?? "",
     portfolio: [],
     bookingProviderId: r.bookingProviderId,
     isAcceptingBookings: r.isAcceptingBookings ?? false,
+    completedBookingCount: 0,
+    reviews: [],
+    responseRate: null,
   };
 }
 
 export async function getBraiders(): Promise<BraiderDTO[]> {
+  const agg = braiderRatingAgg();
   const rows = await db
-    .select(SELECTION)
+    .select({ ...SELECTION, ratingAvg: agg.avgScore, ratingCount: agg.reviewCount })
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
+    .leftJoin(agg, eq(agg.braiderId, braiders.id))
     .where(
       and(
         isNull(users.deletedAt),
@@ -125,11 +241,13 @@ export async function getBraiders(): Promise<BraiderDTO[]> {
 }
 
 export async function getBraiderBySlug(slug: string): Promise<BraiderDTO | null> {
+  const agg = braiderRatingAgg();
   const rows = await db
-    .select(SELECTION)
+    .select({ ...SELECTION, ratingAvg: agg.avgScore, ratingCount: agg.reviewCount })
     .from(braiders)
     .innerJoin(users, eq(braiders.userId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.braiderId, braiders.id))
+    .leftJoin(agg, eq(agg.braiderId, braiders.id))
     .where(
       and(
         eq(braiders.slug, slug),
@@ -141,9 +259,19 @@ export async function getBraiderBySlug(slug: string): Promise<BraiderDTO | null>
     .limit(1);
   if (!rows.length) return null;
 
+  const [portfolio, completedBookingCount, reviews, responseRate] = await Promise.all([
+    getPortfolioMedia(rows[0].braiderId),
+    getCompletedBookingCount(rows[0].bookingProviderId),
+    getPublicProviderReviews({ braiderId: rows[0].braiderId }),
+    getProviderResponseRate({ braiderId: rows[0].braiderId }),
+  ]);
+
   return {
     ...mapRow(rows[0]),
-    portfolio: await getPortfolioMedia(rows[0].braiderId),
+    portfolio,
+    completedBookingCount,
+    reviews,
+    responseRate,
   };
 }
 
@@ -176,15 +304,31 @@ export interface SalonDTO {
   tone: number;
   bookingProviderId: string | null;
   isAcceptingBookings: boolean;
+  completedBookingCount: number;
+  recentReviews: PublicReviewDTO[];
+  responseRate: number | null;
+}
+
+/** Live rating aggregate from real, booking-verified salon reviews only. */
+function salonRatingAgg() {
+  return db
+    .select({
+      salonId: ratings.salonId,
+      avgScore: sql<number>`avg(${ratings.score})::float`.as("avg_score"),
+      reviewCount: sql<number>`count(*)::int`.as("review_count"),
+    })
+    .from(ratings)
+    .where(isNotNull(ratings.bookingId))
+    .groupBy(ratings.salonId)
+    .as("salon_rating_agg");
 }
 
 const SALON_SELECTION = {
+  salonId: salons.id,
   slug: salons.slug,
   name: salons.name,
   city: salons.city,
   services: salons.services,
-  ratingAvg: salons.ratingAvg,
-  ratingCount: salons.ratingCount,
   openRoles: salons.openRoles,
   isVerified: salons.isVerified,
   bookingProviderId: serviceProviders.id,
@@ -192,12 +336,13 @@ const SALON_SELECTION = {
 } as const;
 
 type SalonRow = {
+  salonId: string;
   slug: string;
   name: string;
   city: string | null;
   services: string[] | null;
   ratingAvg: number | null;
-  ratingCount: number;
+  ratingCount: number | null;
   openRoles: number;
   isVerified: boolean;
   bookingProviderId: string | null;
@@ -209,23 +354,28 @@ function mapSalon(r: SalonRow): SalonDTO {
     id: r.slug,
     name: r.name,
     city: r.city ?? "",
-    rating: r.ratingAvg ?? 0,
-    reviews: r.ratingCount,
+    rating: r.ratingAvg != null ? Number(r.ratingAvg) : 0,
+    reviews: Number(r.ratingCount ?? 0),
     services: r.services ?? [],
     openRoles: r.openRoles,
     verified: r.isVerified,
     tone: toneFromSlug(r.slug),
     bookingProviderId: r.bookingProviderId,
     isAcceptingBookings: r.isAcceptingBookings ?? false,
+    completedBookingCount: 0,
+    recentReviews: [],
+    responseRate: null,
   };
 }
 
 export async function getSalons(): Promise<SalonDTO[]> {
+  const agg = salonRatingAgg();
   const rows = await db
-    .select(SALON_SELECTION)
+    .select({ ...SALON_SELECTION, ratingAvg: agg.avgScore, ratingCount: agg.reviewCount })
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
+    .leftJoin(agg, eq(agg.salonId, salons.id))
     .where(
       and(
         isNull(users.deletedAt),
@@ -237,11 +387,13 @@ export async function getSalons(): Promise<SalonDTO[]> {
 }
 
 export async function getSalonBySlug(slug: string): Promise<SalonDTO | null> {
+  const agg = salonRatingAgg();
   const rows = await db
-    .select(SALON_SELECTION)
+    .select({ ...SALON_SELECTION, ratingAvg: agg.avgScore, ratingCount: agg.reviewCount })
     .from(salons)
     .innerJoin(users, eq(salons.ownerId, users.id))
     .leftJoin(serviceProviders, eq(serviceProviders.salonId, salons.id))
+    .leftJoin(agg, eq(agg.salonId, salons.id))
     .where(
       and(
         eq(salons.slug, slug),
@@ -251,7 +403,20 @@ export async function getSalonBySlug(slug: string): Promise<SalonDTO | null> {
       )
     )
     .limit(1);
-  return rows.length ? mapSalon(rows[0]) : null;
+  if (!rows.length) return null;
+
+  const [completedBookingCount, recentReviews, responseRate] = await Promise.all([
+    getCompletedBookingCount(rows[0].bookingProviderId),
+    getPublicProviderReviews({ salonId: rows[0].salonId }),
+    getProviderResponseRate({ salonId: rows[0].salonId }),
+  ]);
+
+  return {
+    ...mapSalon(rows[0]),
+    completedBookingCount,
+    recentReviews,
+    responseRate,
+  };
 }
 
 export interface BraidStyleDTO {

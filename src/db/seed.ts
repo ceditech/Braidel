@@ -12,6 +12,7 @@ import * as schema from "./schema";
 import {
   applications,
   availabilityRules,
+  bookings,
   braiders,
   braidStyles,
   clientProfiles,
@@ -19,6 +20,7 @@ import {
   notifications,
   opportunities,
   portfolioMedia,
+  ratings,
   salons,
   serviceOfferings,
   serviceProviders,
@@ -77,6 +79,65 @@ function applicationStatus(status: string) {
   return map[status] ?? "pending";
 }
 
+const REVIEW_COMMENTS = [
+  "Really happy with how this turned out — professional and on time.",
+  "Great experience from booking to finish. Would book again.",
+  "Solid work, exactly what I asked for.",
+  "Friendly, skilled, and worth the price.",
+  "Would recommend to anyone looking for quality braiding.",
+] as const;
+
+function reviewScoresForBadge(badge: string): number[] {
+  if (badge === "Verified") return [5, 5, 5, 4, 5];
+  if (badge === "Top rated") return [5, 4, 4, 5, 4];
+  return [4, 4, 5, 3, 4];
+}
+
+/** Seeds real completed bookings + real reviews on those bookings, so the
+ *  public rating badge (a live aggregate over `ratings`) reflects genuine
+ *  data instead of a fabricated column value. Reviews are spaced a few weeks
+ *  apart, oldest first. */
+async function seedCompletedBookingReviews(params: {
+  reviewerUserId: string;
+  clientProfileId: string;
+  providerId: string;
+  offering: { id: string; name: string; priceCents: number; durationMinutes: number };
+  target: { braiderId: string } | { salonId: string };
+  scores: number[];
+  timezone: string;
+}) {
+  const { reviewerUserId, clientProfileId, providerId, offering, target, scores, timezone } = params;
+
+  for (let i = 0; i < scores.length; i++) {
+    const startsAt = new Date(Date.now() - (scores.length - i) * 21 * 24 * 60 * 60 * 1000);
+    const endsAt = new Date(startsAt.getTime() + offering.durationMinutes * 60 * 1000);
+
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        clientProfileId,
+        providerId,
+        serviceOfferingId: offering.id,
+        status: "completed",
+        startsAt,
+        endsAt,
+        timezone,
+        serviceName: offering.name,
+        priceCents: offering.priceCents,
+        currency: "USD",
+      })
+      .returning();
+
+    await db.insert(ratings).values({
+      bookingId: booking.id,
+      reviewerId: reviewerUserId,
+      ...target,
+      score: scores[i],
+      comment: REVIEW_COMMENTS[i % REVIEW_COMMENTS.length],
+    });
+  }
+}
+
 function bookingTimezone(city: string) {
   if (city.includes("Dallas")) return "America/Chicago";
   if (city.includes("Denver")) return "America/Denver";
@@ -85,6 +146,21 @@ function bookingTimezone(city: string) {
 }
 
 async function main() {
+  // Bookings use ON DELETE RESTRICT on provider_id (preserves booking history
+  // even if a provider identity is later removed), so seed bookings must be
+  // deleted explicitly before the cascading user cleanup below can reach
+  // service_providers. Ratings/booking_status_history cascade from bookings.
+  await db.execute(sql`
+    DELETE FROM bookings
+    WHERE provider_id IN (
+      SELECT sp.id FROM service_providers sp
+      LEFT JOIN braiders b ON b.id = sp.braider_id
+      LEFT JOIN salons s ON s.id = sp.salon_id
+      LEFT JOIN users bu ON bu.id = b.user_id
+      LEFT JOIN users su ON su.id = s.owner_id
+      WHERE bu.clerk_id LIKE 'seed_%' OR su.clerk_id LIKE 'seed_%'
+    )
+  `);
   await db.execute(sql`DELETE FROM users WHERE clerk_id LIKE 'seed_%'`);
 
   for (const style of BRAID_STYLES) {
@@ -127,12 +203,15 @@ async function main() {
       onboardedAt: new Date(),
     })
     .returning();
-  await db.insert(clientProfiles).values({
-    userId: seedClient.id,
-    city: "Atlanta",
-    state: "GA",
-    timezone: "America/New_York",
-  });
+  const [seedClientProfile] = await db
+    .insert(clientProfiles)
+    .values({
+      userId: seedClient.id,
+      city: "Atlanta",
+      state: "GA",
+      timezone: "America/New_York",
+    })
+    .returning();
   await db.insert(notificationPreferences).values({ userId: seedClient.id });
 
   for (const b of BRAIDERS) {
@@ -175,17 +254,20 @@ async function main() {
         maxConcurrentBookings: 1,
       })
       .returning();
-    await db.insert(serviceOfferings).values(
-      b.specs.slice(0, 2).map((specialty, index) => ({
-        providerId: bookingProvider.id,
-        name: `${specialty} appointment`,
-        description: `A complete ${specialty.toLowerCase()} service with consultation and finishing.`,
-        durationMinutes: index === 0 ? 240 : 180,
-        priceCents: index === 0 ? 18000 : 14500,
-        currency: "USD",
-        isActive: true,
-      }))
-    );
+    const braiderOfferings = await db
+      .insert(serviceOfferings)
+      .values(
+        b.specs.slice(0, 2).map((specialty, index) => ({
+          providerId: bookingProvider.id,
+          name: `${specialty} appointment`,
+          description: `A complete ${specialty.toLowerCase()} service with consultation and finishing.`,
+          durationMinutes: index === 0 ? 240 : 180,
+          priceCents: index === 0 ? 18000 : 14500,
+          currency: "USD",
+          isActive: true,
+        }))
+      )
+      .returning();
     await db.insert(availabilityRules).values(
       [1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
         providerId: bookingProvider.id,
@@ -195,6 +277,15 @@ async function main() {
         isActive: true,
       }))
     );
+    await seedCompletedBookingReviews({
+      reviewerUserId: seedClient.id,
+      clientProfileId: seedClientProfile.id,
+      providerId: bookingProvider.id,
+      offering: braiderOfferings[0],
+      target: { braiderId: braider.id },
+      scores: reviewScoresForBadge(b.badge),
+      timezone: bookingTimezone(b.city),
+    });
     await db.insert(notificationPreferences).values({ userId: u.id });
     await db.insert(notifications).values({
       userId: u.id,
@@ -260,17 +351,20 @@ async function main() {
         maxConcurrentBookings: 3,
       })
       .returning();
-    await db.insert(serviceOfferings).values(
-      s.services.slice(0, 3).map((service, index) => ({
-        providerId: bookingProvider.id,
-        name: service,
-        description: `${service} with a consultation, professional installation, and finishing at ${s.name}.`,
-        durationMinutes: 180 + index * 30,
-        priceCents: 15000 + index * 2500,
-        currency: "USD",
-        isActive: true,
-      }))
-    );
+    const salonOfferings = await db
+      .insert(serviceOfferings)
+      .values(
+        s.services.slice(0, 3).map((service, index) => ({
+          providerId: bookingProvider.id,
+          name: service,
+          description: `${service} with a consultation, professional installation, and finishing at ${s.name}.`,
+          durationMinutes: 180 + index * 30,
+          priceCents: 15000 + index * 2500,
+          currency: "USD",
+          isActive: true,
+        }))
+      )
+      .returning();
     await db.insert(availabilityRules).values(
       [1, 2, 3, 4, 5, 6].map((dayOfWeek) => ({
         providerId: bookingProvider.id,
@@ -280,6 +374,15 @@ async function main() {
         isActive: true,
       }))
     );
+    await seedCompletedBookingReviews({
+      reviewerUserId: seedClient.id,
+      clientProfileId: seedClientProfile.id,
+      providerId: bookingProvider.id,
+      offering: salonOfferings[0],
+      target: { salonId: salon.id },
+      scores: reviewScoresForBadge(s.verified ? "Verified" : s.rating >= 4.5 ? "Top rated" : "New"),
+      timezone: bookingTimezone(s.city),
+    });
     await db.insert(notificationPreferences).values({ userId: owner.id });
     await db.insert(notifications).values({
       userId: owner.id,
