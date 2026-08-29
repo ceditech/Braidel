@@ -711,21 +711,6 @@ function mapOpportunity(r: OpportunityRow): OpportunityDTO {
   };
 }
 
-function includeDemoRows(): boolean {
-  return process.env.NODE_ENV !== "production";
-}
-
-function uniqueById<T extends { id: string }>(primary: T[], fallback: T[]): T[] {
-  const seen = new Set<string>();
-  const rows: T[] = [];
-  for (const row of [...primary, ...fallback]) {
-    if (seen.has(row.id)) continue;
-    seen.add(row.id);
-    rows.push(row);
-  }
-  return rows;
-}
-
 const OPPORTUNITY_SELECTION = {
   slug: opportunities.slug,
   title: opportunities.title,
@@ -770,7 +755,7 @@ export async function getOpportunitiesForSalon(clerkId: string): Promise<Opportu
     .where(eq(users.clerkId, clerkId))
     .limit(1);
 
-  if (!ownerRows.length) return getOpportunities();
+  if (!ownerRows.length) return [];
 
   const rows = await db
     .select(OPPORTUNITY_SELECTION)
@@ -780,9 +765,7 @@ export async function getOpportunitiesForSalon(clerkId: string): Promise<Opportu
     .where(eq(salons.ownerId, ownerRows[0].id))
     .groupBy(opportunities.id, salons.id)
     .orderBy(desc(opportunities.createdAt));
-  const mapped = rows.map(mapOpportunity);
-  if (includeDemoRows()) return uniqueById(mapped, await getOpportunities());
-  return mapped;
+  return rows.map(mapOpportunity);
 }
 
 export async function getActiveOpportunities(): Promise<OpportunityDTO[]> {
@@ -1030,10 +1013,7 @@ export async function getApplicationsForBraider(clerkId: string): Promise<Applic
     status: applicationStatusLabel(r.status),
     review: null,
   }));
-  const visibleRows = includeDemoRows()
-    ? uniqueById(mapped, await getApplications())
-    : mapped;
-  return reviewer ? attachReviews(visibleRows, reviewer.id) : visibleRows;
+  return reviewer ? attachReviews(mapped, reviewer.id) : mapped;
 }
 
 export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantDTO[]> {
@@ -1043,7 +1023,7 @@ export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantD
     .where(eq(users.clerkId, clerkId))
     .limit(1);
 
-  if (!ownerRows.length) return getApplicants();
+  if (!ownerRows.length) return [];
 
   const rows = await db
     .select({
@@ -1076,10 +1056,7 @@ export async function getApplicantsForSalon(clerkId: string): Promise<ApplicantD
     .orderBy(desc(applications.createdAt));
 
   const mapped = await mapApplicantRows(rows);
-  const visibleRows = includeDemoRows()
-    ? uniqueById(mapped, await getApplicants())
-    : mapped;
-  return attachReviews(visibleRows, ownerRows[0].id);
+  return attachReviews(mapped, ownerRows[0].id);
 }
 
 export async function hasApplication(opportunityId: string, braiderId: string): Promise<boolean> {
@@ -1089,62 +1066,6 @@ export async function hasApplication(opportunityId: string, braiderId: string): 
     .where(and(eq(applications.opportunityId, opportunityId), eq(applications.braiderId, braiderId)))
     .limit(1);
   return rows.length > 0;
-}
-
-export async function getApplications(): Promise<ApplicationDTO[]> {
-  const rows = await db
-    .select({
-      id: applications.id,
-      role: opportunities.title,
-      salon: salons.name,
-      status: applications.status,
-      createdAt: applications.createdAt,
-    })
-    .from(applications)
-    .innerJoin(opportunities, eq(applications.opportunityId, opportunities.id))
-    .innerJoin(salons, eq(opportunities.salonId, salons.id))
-    .orderBy(desc(applications.createdAt));
-
-  return rows.map((r) => ({
-    id: r.id,
-    role: r.role,
-    salon: r.salon,
-    when: `Applied ${postedLabel(r.createdAt)}`,
-    status: applicationStatusLabel(r.status),
-    review: null,
-  }));
-}
-
-export async function getApplicants(): Promise<ApplicantDTO[]> {
-  const rows = await db
-    .select({
-      id: applications.id,
-      braiderId: braiders.id,
-      status: applications.status,
-      appliedFor: opportunities.title,
-      createdAt: applications.createdAt,
-      coverNote: applications.coverNote,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      avatarUrl: users.avatarUrl,
-      profileSlug: braiders.slug,
-      city: braiders.city,
-      state: braiders.state,
-      bio: braiders.bio,
-      yearsExperience: braiders.yearsExperience,
-      priceRange: braiders.priceRange,
-      isVerified: braiders.isVerified,
-      specialties: braiders.specialties,
-      ratingAvg: braiders.ratingAvg,
-      ratingCount: braiders.ratingCount,
-    })
-    .from(applications)
-    .innerJoin(opportunities, eq(applications.opportunityId, opportunities.id))
-    .innerJoin(braiders, eq(applications.braiderId, braiders.id))
-    .innerJoin(users, eq(braiders.userId, users.id))
-    .orderBy(desc(applications.createdAt));
-
-  return mapApplicantRows(rows);
 }
 
 /* ─── Messages ─────────────────────────────────────────────────────────────── */
@@ -1219,11 +1140,9 @@ async function getApplicationConversations(user: {
     .innerJoin(messageBraiderUsers, eq(braiders.userId, messageBraiderUsers.id))
     .$dynamic();
 
-  if (!includeDemoRows()) {
-    query = query.where(
-      or(eq(messageOwnerUsers.id, user.id), eq(messageBraiderUsers.id, user.id))
-    );
-  }
+  query = query.where(
+    or(eq(messageOwnerUsers.id, user.id), eq(messageBraiderUsers.id, user.id))
+  );
 
   const applicationRows = await query.orderBy(desc(applications.createdAt));
   if (!applicationRows.length) return [];
@@ -1321,15 +1240,13 @@ async function getBookingConversations(user: {
     .leftJoin(messageBookingBraiderUsers, eq(braiders.userId, messageBookingBraiderUsers.id))
     .$dynamic();
 
-  if (!includeDemoRows()) {
-    query = query.where(
-      or(
-        eq(messageClientUsers.id, user.id),
-        eq(messageBookingOwnerUsers.id, user.id),
-        eq(messageBookingBraiderUsers.id, user.id)
-      )
-    );
-  }
+  query = query.where(
+    or(
+      eq(messageClientUsers.id, user.id),
+      eq(messageBookingOwnerUsers.id, user.id),
+      eq(messageBookingBraiderUsers.id, user.id)
+    )
+  );
 
   const bookingRows = await query.orderBy(desc(bookings.createdAt));
   if (!bookingRows.length) return [];

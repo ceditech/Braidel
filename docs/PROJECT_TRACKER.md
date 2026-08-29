@@ -489,6 +489,33 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   All QA test data and scratch verification scripts were cleaned up. `tsc`/
   `eslint` clean throughout. Slice 6.6 (capped Client review reminders) is now
   QA-passed; Slices 6.4 and 6.5 still await their own manual QA pass.
+- **August 29, 2026:** Live manual QA of the admin surface (Performance,
+  Users, Money, Moderation tabs, and "Preview as" mode) with the project
+  owner. Confirmed working: real KPIs, donut/bar/line charts render real data
+  (verified via DOM inspection after the Browser-pane screenshot tool itself
+  started failing to capture pixels mid-session — a tool-side issue, not an
+  app bug, confirmed by cross-checking `elementFromPoint` and page text at
+  the same scroll position), a live unlist → relist round-trip on a seed
+  salon correctly hid/restored it from `/find-salons`, and the verification
+  queue renders real submitted evidence. Found a real, pre-existing privacy
+  bug while checking "Preview as": the admin's braider preview showed a
+  populated "Your applications" list and other users' real application data,
+  directly contradicting that feature's own documented guarantee ("preview
+  never exposes another user's data"). Root cause was much broader than
+  preview mode — an `includeDemoRows()` helper (`NODE_ENV !== "production"`)
+  in `src/db/queries.ts` merged in, or in two messaging queries stopped
+  filtering to, every other user's real applications, applicants, and
+  message conversations across 5 call sites, in **any** non-production
+  environment. Fixed by removing `includeDemoRows()`/`uniqueById()` entirely,
+  deleting the two now-dead unscoped exports (`getApplications()`,
+  `getApplicants()`) that had no other callers, and changing two related
+  "no owner row found" fallbacks to return an empty array instead of all
+  rows. `getOpportunities()` (public job listings — intentionally public)
+  was left alone. Re-verified live: admin preview now shows a genuine empty
+  state, the public `/opportunities` marketplace is unaffected, and a real
+  signed-in test user's own dashboard/messages still render correctly.
+  `tsc`/`eslint` clean. Verification-queue approve/reject actions were not
+  exercised since they belonged to the project owner's own real accounts.
 - **August 26, 2026:** Made the user-composition and booking-lifecycle chart
   categories fully data-driven. Added `getAdminUserRoleDistribution()` and
   `getAdminBookingStatusDistribution()` — live `GROUP BY` queries over
