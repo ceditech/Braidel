@@ -128,6 +128,8 @@ export const verificationEvidenceStatusEnum = pgEnum(
   ["submitted", "under_review", "approved", "rejected", "expired"]
 );
 
+export const cmsPageStatusEnum = pgEnum("cms_page_status", ["draft", "published"]);
+
 // ─── Users ────────────────────────────────────────────────────────────────────
 // clerk_id links this row to the Clerk user record (source of truth for auth)
 
@@ -1616,3 +1618,53 @@ export const notificationPreferencesRelations = relations(
     }),
   })
 );
+
+// ─── CMS (marketing pages) ─────────────────────────────────────────────────────
+// Groundwork for a future admin-editable CMS. Pages currently render from
+// static content in src/content/marketing/*.ts — nothing reads from these
+// tables yet.
+
+export const cmsPages = pgTable("cms_pages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  status: cmsPageStatusEnum("status").notNull().default("draft"),
+  updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const cmsSections = pgTable(
+  "cms_sections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pageId: uuid("page_id")
+      .notNull()
+      .references(() => cmsPages.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    content: text("content").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("cms_sections_page_id_key_idx").on(table.pageId, table.key),
+    index("cms_sections_page_id_idx").on(table.pageId),
+  ]
+);
+
+export const cmsPagesRelations = relations(cmsPages, ({ one, many }) => ({
+  updatedBy: one(users, {
+    fields: [cmsPages.updatedByUserId],
+    references: [users.id],
+  }),
+  sections: many(cmsSections),
+}));
+
+export const cmsSectionsRelations = relations(cmsSections, ({ one }) => ({
+  page: one(cmsPages, {
+    fields: [cmsSections.pageId],
+    references: [cmsPages.id],
+  }),
+}));

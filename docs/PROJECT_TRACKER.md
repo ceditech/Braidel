@@ -177,9 +177,9 @@ _Data routes & business logic_
 | ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
 | ✅ | Review audit history + update notification wiring | High | 2 |
 | ✅ | Payment foundation schema + fee split helpers | High | 3 |
-| 🔄 | Marketplace admin decision APIs + explicit account/profile lifecycle controls | High | 4 |
-| 🔄 | Admin "preview as" mode (Salon/Braider/Client) for UI review and QA | Medium | 4 |
-| 🔄 | Admin dashboard insight charts (donut/bar/line) | Medium | 4 |
+| ✅ | Marketplace admin decision APIs + explicit account/profile lifecycle controls | High | 4 |
+| ✅ | Admin "preview as" mode (Salon/Braider/Client) for UI review and QA | Medium | 4 |
+| ✅ | Admin dashboard insight charts (donut/bar/line) | Medium | 4 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -516,6 +516,17 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   signed-in test user's own dashboard/messages still render correctly.
   `tsc`/`eslint` clean. Verification-queue approve/reject actions were not
   exercised since they belonged to the project owner's own real accounts.
+- **August 29, 2026:** Completed live manual QA of the remaining admin
+  lifecycle actions: Suspend account → confirmed status flips to `suspended`
+  and reverses cleanly via Restore access; Promote admin → confirmed an
+  allowlisted user's role flips to `admin`. Combined with the Unlist/Relist
+  and chart verification done earlier the same day, this closes out manual
+  QA for **Marketplace admin decision APIs**, **Admin "preview as" mode**,
+  and **Admin dashboard insight charts** — all three flipped to done. The
+  broader **Admin and moderation surface** item stays in progress: the
+  verification/review-report *decision* actions themselves (approve/reject)
+  were not exercised, since the only pending items in dev belong to the
+  project owner's own real accounts — deferred until they opt in.
 - **August 26, 2026:** Made the user-composition and booking-lifecycle chart
   categories fully data-driven. Added `getAdminUserRoleDistribution()` and
   `getAdminBookingStatusDistribution()` — live `GROUP BY` queries over
