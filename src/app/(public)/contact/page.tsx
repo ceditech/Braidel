@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { contactContent } from "@/content/marketing/contact";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import styles from "@/components/marketing/Marketing.module.css";
 
-export const metadata: Metadata = {
-  title: "Contact | braid.el",
-  description: contactContent.hero.body,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { hero } = await resolveMarketingContent("contact", contactContent);
+  return {
+    title: "Contact | braid.el",
+    description: hero.body,
+  };
+}
 
-export default function ContactPage() {
-  const { hero, channels } = contactContent;
+export default async function ContactPage() {
+  const { hero, channels } = await resolveMarketingContent("contact", contactContent);
 
   return (
     <div className={styles.page}>
