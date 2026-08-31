@@ -1,0 +1,2 @@
+ALTER TABLE "marketplace_admin_actions" DROP CONSTRAINT "marketplace_admin_actions_target_type_check";--> statement-breakpoint
+ALTER TABLE "marketplace_admin_actions" ADD CONSTRAINT "marketplace_admin_actions_target_type_check" CHECK ("marketplace_admin_actions"."target_type" in ('provider_verification', 'review_report', 'user_account', 'provider_profile', 'cms_page'));

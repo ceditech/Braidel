@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { faqContent } from "@/content/marketing/faq";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import styles from "@/components/marketing/Marketing.module.css";
 
-export const metadata: Metadata = {
-  title: "FAQ | braid.el",
-  description: faqContent.hero.body,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { hero } = await resolveMarketingContent("faq", faqContent);
+  return {
+    title: "FAQ | braid.el",
+    description: hero.body,
+  };
+}
 
-export default function FaqPage() {
-  const { hero, items } = faqContent;
+export default async function FaqPage() {
+  const { hero, items } = await resolveMarketingContent("faq", faqContent);
 
   return (
     <div className={styles.page}>

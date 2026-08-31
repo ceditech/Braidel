@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { termsContent } from "@/content/marketing/terms";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import styles from "@/components/marketing/Marketing.module.css";
 
 export const metadata: Metadata = {
@@ -7,8 +8,8 @@ export const metadata: Metadata = {
   description: "braid.el's terms of service.",
 };
 
-export default function TermsPage() {
-  const { updated, sections } = termsContent;
+export default async function TermsPage() {
+  const { updated, sections } = await resolveMarketingContent("terms", termsContent);
 
   return (
     <div className={styles.page}>

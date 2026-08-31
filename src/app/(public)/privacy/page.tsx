@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { privacyContent } from "@/content/marketing/privacy";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import styles from "@/components/marketing/Marketing.module.css";
 
 export const metadata: Metadata = {
@@ -7,8 +8,8 @@ export const metadata: Metadata = {
   description: "braid.el's privacy policy.",
 };
 
-export default function PrivacyPage() {
-  const { updated, sections } = privacyContent;
+export default async function PrivacyPage() {
+  const { updated, sections } = await resolveMarketingContent("privacy", privacyContent);
 
   return (
     <div className={styles.page}>

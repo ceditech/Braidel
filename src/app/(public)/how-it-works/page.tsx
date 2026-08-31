@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { howItWorksContent } from "@/content/marketing/howItWorks";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import { Button } from "@/components/ui/Button";
 import styles from "@/components/marketing/Marketing.module.css";
 
-export const metadata: Metadata = {
-  title: "How It Works | braid.el",
-  description: howItWorksContent.hero.body,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { hero } = await resolveMarketingContent("how-it-works", howItWorksContent);
+  return {
+    title: "How It Works | braid.el",
+    description: hero.body,
+  };
+}
 
 const toneColor: Record<string, string> = {
   brand: "var(--brand)",
@@ -15,8 +19,8 @@ const toneColor: Record<string, string> = {
   sage: "var(--success)",
 };
 
-export default function HowItWorksPage() {
-  const { hero, steps, audiences } = howItWorksContent;
+export default async function HowItWorksPage() {
+  const { hero, steps, audiences } = await resolveMarketingContent("how-it-works", howItWorksContent);
 
   return (
     <div className={styles.page}>

@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { aboutContent } from "@/content/marketing/about";
+import { resolveMarketingContent } from "@/content/marketing/resolve";
 import styles from "@/components/marketing/Marketing.module.css";
 
-export const metadata: Metadata = {
-  title: "About | braid.el",
-  description: aboutContent.hero.body,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { hero } = await resolveMarketingContent("about", aboutContent);
+  return {
+    title: "About | braid.el",
+    description: hero.body,
+  };
+}
 
-export default function AboutPage() {
-  const { hero, values } = aboutContent;
+export default async function AboutPage() {
+  const { hero, values } = await resolveMarketingContent("about", aboutContent);
 
   return (
     <div className={styles.page}>

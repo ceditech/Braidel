@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { DonutChart } from "@/components/ui/DonutChart";
 import { BarChart } from "@/components/ui/BarChart";
@@ -127,6 +128,7 @@ export function AdminModerationClient({
         <TabButton label="Users" active={portalTab === "users"} onClick={() => setPortalTab("users")} />
         <TabButton label="Money" active={portalTab === "money"} onClick={() => setPortalTab("money")} />
         <TabButton label="Moderation" active={portalTab === "moderation"} onClick={() => setPortalTab("moderation")} />
+        <Link href="/dashboard/admin/content">Content</Link>
       </nav>
 
       {portalTab === "overview" && <OverviewPanel dashboard={dashboard} />}

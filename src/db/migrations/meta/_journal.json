@@ -162,6 +162,13 @@
       "when": 1787975855231,
       "tag": "0023_add_cms_pages_and_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788139839001,
+      "tag": "0024_widen_admin_actions_target_type",
+      "breakpoints": true
     }
   ]
 }
