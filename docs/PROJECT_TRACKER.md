@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~87% complete** (119 done · 4 in progress · 16 pending of 139) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~87% complete** (121 done · 5 in progress · 16 pending of 142) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [STABLE Framework](../STABLE_FRAMEWORK.md) — surgical &
 > SOLID, testable & traceable, architecture-aligned & available, balanced for
@@ -24,7 +24,7 @@
 
 | Phase | Focus | Done | In progress | % |
 |-------|-------|------|--------------|---|
-| **Phase 1** | Workforce & Staffing | 72 / 84 | 1 | ~86% |
+| **Phase 1** | Workforce & Staffing | 74 / 87 | 2 | ~86% |
 | **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
 | **Phase 4** | Reputation & Verification | 20 / 26 | 2 | ~81% |
@@ -287,8 +287,11 @@ _Launch gates and operational risk, ordered by risk (from the November 9, 2026 a
 
 | Status | Task | Priority | Phase | Detail |
 |--------|------|----------|-------|--------|
-| ⬜ | Isolate the production database from development | High | 1 | Production (braidel.com) and local development currently share one Neon database, so local migrate, seed, and QA touch live data. Create a separate Neon dev branch, point .env.local at it, and add a production guard to src/db/seed.ts (it has none today). |
-| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge. Create the Clerk production instance, set production keys and redirect URLs in Vercel, then activate /api/webhooks/clerk (steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
+| ✅ | Isolate local development from the production database (Neon dev branch + script guards) | High | 1 | Neon project Braidel now has two branches: production and development (a copy-on-write fork created November 9, 2026). Local .env.local points at development and lists the production hostname in BRAIDEL_PRODUCTION_DB_HOSTS. src/db/safety.ts makes db:seed and verify:booking refuse production hosts (direct or pooled), refuse when the list is unset, and refuse in a production environment; npm run db:target reports the target and db:migrate prints it first. Verified: guard paths, db:migrate and verify:booking on development, and a canary write to development that was absent from production. |
+| 🔄 | Point Vercel Preview deployments at the development database | High | 1 | Done November 9, 2026: the Vercel DATABASE_URL variable was narrowed from Production+Preview to Production only, so preview deployments can no longer reach the production database. Remaining: add a Preview-scoped DATABASE_URL (type Sensitive) containing the development connection string from .env.local; until then Preview deployments have NO database connection and database-backed pages will error. Preview still shares the production Clerk keys. |
+| ✅ | Give the development branch its own database password | High | 1 | A Neon branch inherits its parent's role passwords, so development initially shared production's neondb_owner password. Reset on November 9, 2026 (development branch only) and .env.local refreshed. Verified with a script that never prints credentials: the two passwords differ, the development password is rejected by the production host, and each credential works on its own host. |
+| ⬜ | Rotate the production database password | Medium | 1 | The production connection string was printed once into a local assistant session transcript on November 9, 2026. Rotating it requires updating the Vercel Production DATABASE_URL and redeploying, so schedule it deliberately. |
+| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge, and Preview deployments share the same Clerk keys as Production. Create the Clerk production instance, set production keys and redirect URLs in Vercel, then activate /api/webhooks/clerk (CLERK_WEBHOOK_SIGNING_SECRET is not set anywhere yet; steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
 | ⬜ | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev (November 9, 2026): 11 advisories (1 critical, 9 high, 1 moderate). The critical one is next (installed 16.2.7; audit lists 16.4.6 as the non-major fix). The @vercel/blob chain (@vercel/oidc, @vercel/cli-config, zod) plus nanoid, undici, source-map-js, and sharp need triage. |
 | ⬜ | Automated test suite (domain unit tests + smoke tests) | High | 1 | No test runner is installed; regression protection is manual QA plus three ad hoc scripts/verify-*.ts files. Start with unit tests for payments-domain, booking-availability, review-reminders, and the CMS sanitizer, then a small Playwright smoke suite for the public routes. |
 | ⬜ | Error monitoring, uptime alerting, and rate limiting | High | 1 | None exist. Add runtime error monitoring and uptime checks, and rate-limit public and write routes (applications, messages, onboarding, portfolio upload). |
@@ -300,7 +303,7 @@ _Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet
 
 | Status | Task | Priority | Phase | Detail |
 |--------|------|----------|-------|--------|
-| ⬜ | Portfolio image upload fails in production | High | 1 | Reported August 26, 2026 on braidel.com. src/lib/portfolio-storage.ts throws 'Portfolio storage is not configured' in production when BLOB_READ_WRITE_TOKEN is not set, which matches the symptom. Confirm the Vercel Blob store and token exist in the Production environment. |
+| ⬜ | Portfolio image upload fails in production | High | 1 | Reported August 26, 2026 on braidel.com. Cause confirmed November 9, 2026: BLOB_READ_WRITE_TOKEN is not set in any Vercel environment, so src/lib/portfolio-storage.ts throws 'Portfolio storage is not configured' in production. Create a Vercel Blob store and connect it to the project. |
 | ⬜ | Braider Settings: profile fields and specialties not persisting; no profile photo upload | High | 1 | Reported August 26, 2026 (screenshots); not re-verified since. The photo control is a disabled 'Photo upload later' button (SettingsClient.tsx). |
 | ⬜ | Find Work: 'Apply now' never becomes 'Already applied' | Medium | 1 | Reported August 26, 2026. FindWorkClient.tsx only has 'Applying...' and 'Apply now' states; after applying, the button should switch to a disabled 'Already applied'. |
 | ⬜ | Salon profile About cards and 'Vetted braiders' claim are hardcoded | High | 4 | SalonDetailClient.tsx hardcodes Established 2018, Team 8 braiders, Stations 6, and Amenities for every salon, plus an unconditional 'Vetted braiders' line. These must come from the owner's profile, or be hidden when empty. |
@@ -620,3 +623,28 @@ _Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet
   one Neon database; Clerk on production appears to be in Development mode;
   `npm audit --omit=dev` reports 11 advisories (1 critical, in `next`); there is
   no automated test suite or CI; and no monitoring or rate limiting.
+- **November 9, 2026:** Environment isolation (Production Readiness item 1).
+  Created the Neon branch `development` (a fork of `production` with its own
+  compute endpoint) using `neonctl`; local `.env.local` now points at it and
+  records the production hostname in `BRAIDEL_PRODUCTION_DB_HOSTS`. New
+  `src/db/safety.ts` guard is applied to `db:seed` and `verify:booking`; new
+  `npm run db:target`; `db:migrate` prints its target first. Verified: the target
+  report, all guard refusal paths (production host direct and pooled, unset host
+  list, production environment flag), `db:migrate` and `verify:booking` on
+  `development`, and a canary row written to `development` that was absent from
+  `production` (read-only check) and removed. The Vercel project review showed
+  that `DATABASE_URL` is one variable scoped to Production and Preview, that the
+  Clerk keys are shared with Preview, and that `BLOB_READ_WRITE_TOKEN` is not set
+  (confirming the cause of the failing portfolio uploads). The roadmap item was
+  split: local isolation is done; pointing Vercel Preview at `development` and
+  rotating the production password are tracked as separate pending items.
+- **November 9, 2026 (follow-up):** The `development` branch had inherited
+  production's `neondb_owner` password (Neon copies it on branch), so credentials
+  were not truly separate. Reset the development role password and refreshed
+  `.env.local`; verified with a script that never prints credentials: the
+  passwords differ, the development password is rejected by the production host,
+  and each credential works on its own host. In Vercel, `DATABASE_URL` (one
+  sensitive variable scoped to Production and Preview) was narrowed to Production
+  only, so preview deployments can no longer reach the production database. The
+  Preview-scoped value for `development` has not been added yet, so Preview
+  deployments currently have no database connection.

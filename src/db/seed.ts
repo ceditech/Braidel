@@ -28,6 +28,10 @@ import {
 } from "./schema";
 import { BRAID_STYLES } from "../lib/braidStyles";
 import { APPLICATIONS, BRAIDERS, JOBS, SALONS } from "../lib/sampleData";
+import { assertNonProductionDatabase } from "./safety";
+
+// Seeding deletes and recreates `seed_` rows; never allow it near production.
+assertNonProductionDatabase("db:seed");
 
 const db = drizzle(neon(process.env.DATABASE_URL!), { schema });
 

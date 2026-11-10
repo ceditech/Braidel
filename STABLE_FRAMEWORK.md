@@ -100,11 +100,14 @@ Remaining notes      Risks · Follow-ups
 
 ## Braidel operating rules (read before touching data)
 
-- **Production and development currently share one Neon database** (see
-  `PRE-PRODUCTION-RELEASE-CHECKS.md`, *Production Reality Check*). Until a
-  separate dev branch exists, treat `db:migrate`, `db:seed`, and ad hoc scripts as
-  production commands: say so, make them reversible, and clean up test rows in
-  the same step.
+- **Local development uses the Neon branch `development`; production is the
+  `production` branch.** Check with `npm run db:target` before any data command.
+  Never put the production connection string in `.env.local` or in output; set it
+  in the shell for a single, deliberate production command (for example a
+  migration). `db:seed` and `verify:booking` refuse production hosts. Vercel
+  Preview deployments still use the production `DATABASE_URL` until their scope
+  is changed, so treat preview testing as production-data testing for now.
+  Never print connection strings; scripts that handle them must not echo them.
 - Confirm outward-facing or hard-to-reverse actions (migrations on shared data,
   pushes, merges, anything sent to a third party) before running them.
 - This is **Next.js 16**: read `node_modules/next/dist/docs/` before assuming an

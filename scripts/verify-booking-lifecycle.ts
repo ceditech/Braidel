@@ -3,6 +3,10 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 async function main() {
+  // This script creates and cancels a real booking; never run it against production.
+  const { assertNonProductionDatabase } = await import("../src/db/safety");
+  assertNonProductionDatabase("verify:booking");
+
   const [{ Temporal }, { and, eq }, { db }, schema, availability, bookingQueries, bookingService] =
     await Promise.all([
     import("@js-temporal/polyfill"),

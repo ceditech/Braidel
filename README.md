@@ -27,14 +27,22 @@ npm run dev                  # http://localhost:3003
 
 Required environment variables are listed in [`.env.example`](.env.example):
 `DATABASE_URL`, the Clerk keys, `CLERK_WEBHOOK_SIGNING_SECRET`,
-`BRAIDEL_ADMIN_EMAILS` (comma-separated admin allowlist), `BLOB_READ_WRITE_TOKEN`
+`BRAIDEL_ADMIN_EMAILS` (comma-separated admin allowlist),
+`BRAIDEL_PRODUCTION_DB_HOSTS` (production database hostnames the seed/verify
+scripts must never touch), `BLOB_READ_WRITE_TOKEN`
 (required for portfolio uploads in production), and the Stripe keys (only needed
 once payments are activated).
 
-> ⚠️ **Shared database.** Production and local development currently use the
-> **same Neon database**, and `npm run db:seed` has no production guard. Treat
-> `db:migrate`, `db:seed`, and any script that writes data as a production
-> command until a separate Neon dev branch exists.
+> **Databases.** Production uses the Neon branch `production`; local development
+> uses the Neon branch `development` (a copy-on-write fork). `.env.local` must
+> point at `development` and list the production hostname in
+> `BRAIDEL_PRODUCTION_DB_HOSTS`. `npm run db:seed` and `npm run verify:booking`
+> refuse to run against a listed host (and refuse to run if the list is empty).
+> Run `npm run db:target` to see which database you are about to touch.
+> To migrate production deliberately, set `DATABASE_URL` for that single command
+> only (a shell value overrides `.env.local`); `db:migrate` prints its target
+> first. Vercel Preview deployments still use the production `DATABASE_URL` until
+> their scope is changed (tracked in `docs/PROJECT_TRACKER.md`).
 
 ## Scripts
 
@@ -45,10 +53,11 @@ once payments are activated).
 | `npm run lint` | ESLint (currently 2 known errors in `Braidel Design System/`) |
 | `npx tsc --noEmit` | Type check |
 | `npm run db:generate` | Generate a Drizzle migration from `src/db/schema.ts` |
-| `npm run db:migrate` | Apply migrations to the configured database |
+| `npm run db:target` | Print which database `DATABASE_URL` points at (host only) and whether it is production |
+| `npm run db:migrate` | Apply migrations to the configured database (prints the target first) |
 | `npm run db:studio` | Browse the database in Drizzle Studio |
-| `npm run db:seed` | Seed demo data (re-runnable; removes only `seed_` rows) |
-| `npm run verify:booking` | Reversible booking-lifecycle smoke check |
+| `npm run db:seed` | Seed demo data (re-runnable; removes only `seed_` rows; refuses production) |
+| `npm run verify:booking` | Reversible booking-lifecycle smoke check (refuses production) |
 
 There is no automated test suite or CI yet; both are tracked as launch gates.
 
@@ -67,5 +76,6 @@ There is no automated test suite or CI yet; both are tracked as launch gates.
 ## Deployment
 
 Pushes to `main` deploy to production on Vercel; other branches get Preview
-deployments (which currently share the production database). Marketing page copy
+deployments (which still use the production database and Clerk keys until their
+Vercel environment scope is changed). Marketing page copy
 is editable by admins at `/dashboard/admin/content`.
