@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~88% complete** (124 done · 4 in progress · 15 pending of 143) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~88% complete** (124 done · 5 in progress · 14 pending of 143) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [STABLE Framework](../STABLE_FRAMEWORK.md) — surgical &
 > SOLID, testable & traceable, architecture-aligned & available, balanced for
@@ -24,7 +24,7 @@
 
 | Phase | Focus | Done | In progress | % |
 |-------|-------|------|--------------|---|
-| **Phase 1** | Workforce & Staffing | 77 / 88 | 1 | ~88% |
+| **Phase 1** | Workforce & Staffing | 77 / 88 | 2 | ~89% |
 | **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
 | **Phase 4** | Reputation & Verification | 20 / 26 | 2 | ~81% |
@@ -293,7 +293,7 @@ _Launch gates and operational risk, ordered by risk (from the November 9, 2026 a
 | ⬜ | Rotate the production database password | Medium | 1 | The production connection string was printed once into a local assistant session transcript on November 9, 2026. Rotating it requires updating the Vercel Production DATABASE_URL and redeploying, so schedule it deliberately. |
 | ✅ | Re-link existing accounts by verified email when the Clerk instance changes | High | 1 | src/lib/clerk-link-domain.ts decides link/insert/conflict; clerk-sync.ts relinkClerkIdentityByEmail attaches a new Clerk ID to the existing user row with the same VERIFIED email (never unverified or deleted rows), keeping role, onboarding and history. Used by the webhook sync, the first sign-in miss in requireOnboardedUser, and the onboarding route. Verified: npm run verify:clerk-link (6 rule cases) and a throwaway-row check on the development branch (conflict when unverified, link when verified with role preserved, idempotent repeat, unknown email unchanged). |
 | ✅ | Clerk production instance + identity webhook | High | 1 | Done November 10, 2026. braidel.com now uses the Clerk production instance (DNS verified in GoDaddy, SSL issued, Google + email sign-in), Production and Preview have separate Clerk keys, and /api/webhooks/clerk is active with a Production-only signing secret. Verified: live key on the deployed page, admin sign-in with role preserved via the verified-email re-link, and a disposable-user lifecycle (created, updated, deleted all delivered; Neon row tombstoned). Open follow-ups: turn off the unused Username requirement, retire the old development Clerk app, audit leftover development-era accounts, and Vercel Hobby keeps runtime logs for one hour only. |
-| ⬜ | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev (November 9, 2026): 11 advisories (1 critical, 9 high, 1 moderate). The critical one is next (installed 16.2.7; audit lists 16.4.6 as the non-major fix). The @vercel/blob chain (@vercel/oidc, @vercel/cli-config, zod) plus nanoid, undici, source-map-js, and sharp need triage. |
+| 🔄 | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev went from 11 advisories (1 critical, 9 high, 1 moderate) to 3 on November 10, 2026 (PR A): in-range updates of undici, nanoid, source-map-js, baseline-browser-mapping, @vercel/blob 2.6.1 to 2.9.0, @vercel/oidc, and an npm override pinning @vercel/cli-config to 0.3.8 (every @vercel/oidc 3.x pins a vulnerable zod; the fixed oidc 4.x is a major outside @vercel/blob's range). Remaining: the next group (next critical, postcss, sharp), fixed by Next 16.2.7 to 16.4.6 in PR B. Do not use npm audit fix --force (it suggests downgrading @vercel/blob). |
 | ⬜ | Automated test suite (domain unit tests + smoke tests) | High | 1 | No test runner is installed; regression protection is manual QA plus three ad hoc scripts/verify-*.ts files. Start with unit tests for payments-domain, booking-availability, review-reminders, and the CMS sanitizer, then a small Playwright smoke suite for the public routes. |
 | ⬜ | Error monitoring, uptime alerting, and rate limiting | High | 1 | None exist. Add runtime error monitoring and uptime checks, and rate-limit public and write routes (applications, messages, onboarding, portfolio upload). |
 | ⬜ | Clear lint debt | Medium | 1 | npm run lint exits with 2 errors and 60 warnings. Both errors are in the Braidel Design System/ reference folder, which is not part of the app; exclude it from lint or fix it so CI can require a clean lint. |
@@ -669,3 +669,11 @@ _Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet
   Username requirement, retire the old development Clerk app, audit leftover
   development-era accounts, and note that Vercel Hobby keeps runtime logs for one
   hour only. Overall moves to ~88% (124 done · 4 in progress · 15 pending of 143).
+
+- **November 10, 2026 (item 3, PR A: dependency patches):** Production advisories
+  went from 11 to 3 with in-range updates (undici, nanoid, source-map-js,
+  baseline-browser-mapping, @vercel/blob 2.9.0, @vercel/oidc) plus an npm
+  override for @vercel/cli-config 0.3.8; `npm audit fix` was tried and reverted
+  because it rewrote about 245 lockfile entries. Remaining 3 (next, postcss,
+  sharp) are fixed by the Next.js 16.4.6 upgrade in PR B. Verified: tsc, lint
+  baseline, build, clerk-link checks and a production-mode smoke test.
