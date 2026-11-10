@@ -4,11 +4,34 @@
 >
 > **Current release posture:** **NO-GO — active development**
 >
-> **Last reviewed:** August 1, 2026
+> **Last reviewed:** November 9, 2026
 
 This document tracks work that must be implemented, configured, verified, or
 approved before a production launch. It is not the general product backlog; use
 [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md) for feature progress.
+
+## Production Reality Check (November 9, 2026)
+
+The site is already live at `braidel.com`, but on a **development-grade setup**.
+Treat the facts below as the starting point for every gate in this document.
+
+- **Shared database:** production and local development use the **same Neon
+  database** (confirmed August 30, 2026). Local migrations, seeding, and QA touch
+  live data, and `src/db/seed.ts` has no production guard. Seeded demo accounts
+  are visible in the admin portal.
+- **Clerk:** the production sign-in page shows Clerk's *Development mode* badge,
+  so the Clerk production instance is not in use. The identity webhook is not
+  activated.
+- **Dependencies:** `npm audit --omit=dev` reports 11 advisories (1 critical in
+  `next`, 9 high, 1 moderate).
+- **Quality gates:** no CI, no automated tests, no error monitoring, no rate
+  limiting; full lint fails on 2 errors in the `Braidel Design System/`
+  reference folder.
+- **Known defects:** see the *Known Issues Backlog* group in
+  [`docs/PROJECT_TRACKER.md`](docs/PROJECT_TRACKER.md) (portfolio upload failing
+  in production, hardcoded public figures, and others).
+- **Content:** Terms and Privacy are draft copy; the Contact page lists
+  `hello@braid.el` and `@braid.el`, which are unverified placeholders.
 
 ## Maintenance Rules
 
@@ -37,17 +60,25 @@ Production must not launch until every item in this section is complete.
 
 ### Deployment and CI
 
-- [ ] Create and link the production Vercel project.
+- [x] Create and link the production Vercel project. *(Vercel project `braidel`
+      is linked to GitHub `ceditech/Braidel`; merges to `main` deploy to
+      production. Confirmed August 30, 2026.)*
 - [ ] Establish a stable staging or Preview environment for release-candidate
-      testing.
-- [ ] Configure the production domain and verify HTTPS.
+      testing. *(Per-branch Preview deployments exist, but they share the
+      production database, so they are not a safe staging environment yet.)*
+- [x] Configure the production domain and verify HTTPS. *(`braidel.com` and
+      `www.braidel.com` are aliased to the production deployment and served over
+      HTTPS; verified August 30, 2026.)*
 - [ ] Add CI checks for TypeScript, ESLint, production build, and migration
       consistency.
-- [ ] Make the full repository lint command pass. Current known debt includes
-      generated/design-system source errors and render-time `Date.now()` usage in
-      `NewOpportunityClient.tsx`.
+- [ ] Make the full repository lint command pass. *(November 9, 2026: 2 errors
+      remain, both in the `Braidel Design System/` reference folder, plus 60
+      warnings. The earlier `Date.now()` render-time issue in
+      `NewOpportunityClient.tsx` no longer reports.)*
 - [ ] Require successful CI before production deployment.
-- [ ] Pin and document the production Node.js runtime.
+- [ ] Pin and document the production Node.js runtime. *(The Vercel project is
+      set to Node 24.x; it is not yet pinned in `package.json` `engines` or
+      documented.)*
 - [ ] Verify a production-equivalent build from a clean checkout.
 
 ### Environment and Secrets
@@ -72,6 +103,9 @@ Production must not launch until every item in this section is complete.
 ### Database and Data Safety
 
 - [ ] Use an isolated production database or Neon production branch.
+      **Currently failing:** production and development share one Neon
+      database (see Production Reality Check). Create a separate Neon branch for
+      development and point `.env.local` at it.
 - [ ] Confirm all committed Drizzle migrations apply cleanly in a
       production-equivalent environment.
 - [ ] Apply migration `0009_striped_black_knight.sql` to the production database
@@ -98,6 +132,14 @@ Production must not launch until every item in this section is complete.
 - [ ] Apply migration `0016_absurd_slyde.sql` before releasing provider review
       responses or review report intake; it adds provider response, response
       history, and review report tables.
+- [ ] Apply migrations `0017`–`0024` to the isolated production database before
+      the matching features are released: `0017` verification evidence, `0018`
+      admin action ledger, `0019` internal `admin` role, `0020` user-account
+      audit target, `0021` account status and provider visibility, `0022`
+      review reminder events, `0023` CMS tables, `0024` CMS audit target. *(All
+      are applied to the shared Neon database today; `0024` was verified by a
+      direct `pg_constraint` query on August 30, 2026. That does not satisfy
+      this gate until production has its own database.)*
 - [ ] Verify booking message/review context checks reject rows with no context
       or both application and booking contexts.
 - [ ] Verify every editable review creates exactly one current `ratings` row and
@@ -119,8 +161,12 @@ Production must not launch until every item in this section is complete.
 - [ ] Review every pending migration for destructive or locking operations.
 - [ ] Capture and verify a pre-launch backup or restorable Neon branch.
 - [ ] Document database rollback and forward-fix procedures.
-- [ ] Prevent `npm run db:seed` from being run against production.
-- [ ] Confirm production queries do not merge development/demo rows.
+- [ ] Prevent `npm run db:seed` from being run against production. *(Today
+      `src/db/seed.ts` has no environment guard and the local `.env.local` points
+      at the production database.)*
+- [x] Confirm production queries do not merge development/demo rows. *(The
+      `includeDemoRows()` helper was removed entirely in commit `1296d22` and
+      verified August 29, 2026.)*
 - [ ] Validate referential integrity and uniqueness for users, salons, braiders,
       opportunities, applications, messages, ratings, portfolio media, client
       profiles, service providers, service offerings, availability, bookings,
@@ -129,7 +175,16 @@ Production must not launch until every item in this section is complete.
 
 ### Authentication and Authorization
 
-- [ ] Configure and test the Clerk Production instance.
+- [ ] Configure and test the Clerk Production instance. *(Not done: the
+      production sign-in page still shows Clerk's Development mode badge.)*
+- [x] Configure `BRAIDEL_ADMIN_EMAILS` in production. *(The admin portal and
+      "Preview as" mode are in use on `braidel.com`; seen in the August 30, 2026
+      issue screenshots.)*
+- [ ] Verify with a real non-admin production account that `/dashboard/admin`,
+      `/dashboard/admin/content`, `/tracker`, `/market-study`, and
+      `/payment-system-design` redirect away, and that the `/api/admin/*` routes
+      return 403. *(Server-side admin checks were added August 26, 2026; a
+      dedicated non-admin denial test has not been recorded.)*
 - [ ] Verify production sign-up, sign-in, sign-out, session expiry, and onboarding.
 - [ ] Verify each real role can access only its authorized workflows.
 - [ ] Verify direct navigation to a dashboard route for another role redirects
@@ -285,10 +340,11 @@ own workstream ships.
   passed August 1, 2026. Moderation policy, admin review queues, public dispute
   labels, and formal dispute resolution remain deferred Workstream 6 follow-ups
   before launch.
-- **Automated review reminders:** a capped 5-step reminder system remains
-  deferred. Before launch or before enabling scaled bookings, Clients should be
-  reminded to review completed bookings on a gentle schedule, and reminders
-  must stop immediately once a review exists.
+- **Automated review reminders:** implemented and QA-passed August 29, 2026
+  (migration `0022`; capped, idempotent, stops once a review exists), but it
+  runs opportunistically from the notifications API/page because the app has no
+  scheduler. Before scaled bookings, replace that trigger with a real scheduled
+  job; the per-booking minimum gap becomes a no-op at that point.
 - **Review disputes and moderation:** review audit history exists; dispute,
   moderation, and marketplace administration flows belong to Workstream 6.
 - **Trust and verification implementation:** Workstream 6 is planned in
@@ -296,13 +352,19 @@ own workstream ships.
   Provider reviews dashboard is manual-QA passed. Provider review responses and
   report intake are implemented and manual-QA passed. Verification evidence
   foundation is implemented and manual-QA passed. Admin moderation is
-  implemented with development migration applied and awaits manual QA. Sensitive
-  evidence file upload, marketplace trust signals, and review reminders remain
-  implementation work.
+  implemented and QA-passed August 29, 2026, except the verification and
+  review-report approve/reject decision actions, which have not been exercised.
+  Marketplace trust signals and capped review reminders are implemented. Still
+  open: sensitive evidence file upload, formal dispute resolution and appeals,
+  and removing the hardcoded salon About cards and "Vetted braiders" claim.
 
 ## Storage and Media
 
-- [ ] Provision the production Vercel Blob store and token.
+- [ ] Provision the production Vercel Blob store and token. **Likely failing
+      today:** braider portfolio uploads failed on `braidel.com` (reported
+      August 26, 2026), and `src/lib/portfolio-storage.ts` throws "Portfolio
+      storage is not configured" in production when `BLOB_READ_WRITE_TOKEN` is
+      unset. Confirm the variable in Vercel Production.
 - [ ] Verify upload, read, and delete flows against production-equivalent Blob
       storage.
 - [ ] Confirm file type, file size, count, and ownership limits are enforced.
@@ -314,6 +376,20 @@ own workstream ships.
 ## Product and Quality
 
 - [ ] Complete production-critical Terms of Service and Privacy Policy pages.
+      *(Pages are live at `/terms` and `/privacy` with clearly marked draft
+      copy; they need legal review and edits to match real data handling.)*
+- [ ] Confirm the contact channels on `/contact` are real: `hello@braid.el`
+      (mailbox) and `instagram.com/braid.el` are placeholders in
+      `src/content/marketing/contact.ts` and are not verified.
+- [ ] Business review of all marketing copy (Pricing, How It Works, About, FAQ,
+      Blog). The copy was drafted without stakeholder input and is editable at
+      `/dashboard/admin/content`.
+- [ ] Exercise the CMS editor on production with a real admin account (edit,
+      save draft, publish, confirm the public page and meta description update),
+      then revert any test content.
+- [ ] Resolve or consciously defer every item in the *Known Issues Backlog*
+      group of `docs/PROJECT_TRACKER.md`, including removing fabricated public
+      figures (`/marketplace` stats, `FindBraidersClient` headline count).
 - [ ] Ensure consent, deletion, retention, and contact language match actual app
       behavior.
 - [ ] Complete critical end-to-end tests for salon, braider, and client
@@ -342,7 +418,11 @@ own workstream ships.
 
 ## Security and Operations
 
-- [ ] Complete dependency and vulnerability review.
+- [ ] Complete dependency and vulnerability review. *(`npm audit --omit=dev` on
+      November 9, 2026: 11 advisories — 1 critical in `next` (installed 16.2.7;
+      audit lists 16.4.6 as the non-major fix), 9 high including the
+      `@vercel/blob` chain, `nanoid`, `undici`, `sharp`, `postcss`, and 1
+      moderate. Triage and patch.)*
 - [ ] Review server logs to ensure secrets and sensitive payloads are not logged.
 - [ ] Add rate limiting or abuse controls to sensitive public and write routes.
 - [ ] Configure runtime error monitoring and alert ownership.
@@ -501,3 +581,33 @@ Add dated entries here as production gates are verified.
   QA must confirm allowlisted admins are not forced through marketplace role
   onboarding and that existing onboarded marketplace accounts are not silently
   converted into admin accounts.
+- **August 26, 2026:** Admin hardening and tooling. `isMarketplaceAdmin` now
+  requires both an allowlisted `BRAIDEL_ADMIN_EMAILS` entry and
+  `users.role = 'admin'`; `requireMarketplaceAdmin()` was added to the Tracker,
+  Market Study, and Payment System Design pages; admin "Preview as" mode and the
+  Performance charts were added. Migrations `0019`, `0020`, and `0021` were
+  applied to the (shared) Neon database. Staging/production isolation remains a
+  launch gate.
+- **August 27–29, 2026:** Trust signals (Slice 6.5) and capped review reminders
+  (Slice 6.6) implemented; migration `0022_messy_red_hulk.sql` applied. Live
+  manual QA with the project owner on August 29 passed for the trust signals,
+  review reminders (two issues found and fixed during QA), and the admin
+  lifecycle actions (suspend/restore, unlist/relist, promote). It also found and
+  fixed a cross-user data leak: `includeDemoRows()` merged other users'
+  applications and messages in every non-production environment (commit
+  `1296d22`; helper removed). Verification and review-report approve/reject
+  decisions were not exercised.
+- **August 28–30, 2026:** Marketing pages and the CMS shipped (PR #11, PR #12).
+  Migrations `0023_add_cms_pages_and_sections.sql` and
+  `0024_widen_admin_actions_target_type.sql` applied; `0024` verified by a direct
+  `pg_constraint` query against the Neon database. The eight public marketing
+  pages were spot-checked on `braidel.com` (content, accordion, contact links,
+  footer links, no console errors); `/pricing` is intentionally unlinked.
+  `/dashboard/admin/content` correctly redirects unauthenticated visitors to
+  sign-in; the editor itself has not been exercised on production.
+- **November 9, 2026:** Full status audit. Findings recorded in the Production
+  Reality Check above and in the *Production Readiness & Hardening* and *Known
+  Issues Backlog* groups of `docs/PROJECT_TRACKER.md`: shared dev/prod database,
+  Clerk Development mode on production, 11 dependency advisories (1 critical),
+  no CI or automated tests, no monitoring or rate limiting, and several
+  user-visible defects. The release posture stays **NO-GO**.

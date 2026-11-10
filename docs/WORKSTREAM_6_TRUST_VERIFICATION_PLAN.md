@@ -2,9 +2,11 @@
 
 > Planning record for the next strategic implementation stream.
 >
-> Status: in progress.
+> Status: in progress. Slices 6.1–6.3 and 6.5–6.6 are implemented and
+> QA-passed; 6.4 is implemented and QA-passed except the approve/reject decision
+> actions, which have not been exercised.
 >
-> Last updated: August 9, 2026
+> Last updated: November 9, 2026
 
 ## Progress Notes
 
@@ -102,6 +104,23 @@
   matching the codebase's existing hand-rolled-SVG convention. The new trend
   query is isolated in its own try/catch so a failure there can't take down
   the rest of the admin dashboard.
+- **August 27, 2026:** Slice 6.5 implemented. Public braider and salon profiles
+  now show real booking-verified reviews and a completed-booking count instead
+  of hardcoded copy, and "verified" claims render only when the provider's real
+  `isVerified` flag is true. The public rating badge was changed from frozen
+  seed columns to a live aggregate over booking-scoped `ratings`. Portfolio-photo
+  count (braiders only) and provider response rate were added. No schema change.
+- **August 29, 2026:** Slice 6.6 implemented (migration `0022`:
+  `review_reminder_events`, unique per booking and reminder number). Live QA with
+  the project owner passed for 6.5 (visually), 6.6 (two issues found and fixed),
+  and the admin lifecycle actions. QA also found a cross-user data leak
+  (`includeDemoRows()`), fixed by removing the helper (commit `1296d22`).
+- **November 9, 2026:** Remaining work for this workstream: exercise the admin
+  approve/reject decision actions, define the sensitive-evidence file upload
+  policy, design formal dispute resolution and appeals, replace the opportunistic
+  review-reminder trigger with a real scheduler, and remove the still-hardcoded
+  salon About cards and "Vetted braiders" claim (tracked in the Known Issues
+  Backlog).
 
 ## Purpose
 
@@ -190,13 +209,16 @@ Add internal marketplace operations tools.
 Scope:
 
 - Review verification submissions.
-  **Implemented as an allowlist-gated `/dashboard/admin` queue; manual QA
-  pending.**
+  **Implemented as an allowlist-gated `/dashboard/admin` queue. The queue
+  renders real data (QA August 29, 2026); approving/rejecting a submission has
+  not been exercised.**
 - Review reported/disputed reviews.
-  **Implemented for existing review reports; manual QA pending.**
+  **Implemented for existing review reports; the queue renders with an honest
+  empty state. Resolve/dismiss has not been exercised.**
 - Apply moderation decisions with audit history.
   **Implemented through `marketplace_admin_actions` plus verification status
-  history; manual QA pending.**
+  history. Account and profile lifecycle actions were QA-passed August 29, 2026;
+  verification and report decisions remain unexercised.**
 - Restrict, suspend, restore, unlist, or relist accounts/listings.
   **Implemented as two separate controls: account suspension blocks protected
   dashboard/API access, while provider profile unlisting hides public discovery
@@ -227,6 +249,12 @@ Scope:
 Keep signals honest: do not display "verified" until verification evidence is
 approved by a real workflow.
 
+**Status: implemented August 27, 2026 and visually confirmed in the August 29
+live QA session.** Real booking-verified reviews, a live rating aggregate,
+completed-booking count, braider portfolio count, and provider response rate are
+live; verified claims are gated on the real `isVerified` flag. Known gap: the
+salon detail About cards and the "Vetted braiders" line are still hardcoded.
+
 ### 6.6 Review Reminder System
 
 Add a capped reminder flow for completed bookings with no review.
@@ -242,6 +270,10 @@ Scope:
 
 This can remain internal/in-app first. Email or push delivery should wait for
 the external notification worker.
+
+**Status: implemented and QA-passed August 29, 2026** (migration `0022`). It runs
+opportunistically from the notifications API and page because the app has no
+scheduler; replace that trigger with a scheduled job before scaled bookings.
 
 ## Suggested Schema Areas
 

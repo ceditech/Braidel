@@ -5,10 +5,15 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~91% complete** · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~87% complete** (119 done · 4 in progress · 16 pending of 139) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
-> All work follows the [SCALES Framework](../SCALES_FRAMEWORK.md) — surgical,
-> clean, architecture-aligned, low-regression, expandable, stepwise.
+> All work follows the [STABLE Framework](../STABLE_FRAMEWORK.md) — surgical &
+> SOLID, testable & traceable, architecture-aligned & available, balanced for
+> bottlenecks, low-regression & loosely coupled, expandable & elastic. The
+> earlier [SCALES Framework](../SCALES_FRAMEWORK.md) remains in force as the
+> Braidel-specific guardrails.
+>
+> _Last synced with `src/lib/roadmap.ts`: November 9, 2026._
 >
 > Numbers below are computed from `overallCounts()`/`phaseProgress()` in
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts), not hand-counted — the phase
@@ -19,13 +24,13 @@
 
 | Phase | Focus | Done | In progress | % |
 |-------|-------|------|--------------|---|
-| **Phase 1** | Workforce & Staffing | 64 / 69 | 0 | ~93% |
+| **Phase 1** | Workforce & Staffing | 72 / 84 | 1 | ~86% |
 | **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
-| **Phase 4** | Reputation & Verification | 11 / 18 | 7 | ~81% |
-| **Phase 5** | Braidel Academy | 0 / 1 | 0% |
-| **Phase 6** | Braidel Supply | 0 / 1 | 0% |
-| **Phase 7** | Salon Franchise | 0 / 1 | 0% |
+| **Phase 4** | Reputation & Verification | 20 / 26 | 2 | ~81% |
+| **Phase 5** | Braidel Academy | 0 / 1 | 0 | 0% |
+| **Phase 6** | Braidel Supply | 0 / 1 | 0 | 0% |
+| **Phase 7** | Salon Franchise | 0 / 1 | 0 | 0% |
 
 _Phases 3–7 are now represented as strategic workstreams. Each must be
 decomposed into implementation-sized tasks before coding begins._
@@ -42,7 +47,8 @@ _Framework, hosting, tooling_
 | ✅ | Clerk auth + route protection (proxy.ts) | High | 1 |
 | ✅ | Drizzle ORM + migration scripts | High | 1 |
 | ✅ | Environment config (.env.local) | High | 1 |
-| ⬜ | CI / deployment pipeline | Medium | 1 |
+| ✅ | Vercel git deployment (production braidel.com + preview per push) | High | 1 |
+| ⬜ | CI checks (typecheck, lint, build, migration consistency) | High | 1 |
 
 ## Database Schema
 _Tables & relations in Neon_
@@ -72,6 +78,16 @@ _Tables & relations in Neon_
 | ✅ | booking_payments table | High | 3 |
 | ✅ | payment_ledger_entries table | High | 3 |
 | ✅ | payment_webhook_events table | High | 3 |
+| ✅ | provider_review_responses table | High | 4 |
+| ✅ | provider_review_response_history table | High | 4 |
+| ✅ | review_reports table | High | 4 |
+| ✅ | provider_verifications table | High | 4 |
+| ✅ | verification_evidence table | High | 4 |
+| ✅ | verification_status_history table | High | 4 |
+| ✅ | marketplace_admin_actions table | High | 4 |
+| ✅ | review_reminder_events table | Medium | 4 |
+| ✅ | cms_pages table | Medium | 1 |
+| ✅ | cms_sections table | Medium | 1 |
 
 ## Design System
 _Tokens & UI primitives_
@@ -96,17 +112,18 @@ _Public-facing pages_
 | ✅ | Navbar (auth-aware) | High | 1 |
 | ✅ | Footer | High | 1 |
 | ✅ | Editorial braid.el landing page | High | 1 |
-| ✅ | Marketplace landing preserved at `/marketplace` | High | 1 |
+| ✅ | Marketplace landing preserved at /marketplace | High | 1 |
 | ✅ | Find Braiders page | High | 2 |
 | ✅ | Find Salons page | High | 2 |
 | ✅ | Salon detail page | High | 2 |
 | ✅ | Job Opportunities page | High | 1 |
 | ✅ | Job Opportunity detail page | High | 1 |
 | ✅ | Braider profile page | High | 2 |
-| ⬜ | Pricing page | Medium | 1 |
-| ⬜ | How It Works page | Low | 1 |
-| ⬜ | About / Contact / Blog / FAQ | Low | 1 |
-| ⬜ | Terms & Privacy pages | Low | 1 |
+| ✅ | Pricing page | Medium | 1 |
+| ✅ | How It Works page | Low | 1 |
+| ✅ | About / Contact / Blog / FAQ | Low | 1 |
+| 🔄 | Terms & Privacy pages | High | 1 |
+| ✅ | Marketing content CMS (admin editor, draft/publish) | Medium | 1 |
 
 ## Auth & Onboarding
 _Account creation & role setup_
@@ -131,6 +148,7 @@ _Salon owner workflows_
 | ✅ | Manage Applicants screen | High | 1 |
 | ✅ | Applicant profile + portfolio drawer | High | 1 |
 | ✅ | Appointments calendar + booking setup | High | 2 |
+| ✅ | Verification evidence workspace | High | 4 |
 
 ## Braider Dashboard
 _Braider workflows_
@@ -143,6 +161,7 @@ _Braider workflows_
 | ✅ | Applications tracker | High | 1 |
 | ✅ | Profile editor + portfolio upload | High | 1 |
 | ✅ | Appointments calendar + booking setup | High | 2 |
+| ✅ | Verification evidence workspace | High | 4 |
 
 ## Shared App
 _Cross-role features_
@@ -155,6 +174,10 @@ _Cross-role features_
 | ✅ | Client booking discovery + appointment management | High | 2 |
 | ✅ | Booking review visibility, update notifications, and audit history | High | 2 |
 | ✅ | Payment system design insight page | Medium | 3 |
+| ✅ | Provider reviews dashboard | High | 4 |
+| ✅ | Provider review responses + report intake | High | 4 |
+| ✅ | Verification evidence foundation | High | 4 |
+| 🔄 | Admin and moderation surface | High | 4 |
 
 ## Backend / API
 _Data routes & business logic_
@@ -162,7 +185,7 @@ _Data routes & business logic_
 | Status | Task | Priority | Phase |
 |--------|------|----------|-------|
 | ✅ | Schema extensions + migrations | High | 1 |
-| ✅ | DB seed script (`npm run db:seed`) | High | 1 |
+| ✅ | DB seed script | High | 1 |
 | ✅ | DB query layer (reads) | High | 1 |
 | ✅ | Wire Find Braiders to DB | High | 1 |
 | ✅ | Wire Find Salons to DB | High | 1 |
@@ -177,9 +200,14 @@ _Data routes & business logic_
 | ✅ | Availability engine + transactional booking lifecycle APIs | High | 2 |
 | ✅ | Review audit history + update notification wiring | High | 2 |
 | ✅ | Payment foundation schema + fee split helpers | High | 3 |
+| ✅ | Provider review response/report APIs | High | 4 |
+| ✅ | Provider verification evidence APIs | High | 4 |
 | ✅ | Marketplace admin decision APIs + explicit account/profile lifecycle controls | High | 4 |
 | ✅ | Admin "preview as" mode (Salon/Braider/Client) for UI review and QA | Medium | 4 |
 | ✅ | Admin dashboard insight charts (donut/bar/line) | Medium | 4 |
+| ✅ | Marketplace trust signals in discovery (Slice 6.5) | High | 4 |
+| ✅ | Capped Client review reminders (Slice 6.6) | High | 4 |
+| ✅ | Marketing content write API + published-content resolver | Medium | 1 |
 
 ## Strategic Implementation Workstreams
 _Core gaps and next product phases, ordered for low-regression delivery_
@@ -222,54 +250,63 @@ _Core gaps and next product phases, ordered for low-regression delivery_
    money movement is deferred until policy and operations mature. Workstream 5
    remains in progress until live Stripe checkout, Connect onboarding, webhooks,
    refunds, disputes, and payouts are intentionally implemented.
-6. **Trust, verification + marketplace administration** — started with a
-   provider-only reviews dashboard at `/dashboard/reviews`, scoped to completed
-   booking reviews, provider-owned appointment links, rating distribution, and
-   append-only review history. Slice 6.2 implementation now adds provider
-   response publishing/edit history and provider report intake, with manual QA
-   passed August 1, 2026. Slice 6.3 verification evidence foundation now adds
-   provider verification profiles, evidence metadata/reference records, status
-   history, provider-only `/dashboard/verification`, and protected evidence
-  submission APIs; manual QA passed August 9, 2026. Slice 6.4 admin/moderation
-  surface is implemented with the admin portal expanded to include live KPI
-  dashboard metrics, explicit account suspension versus provider profile
-  unlisting controls, money/earning visibility, the User STABLE framework, and
-  the original moderation queues. Migration
-  `0021_reflective_princess_powerful.sql` adds `users.account_status` and
-  `service_providers.visibility` so suspension blocks protected access while
-  unlisting only hides public discovery/bookability. Development migrations are
-  applied. Deferred hardening is logged to replace provider-row inference with
-  an explicit provider-role/domain helper if provider modeling expands beyond
-  Salon owners and Braiders. Admin access now also requires a Neon `users.role`
-  of `admin` in addition to an allowlisted `BRAIDEL_ADMIN_EMAILS` entry, and a
-  new **Promote admin** action lets an existing admin grant that role to
-  another allowlisted user. The Performance tab now also includes SVG donut,
-  bar, and line charts (user composition, booking lifecycle, provider
-  verification, and a 14-day bookings-created trend) built as dependency-free
-  primitives in `src/components/ui/`, alongside — not replacing — the existing
-  numeric grids. The user-composition and booking-lifecycle categories are
-  fully data-driven — `getAdminUserRoleDistribution()`/
-  `getAdminBookingStatusDistribution()` GROUP BY `users.role`/`bookings.status`
-  live in Neon, so a future enum value appears automatically rather than
-  needing a chart code change (Provider verification stays a fixed 4-metric
-  bar, since it's inherently a 2-type structure, not an enum list). All three
-  charts show an animated tooltip on hover and animate in on mount (donut
-  sweep, bar grow, line reveal). Allowlisted admins can additionally toggle a
-  **Preview as**
-  Salon/Braider/Client mode via a new `/api/admin/preview` cookie route, purely
-  for UI review/QA; it never exposes another user's data since queries stay
-  scoped to the admin's own (empty) records. Manual QA is pending for both.
-  Slice 6.5 trust signals in marketplace discovery is implemented: real
-  booking-verified reviews and a completed-booking count replace previously
-  hardcoded review/response-time copy on the public braider/salon profile
-  pages, and verified-status claims are now gated on the real `isVerified`
-  flag. Manual QA pending.
-  Slice 6.6 capped Client review reminders is implemented and **QA-passed**
-  (August 29, 2026) — see the dated entry below for what was found and fixed
-  during that live session. Planning record:
+6. **Trust, verification + marketplace administration** — slices 6.1–6.3
+   and 6.5–6.6 are implemented and manual-QA passed; slice 6.4 is implemented
+   and QA-passed except the verification and review-report approve/reject
+   decision actions, which have not been exercised.
+   - **6.1** provider reviews dashboard at `/dashboard/reviews` (QA August 1, 2026).
+   - **6.2** provider review responses and report intake (migration `0016`, QA August 1).
+   - **6.3** verification evidence foundation with proof-quality enforcement
+     (migration `0017`, QA August 9).
+   - **6.4** admin and moderation: allowlist plus `users.role = admin` gated
+     `/dashboard/admin` (Performance, Users, Money, Moderation), audited actions
+     in `marketplace_admin_actions`, account suspension kept separate from
+     provider profile unlisting, Promote admin, "Preview as" mode, and
+     data-driven charts (migrations `0018`–`0021`, QA August 29). The Users tab
+     also carries an "Access model" governance panel labelled "User STABLE
+     framework" — a product-level checklist, unrelated to the STABLE development
+     framework in [`STABLE_FRAMEWORK.md`](../STABLE_FRAMEWORK.md).
+   - **6.5** trust signals in discovery: booking-verified reviews, live rating
+     aggregates, completed-booking and portfolio counts, response rate, and
+     verified claims gated on the real `isVerified` flag (no schema change;
+     visually confirmed in the August 29 live QA session).
+   - **6.6** capped Client review reminders (migration `0022`; idempotent; QA August 29).
+
+   Before the workstream can close: exercise the admin approve/reject decisions,
+   define the sensitive-evidence file upload policy, design formal dispute
+   resolution and appeals, add an explicit provider-role helper if provider types
+   expand, move the applicant-listing queries off the legacy stored rating
+   columns, and replace the opportunistic review-reminder trigger with a real
+   scheduler. Planning record:
    [`docs/WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md`](WORKSTREAM_6_TRUST_VERIFICATION_PLAN.md).
 7. **Ecosystem expansion** — scope Academy, Supply, Franchise, and later native
    mobile clients before implementing those phases.
+
+## Production Readiness & Hardening
+_Launch gates and operational risk, ordered by risk (from the November 9, 2026 audit)_
+
+| Status | Task | Priority | Phase | Detail |
+|--------|------|----------|-------|--------|
+| ⬜ | Isolate the production database from development | High | 1 | Production (braidel.com) and local development currently share one Neon database, so local migrate, seed, and QA touch live data. Create a separate Neon dev branch, point .env.local at it, and add a production guard to src/db/seed.ts (it has none today). |
+| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge. Create the Clerk production instance, set production keys and redirect URLs in Vercel, then activate /api/webhooks/clerk (steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
+| ⬜ | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev (November 9, 2026): 11 advisories (1 critical, 9 high, 1 moderate). The critical one is next (installed 16.2.7; audit lists 16.4.6 as the non-major fix). The @vercel/blob chain (@vercel/oidc, @vercel/cli-config, zod) plus nanoid, undici, source-map-js, and sharp need triage. |
+| ⬜ | Automated test suite (domain unit tests + smoke tests) | High | 1 | No test runner is installed; regression protection is manual QA plus three ad hoc scripts/verify-*.ts files. Start with unit tests for payments-domain, booking-availability, review-reminders, and the CMS sanitizer, then a small Playwright smoke suite for the public routes. |
+| ⬜ | Error monitoring, uptime alerting, and rate limiting | High | 1 | None exist. Add runtime error monitoring and uptime checks, and rate-limit public and write routes (applications, messages, onboarding, portfolio upload). |
+| ⬜ | Clear lint debt | Medium | 1 | npm run lint exits with 2 errors and 60 warnings. Both errors are in the Braidel Design System/ reference folder, which is not part of the app; exclude it from lint or fix it so CI can require a clean lint. |
+| ⬜ | Admin toggle to show or hide seeded demo profiles on public pages | Medium | 4 | Seeded demo braiders and salons (clerk_id starting 'seed_') currently appear next to real profiles in public discovery. Decision (November 9, 2026): keep them as demo content for now, but give admins a switch to hide them (production-like checks) or display them (testing). Needs a small persisted settings store and a filter in the public discovery queries; do not purge production seed data until this exists. |
+
+## Known Issues Backlog
+_Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet_
+
+| Status | Task | Priority | Phase | Detail |
+|--------|------|----------|-------|--------|
+| ⬜ | Portfolio image upload fails in production | High | 1 | Reported August 26, 2026 on braidel.com. src/lib/portfolio-storage.ts throws 'Portfolio storage is not configured' in production when BLOB_READ_WRITE_TOKEN is not set, which matches the symptom. Confirm the Vercel Blob store and token exist in the Production environment. |
+| ⬜ | Braider Settings: profile fields and specialties not persisting; no profile photo upload | High | 1 | Reported August 26, 2026 (screenshots); not re-verified since. The photo control is a disabled 'Photo upload later' button (SettingsClient.tsx). |
+| ⬜ | Find Work: 'Apply now' never becomes 'Already applied' | Medium | 1 | Reported August 26, 2026. FindWorkClient.tsx only has 'Applying...' and 'Apply now' states; after applying, the button should switch to a disabled 'Already applied'. |
+| ⬜ | Salon profile About cards and 'Vetted braiders' claim are hardcoded | High | 4 | SalonDetailClient.tsx hardcodes Established 2018, Team 8 braiders, Stations 6, and Amenities for every salon, plus an unconditional 'Vetted braiders' line. These must come from the owner's profile, or be hidden when empty. |
+| ⬜ | Public pages show fabricated figures and sample data | High | 4 | /marketplace shows hardcoded '12k+ braiders / 3.4k salons / 4.9' stats and braiders from sampleData; FindBraidersClient.tsx uses TOTAL_POOL = 12480 as a headline count. The database holds a few dozen users. Replace with real counts or remove, per the project's own honesty rule. |
+| ⬜ | Admin Users: profile form shows stale data when another user is selected | Medium | 4 | Reported August 28, 2026: selecting a different user leaves the previous user's name and admin note in the form. |
+| ⬜ | Salon Opportunities: no empty state | Low | 1 | Reported August 30, 2026: with no opportunities the page is blank. It should show a friendly empty state with a Post opportunity button. |
 
 ---
 
@@ -360,7 +397,8 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   `user_account` lifecycle changes. `/dashboard/admin` now includes Performance,
   Users, Money, and Moderation tabs with Neon-backed KPIs, safe user profile
   editing, booking commission visibility, upcoming affiliate/subscription lanes,
-  and a User STABLE governance panel. Migration
+  and an "Access model" governance panel (labelled "User STABLE framework" in
+  the UI; unrelated to the STABLE development framework). Migration
   `0021_reflective_princess_powerful.sql` later split lifecycle moderation into
   explicit account suspension/restoration and provider profile
   unlisting/relisting.
@@ -488,7 +526,9 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   points in one visit, added a review, confirmed reminders stop immediately.
   All QA test data and scratch verification scripts were cleaned up. `tsc`/
   `eslint` clean throughout. Slice 6.6 (capped Client review reminders) is now
-  QA-passed; Slices 6.4 and 6.5 still await their own manual QA pass.
+  QA-passed. (Superseded by the later August 29 entries below: the admin
+  surface was QA'd the same day, and the Slice 6.5 trust signals were visually
+  confirmed in this same session.)
 - **August 29, 2026:** Live manual QA of the admin surface (Performance,
   Users, Money, Moderation tabs, and "Preview as" mode) with the project
   owner. Confirmed working: real KPIs, donut/bar/line charts render real data
@@ -541,3 +581,42 @@ _Core gaps and next product phases, ordered for low-regression delivery_
   dependency, consistent with the codebase's existing dependency-free SVG
   approach. The "Provider verification" bar and all existing `LifecycleGrid`
   numeric displays were left unchanged.
+- **August 28, 2026** (merged and deployed August 30 via PR #11): Marketing pages shipped: `/pricing`,
+  `/how-it-works`, `/about`, `/contact`, `/blog`, `/faq`, `/terms`, `/privacy`,
+  with copy in typed files under `src/content/marketing/`. `/pricing` is live but
+  intentionally unlinked until pricing is decided; Terms and Privacy carry marked
+  draft copy; Contact is static info; Blog is a "coming soon" placeholder.
+  Footer links for About, Contact, Blog, How it works, FAQ, Terms, and Privacy
+  now resolve (previously 404). Verified in development at desktop and mobile
+  widths, light and dark, and the pages were spot-checked on production.
+- **August 30, 2026:** CMS Phase 2 shipped (PR #12). Migration
+  `0023_add_cms_pages_and_sections.sql` adds `cms_pages`/`cms_sections`;
+  migration `0024_widen_admin_actions_target_type.sql` widens the
+  `marketplace_admin_actions` target-type check to allow `cms_page` (without it,
+  every CMS save would fail). New admin-only editor at `/dashboard/admin/content`,
+  a schema-driven registry (`src/content/marketing/registry.ts`), a validated
+  write API (`PATCH /api/admin/content/[slug]`), and a never-throwing
+  public resolver (`resolveMarketingContent`) that falls back to the static copy.
+  Two defects found in review and fixed before merge: the SEO meta description
+  ignored published content (now `generateMetadata`, memoized per request), and a
+  new list item's untouched nested object saved as `{}` (now default-filled).
+  Verified in development end to end (draft does not leak, publish is live,
+  list/nested/select fields round-trip, test edits reverted). Migration `0024`
+  was confirmed present in the shared Neon database with a direct
+  `pg_constraint` query. The 8 public pages were spot-checked on production;
+  the editor UI itself has not yet been exercised on production.
+- **November 9, 2026:** Tracker and docs brought back in sync with reality
+  (this change). Corrections: Pricing, How It Works, About/Contact/Blog/FAQ now
+  done and Terms & Privacy in progress (draft copy); the two Verification
+  evidence workspace rows (QA-passed August 9) marked done; six missing
+  Phase 4 tables plus `marketplace_admin_actions`, `review_reminder_events`,
+  `cms_pages`, and `cms_sections` added; Slices 6.5/6.6, the CMS, and its API
+  added; the "CI / deployment pipeline" item split into Vercel git deployment
+  (done) and CI checks (pending). Added two new groups, **Production Readiness &
+  Hardening** and **Known Issues Backlog**, so audit findings are tracked rather
+  than living only in screenshots. Overall completion moves from the stale ~91%
+  to a computed ~87% because pending hardening work and known defects are now
+  counted. The audit that prompted this found: production and development share
+  one Neon database; Clerk on production appears to be in Development mode;
+  `npm audit --omit=dev` reports 11 advisories (1 critical, in `next`); there is
+  no automated test suite or CI; and no monitoring or rate limiting.
