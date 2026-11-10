@@ -58,6 +58,7 @@ once payments are activated).
 | `npm run db:studio` | Browse the database in Drizzle Studio |
 | `npm run db:seed` | Seed demo data (re-runnable; removes only `seed_` rows; refuses production) |
 | `npm run verify:booking` | Reversible booking-lifecycle smoke check (refuses production) |
+| `npm run verify:clerk-link` | Rule checks for re-linking a Clerk identity to an existing account by verified email (no DB needed) |
 
 There is no automated test suite or CI yet; both are tracked as launch gates.
 

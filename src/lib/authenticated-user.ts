@@ -1,11 +1,12 @@
 import "server-only";
 
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { relinkClerkIdentityByEmail } from "@/lib/clerk-sync";
 import {
   toDashboardRole,
   type DashboardRole,
@@ -94,11 +95,40 @@ export async function getAuthenticatedDbUser(): Promise<AuthenticatedDbUser | nu
   return userId ? getDbUserByClerkId(userId) : null;
 }
 
+/**
+ * First sign-in under a new Clerk instance: the person has no row for their new
+ * Clerk ID yet, but may have one under the old ID with the same verified email.
+ * Re-link it so they keep their account instead of re-onboarding. Only runs on a
+ * lookup miss, and any failure falls back to the normal onboarding redirect.
+ */
+async function relinkSignedInUserByVerifiedEmail(
+  clerkId: string
+): Promise<AuthenticatedDbUser | null> {
+  try {
+    const clerkUser = await currentUser();
+    const primary = clerkUser?.primaryEmailAddress;
+    if (!clerkUser || !primary) return null;
+
+    const { decision } = await relinkClerkIdentityByEmail({
+      clerkId,
+      email: primary.emailAddress,
+      emailVerified: primary.verification?.status === "verified",
+    });
+    return decision === "link"
+      ? getDbUserByClerkId(clerkId, { includeSuspended: true })
+      : null;
+  } catch (error) {
+    console.error("Clerk identity re-link failed", error);
+    return null;
+  }
+}
+
 export async function requireOnboardedUser(): Promise<AuthenticatedDbUser> {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const user = await getDbUserByClerkId(userId, { includeSuspended: true });
+  let user = await getDbUserByClerkId(userId, { includeSuspended: true });
+  if (!user) user = await relinkSignedInUserByVerifiedEmail(userId);
   if (user?.accountStatus === "suspended") redirect("/account-suspended");
   if (!user?.onboardedAt) redirect("/onboarding");
 

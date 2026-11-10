@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:target": "tsx scripts/db-target.ts",
+    "verify:clerk-link": "tsx scripts/verify-clerk-link.ts",
     "db:migrate": "tsx scripts/db-target.ts && drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",

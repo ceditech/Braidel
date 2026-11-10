@@ -9,6 +9,7 @@ import {
   serviceProviders,
   users,
 } from "@/db/schema";
+import { relinkClerkIdentityByEmail } from "@/lib/clerk-sync";
 
 type UserRole = typeof users.$inferInsert.role;
 
@@ -21,6 +22,23 @@ export async function POST(req: NextRequest) {
   const { role } = (await req.json()) as { role?: UserRole };
   if (role !== "salon_owner" && role !== "braider" && role !== "client") {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  // Safety net for a new Clerk instance: attach an existing account that has
+  // the same verified email instead of failing on the unique email constraint.
+  const primaryEmail = clerkUser.primaryEmailAddress;
+  if (primaryEmail) {
+    const relinked = await relinkClerkIdentityByEmail({
+      clerkId: clerkUser.id,
+      email: primaryEmail.emailAddress,
+      emailVerified: primaryEmail.verification?.status === "verified",
+    });
+    if (relinked.decision === "conflict") {
+      return NextResponse.json(
+        { error: "This email is already linked to another account. Contact support." },
+        { status: 409 }
+      );
+    }
   }
 
   const [existing] = await db
