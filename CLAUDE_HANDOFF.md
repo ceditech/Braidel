@@ -46,37 +46,68 @@ reasoning is in the git history / prior design discussion.
 ```
 src/
 ├── app/
-│   ├── (public)/                 # Marketing site (Navbar + Footer layout)
-│   │   ├── layout.tsx
-│   │   └── page.tsx              # Landing page
+│   ├── (home)/page.tsx           # Editorial brand homepage at /
+│   ├── (public)/                 # Marketing + discovery (Navbar + Footer layout)
+│   │   ├── marketplace, find-braiders[/id], find-salons[/id],
+│   │   │   opportunities[/id]    # DB-backed discovery
+│   │   └── pricing, how-it-works, about, contact, blog, faq,
+│   │       terms, privacy        # Marketing pages (copy from src/content/marketing)
 │   ├── (dashboard)/              # Authenticated app (Sidebar layout)
-│   │   ├── layout.tsx
-│   │   ├── dashboard/page.tsx    # Salon dashboard home
-│   │   ├── tracker/page.tsx      # Internal: project tracker
-│   │   └── market-study/page.tsx # Internal: investor market study
-│   ├── sign-in / sign-up         # Clerk-hosted auth
-│   ├── onboarding/               # Role selection (Salon/Braider/Client)
-│   ├── api/onboarding/route.ts   # Writes user + role profile to Neon
-│   ├── api/webhooks/clerk/       # Verified Clerk identity lifecycle sync
+│   │   ├── dashboard/            # Role dashboards, appointments, messages, reviews,
+│   │   │   │                     #   verification, settings, find-work, applications…
+│   │   │   └── admin/            # Admin portal (+ content/ = marketing CMS editor)
+│   │   └── tracker, market-study, payment-system-design   # Admin-only Insights
+│   ├── admin/ (sign-in, sign-up, setup)   # Allowlisted admin activation
+│   ├── onboarding/, sign-in, sign-up, account-suspended
+│   ├── api/                      # Route handlers: admin/*, applications, booking(s),
+│   │                             #   messages, notifications, onboarding, opportunities,
+│   │                             #   portfolio, provider-reviews, provider-verification,
+│   │                             #   ratings, settings, webhooks/clerk
 │   ├── layout.tsx                # Root — ClerkProvider, fonts
 │   └── globals.css               # ALL design tokens + Tailwind theme
 ├── components/
-│   ├── ui/                       # Design-system primitives
-│   │   ├── BraidelLogo, Button, Card, Badge, Tag,
-│   │   └── Avatar, Rating, StatCard
-│   ├── marketing/                # Navbar, Footer
-│   └── dashboard/                # Sidebar, Topbar, PrintButton,
-│                                 #   RoleContext (salon/braider toggle),
-│                                 #   Salon/BraiderDashboardHome
+│   ├── ui/                       # Design-system primitives (Button, Card, Input, charts…)
+│   ├── marketing/                # Navbar, Footer, HomeExperience, Marketing.module.css
+│   ├── dashboard/, notifications/, portfolio/, reviews/
+├── content/marketing/            # Typed page copy, registry.ts (CMS schema), resolve.ts
 ├── db/
-│   ├── index.ts                  # Drizzle + Neon connection
-│   ├── schema.ts                 # 11 tables + relations
-│   └── migrations/               # Drizzle-generated SQL
-├── lib/
-│   ├── roadmap.ts                # Source of truth for /tracker
-│   └── marketStudy.ts            # Source of truth for /market-study
+│   ├── index.ts                  # Drizzle + Neon (HTTP) connection
+│   ├── booking-db.ts             # Serializable transaction helper (WebSocket Pool)
+│   ├── schema.ts                 # 33 tables + relations
+│   ├── queries.ts, admin-queries.ts, booking-queries.ts, review-queries.ts,
+│   │   verification-queries.ts, cms-queries.ts
+│   ├── seed.ts                   # Dev seed (NO production guard — see §5)
+│   └── migrations/               # 24 Drizzle SQL migrations (0000–0024; no 0003 file)
+├── lib/                          # Domain + auth helpers (booking-*, payments-domain,
+│                                 #   admin-auth/-domain, cms-domain, roadmap, …)
 └── proxy.ts                      # Clerk route protection (NOT middleware.ts — see §6)
+scripts/                          # verify-booking-lifecycle, verify-admin-distributions,
+                                  #   verify-booking-trend (ad hoc checks; no test runner yet)
 ```
+
+### Marketing pages and CMS
+
+The eight marketing pages (`/pricing`, `/how-it-works`, `/about`, `/contact`,
+`/blog`, `/faq`, `/terms`, `/privacy`) read their copy through
+`resolveMarketingContent(slug, defaults)` ([`src/content/marketing/resolve.ts`](src/content/marketing/resolve.ts)):
+published CMS sections override the typed defaults in `src/content/marketing/*.ts`,
+and any DB or parsing error falls back to those defaults (it never throws).
+
+- **Editor:** admin-only `/dashboard/admin/content` (linked from the admin portal).
+  One schema-driven form, driven by [`registry.ts`](src/content/marketing/registry.ts),
+  covers every page. Edits save as **draft** and go live on **Publish**; clicking
+  **Save draft** on a published page takes it back to draft until republished.
+- **API:** `PATCH /api/admin/content/[slug]` validates against the registry,
+  sanitizes fields, upserts `cms_pages`/`cms_sections` in one transaction, writes
+  a `marketplace_admin_actions` audit row, and revalidates the public path.
+- **SEO:** each page's meta description comes from `generateMetadata()`, so it
+  follows published content. The `<title>` is not editable.
+- **Adding a page or field:** add its default content file, then a registry entry
+  (sections plus field specs); no new form code is needed.
+- **Intentionally unlinked:** `/pricing` is live but not linked from the Navbar or
+  Footer until real pricing is decided. Terms and Privacy are draft copy pending
+  legal review; the Contact channels (`hello@braid.el`, `@braid.el`) are
+  unverified placeholders.
 
 ### Current public route split
 
@@ -199,9 +230,15 @@ accounts to `/dashboard`. Changing account roles is not a self-service action.
 npm run dev          # dev server on http://localhost:3003
 npm run build        # production build
 npm run db:generate  # generate a migration from schema.ts
-npm run db:migrate   # apply migrations to Neon
+npm run db:migrate   # apply migrations to Neon (see warning below)
 npm run db:studio    # browse the database (Drizzle Studio)
 ```
+
+> ⚠️ **Shared database.** Production (braidel.com) and local development currently
+> use the **same Neon database**, and `npm run db:seed` has no production guard.
+> Treat `db:migrate`, `db:seed`, and any script that writes data as a production
+> command until a separate Neon dev branch exists (tracked in the *Production
+> Readiness & Hardening* group of `docs/PROJECT_TRACKER.md`).
 
 > **Port:** dev runs on **3003** (hardcoded via `next dev --port 3003`) because
 > 3000/3001/3002 are used by other local apps. `.claude/launch.json` matches.
@@ -329,8 +366,9 @@ accurate. Both pages are protected routes (auth required).
 
 ## 9. Status & What's Next
 
-**Phase 1 workforce workflows are mostly complete and ~93% complete by the
-tracker.** Both
+**Phase 1 workforce workflows are largely complete. The tracker computes ~87%
+overall (119 done, 4 in progress, 16 pending of 139 items; phase 2 booking is
+100%, phase 1 ~86%) as of November 9, 2026.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
 Portfolio media, notifications, messaging, ratings, and role-aware settings are
@@ -568,7 +606,7 @@ Admin portal expansion added `0020_grey_turbo.sql`, widening
 `/dashboard/admin` now has Performance, Users, Money, and Moderation tabs.
 Performance reads live Neon KPIs for users, providers, messages,
 notifications, booking lifecycle totals, and booking commissions. Users adds
-search/filter, profile-name editing, and a visible STABLE governance framework.
+search/filter, profile-name editing, and an "Access model" governance panel (labelled "User STABLE framework" in the UI; it is a product-level checklist, unrelated to the STABLE development framework).
 Follow-up migration `0021_reflective_princess_powerful.sql` replaced the
 ambiguous “deactivate” moderation behavior with two explicit controls:
 **Unlist profile** updates `service_providers.visibility` and removes
@@ -646,12 +684,22 @@ CSS/inline-style transitions — no animation library was added. Both new
 distribution queries were verified against dev Neon via
 `scripts/verify-admin-distributions.ts` before being wired in.
 
-Manual QA for the expanded 6.4 admin surface (KPIs, user actions, preview
-mode, and charts together) is next.
+Manual QA for the expanded 6.4 admin surface passed on August 29, 2026 for the
+Performance, Money, and Users lifecycle actions, "Preview as", and the charts.
+The verification and review-report approve/reject decision actions have not been
+exercised yet. Slices 6.5 (trust signals) and 6.6 (capped review reminders) are
+implemented and were QA'd the same day.
 
-CI/deployment, legal and trust content, Pricing, How It Works, and secondary
-public content remain parallel launch-readiness work. Clerk webhook activation
-remains deferred until a stable staging or production URL exists.
+**What is left before launch** (details and owners in
+[`PRE-PRODUCTION-RELEASE-CHECKS.md`](PRE-PRODUCTION-RELEASE-CHECKS.md) and the
+*Production Readiness & Hardening* and *Known Issues Backlog* groups of the
+tracker): isolate the production database from development, move Clerk to a
+production instance and activate its webhook, patch dependency advisories
+(including a critical one in `next`), add CI and an automated test suite, add
+monitoring and rate limiting, fix the logged production defects (portfolio
+upload, braider settings, hardcoded public figures), and complete legal review
+of Terms and Privacy. Pricing, How It Works, About, Contact, Blog, FAQ, Terms,
+Privacy, and the marketing CMS are shipped (see *Marketing pages and CMS*).
 
 Notification delivery is currently in-app. The activity/message/digest
 preferences are persisted for later email or push delivery, but no external
@@ -666,9 +714,12 @@ Production gates and deferred activation work:
 
 ## 10. Conventions
 
-- **Follow the [SCALES Framework](SCALES_FRAMEWORK.md)** for every change —
-  Surgical, Clean, Architecture-Aligned, Low-Regression, Expandable, Stepwise.
-  It is the operating standard; read it before implementing.
+- **Follow the [STABLE Framework](STABLE_FRAMEWORK.md)** for every change —
+  Surgical & SOLID, Testable & Traceable, Architecture-Aligned & Available,
+  Balanced for Bottlenecks, Low-Regression & Loosely Coupled, Expandable &
+  Elastic. It is the operating standard; read it before implementing. The
+  [SCALES Framework](SCALES_FRAMEWORK.md) remains in force for the
+  Braidel-specific guardrails.
 - Match the surrounding code style: inline styles with CSS-variable tokens,
   function components, small inline SVG icons (no icon library yet).
 - Reuse `src/components/ui/` primitives; don't re-implement buttons/cards.

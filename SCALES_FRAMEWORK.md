@@ -1,8 +1,16 @@
 # SCALES Framework
 
-> The operating standard for every change in the Braidel codebase. Read this
-> before implementing. It exists to produce quality code with best practices and
-> **low regressions** through stepwise, surgical work.
+> **Update (November 9, 2026):** the project's operating standard is now the
+> [STABLE Framework](STABLE_FRAMEWORK.md). SCALES stays in force as the
+> Braidel-specific guardrails below; STABLE adds testability, traceability,
+> availability, and bottleneck analysis. Rough mapping: SCALES **S**urgical →
+> STABLE **S**; **C**lean → **S** (SOLID); **A**rchitecture-Aligned → **A**;
+> **L**ow-Regression → **L**; **E**xpandable → **E**; **S**tepwise → the STABLE
+> workflow. STABLE's **T** and **B** are new.
+>
+> The original text follows. Read it before implementing. It exists to produce
+> quality code with best practices and **low regressions** through stepwise,
+> surgical work.
 
 **S**urgical · **C**lean · **A**rchitecture-Aligned · **L**ow-Regression ·
 **E**xpandable · **S**tepwise/Systematic
