@@ -18,14 +18,17 @@ Treat the facts below as the starting point for every gate in this document.
 - **Databases:** until November 9, 2026 production and local development shared
   one Neon database. Local development now uses the Neon branch `development`
   (a fork of `production`), and `db:seed`/`verify:booking` refuse production
-  hosts, and the two branches have separate passwords. **Still open:** Vercel
-  Preview deployments currently have no `DATABASE_URL` (the shared variable was
-  narrowed to Production on November 9, 2026; a Preview value for `development`
-  still has to be added), and Preview shares the production Clerk keys. Seeded demo accounts are still present in the
-  production data (an admin show/hide toggle is planned).
+  hosts, and the two branches have separate passwords. Vercel now has separate
+  `DATABASE_URL` values: Production uses `production`, Preview uses `development`
+  (verified November 10, 2026). **Still open:** Preview shares the Clerk
+  development keys with Production, and the production password still needs
+  rotating. Seeded demo accounts are still present in the production data (an
+  admin show/hide toggle is planned).
 - **Clerk:** the production sign-in page shows Clerk's *Development mode* badge,
   so the Clerk production instance is not in use. The identity webhook is not
-  activated.
+  activated. The code prerequisite for the switch is done: existing accounts are
+  re-linked by verified email when a person first appears under a new Clerk
+  instance (`npm run verify:clerk-link`).
 - **Dependencies:** `npm audit --omit=dev` reports 11 advisories (1 critical in
   `next`, 9 high, 1 moderate).
 - **Quality gates:** no CI, no automated tests, no error monitoring, no rate
@@ -110,12 +113,10 @@ Production must not launch until every item in this section is complete.
       project `Braidel` has branches `production` and `development`; local
       `.env.local` points at `development`. A canary write to `development` was
       verified absent from `production` on November 9, 2026.)*
-- [ ] Point Vercel Preview deployments at the `development` branch. *(In
-      progress: the Vercel `DATABASE_URL` variable was narrowed from
-      Production+Preview to Production only on November 9, 2026, so previews can
-      no longer reach production. Still needed: a Preview-scoped `DATABASE_URL`
-      (type Sensitive) holding the `development` connection string; until then
-      Preview deployments have no database connection.)*
+- [x] Point Vercel Preview deployments at the `development` branch. *(Done
+      November 10, 2026: `DATABASE_URL` is two Sensitive variables, Production
+      and Preview. Verified on the PR #14 preview: it showed a change made only
+      in `development` while braidel.com did not.)*
 - [x] Give the `development` branch its own `neondb_owner` password. *(A Neon
       branch inherits its parent's role passwords; the `development` password was
       reset on November 9, 2026. Verified: passwords differ, the development
@@ -653,3 +654,19 @@ Add dated entries here as production gates are verified.
   separate; narrowed the Vercel `DATABASE_URL` to Production only. Open: add the
   Preview-scoped `DATABASE_URL` for `development`, and rotate the production
   password.
+
+- **November 10, 2026 (item 2, phase A):** Added email re-linking for a Clerk
+  instance change: `src/lib/clerk-link-domain.ts` (rules),
+  `relinkClerkIdentityByEmail` in `src/lib/clerk-sync.ts`, used by the webhook
+  sync, `requireOnboardedUser` (first sign-in miss) and the onboarding route.
+  Links only a VERIFIED email to a live (not deleted) row, keeping role,
+  onboarding and history; unverified or deleted rows are never linked and the
+  webhook answers 200 `conflict` so Clerk does not retry forever. Verified:
+  `npm run verify:clerk-link` (6 cases); a throwaway row on the `development`
+  branch (unverified: untouched; verified: re-linked with role and onboarding
+  kept; repeat: idempotent; unknown email: unchanged), then removed; `tsc` clean;
+  lint clean on changed files. Same day: PR #14 (database isolation) merged;
+  Preview-scoped `DATABASE_URL` verified on its preview deployment; production
+  rebuilt healthy afterwards (pages 200, runtime logs free of database errors).
+  Remaining for item 2: create the Clerk production instance and DNS, split the
+  Vercel Clerk keys, then activate the webhook.

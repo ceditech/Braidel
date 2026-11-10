@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~87% complete** (121 done · 5 in progress · 16 pending of 142) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~87% complete** (123 done · 4 in progress · 16 pending of 143) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [STABLE Framework](../STABLE_FRAMEWORK.md) — surgical &
 > SOLID, testable & traceable, architecture-aligned & available, balanced for
@@ -24,7 +24,7 @@
 
 | Phase | Focus | Done | In progress | % |
 |-------|-------|------|--------------|---|
-| **Phase 1** | Workforce & Staffing | 74 / 87 | 2 | ~86% |
+| **Phase 1** | Workforce & Staffing | 76 / 88 | 1 | ~87% |
 | **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
 | **Phase 4** | Reputation & Verification | 20 / 26 | 2 | ~81% |
@@ -288,10 +288,11 @@ _Launch gates and operational risk, ordered by risk (from the November 9, 2026 a
 | Status | Task | Priority | Phase | Detail |
 |--------|------|----------|-------|--------|
 | ✅ | Isolate local development from the production database (Neon dev branch + script guards) | High | 1 | Neon project Braidel now has two branches: production and development (a copy-on-write fork created November 9, 2026). Local .env.local points at development and lists the production hostname in BRAIDEL_PRODUCTION_DB_HOSTS. src/db/safety.ts makes db:seed and verify:booking refuse production hosts (direct or pooled), refuse when the list is unset, and refuse in a production environment; npm run db:target reports the target and db:migrate prints it first. Verified: guard paths, db:migrate and verify:booking on development, and a canary write to development that was absent from production. |
-| 🔄 | Point Vercel Preview deployments at the development database | High | 1 | Done November 9, 2026: the Vercel DATABASE_URL variable was narrowed from Production+Preview to Production only, so preview deployments can no longer reach the production database. Remaining: add a Preview-scoped DATABASE_URL (type Sensitive) containing the development connection string from .env.local; until then Preview deployments have NO database connection and database-backed pages will error. Preview still shares the production Clerk keys. |
+| ✅ | Point Vercel Preview deployments at the development database | High | 1 | Done November 10, 2026: DATABASE_URL is now two Vercel variables, Production (Neon production branch) and Preview (Neon development branch), both Sensitive. Verified on the PR #14 preview: it showed a change made only in the development database while braidel.com did not. Preview still shares the Clerk development keys, which is handled by the Clerk production item. |
 | ✅ | Give the development branch its own database password | High | 1 | A Neon branch inherits its parent's role passwords, so development initially shared production's neondb_owner password. Reset on November 9, 2026 (development branch only) and .env.local refreshed. Verified with a script that never prints credentials: the two passwords differ, the development password is rejected by the production host, and each credential works on its own host. |
 | ⬜ | Rotate the production database password | Medium | 1 | The production connection string was printed once into a local assistant session transcript on November 9, 2026. Rotating it requires updating the Vercel Production DATABASE_URL and redeploying, so schedule it deliberately. |
-| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge, and Preview deployments share the same Clerk keys as Production. Create the Clerk production instance, set production keys and redirect URLs in Vercel, then activate /api/webhooks/clerk (CLERK_WEBHOOK_SIGNING_SECRET is not set anywhere yet; steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
+| ✅ | Re-link existing accounts by verified email when the Clerk instance changes | High | 1 | src/lib/clerk-link-domain.ts decides link/insert/conflict; clerk-sync.ts relinkClerkIdentityByEmail attaches a new Clerk ID to the existing user row with the same VERIFIED email (never unverified or deleted rows), keeping role, onboarding and history. Used by the webhook sync, the first sign-in miss in requireOnboardedUser, and the onboarding route. Verified: npm run verify:clerk-link (6 rule cases) and a throwaway-row check on the development branch (conflict when unverified, link when verified with role preserved, idempotent repeat, unknown email unchanged). |
+| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge, and Preview deployments share the same Clerk keys as Production. Code prerequisite (email re-link) is done. Remaining: create the Clerk production instance and DNS records, split the Vercel Clerk keys (Production live keys, Preview development keys), then activate /api/webhooks/clerk (CLERK_WEBHOOK_SIGNING_SECRET is not set anywhere yet; steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
 | ⬜ | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev (November 9, 2026): 11 advisories (1 critical, 9 high, 1 moderate). The critical one is next (installed 16.2.7; audit lists 16.4.6 as the non-major fix). The @vercel/blob chain (@vercel/oidc, @vercel/cli-config, zod) plus nanoid, undici, source-map-js, and sharp need triage. |
 | ⬜ | Automated test suite (domain unit tests + smoke tests) | High | 1 | No test runner is installed; regression protection is manual QA plus three ad hoc scripts/verify-*.ts files. Start with unit tests for payments-domain, booking-availability, review-reminders, and the CMS sanitizer, then a small Playwright smoke suite for the public routes. |
 | ⬜ | Error monitoring, uptime alerting, and rate limiting | High | 1 | None exist. Add runtime error monitoring and uptime checks, and rate-limit public and write routes (applications, messages, onboarding, portfolio upload). |
@@ -648,3 +649,13 @@ _Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet
   only, so preview deployments can no longer reach the production database. The
   Preview-scoped value for `development` has not been added yet, so Preview
   deployments currently have no database connection.
+
+- **November 10, 2026 (item 2, phase A: Clerk email re-link):** PR #14 merged;
+  the Preview-scoped `DATABASE_URL` was verified on its preview deployment (a
+  change made only in `development` showed on the preview, not on braidel.com)
+  and production rebuilt healthy. Added re-linking of existing accounts by
+  verified email for the move to a Clerk production instance
+  (`src/lib/clerk-link-domain.ts`, `relinkClerkIdentityByEmail`), used by the
+  webhook sync, the first-sign-in lookup miss and the onboarding route. Verified:
+  `npm run verify:clerk-link` (6 cases) and a throwaway-row check on
+  `development`. The Clerk production instance, DNS, key split and webhook remain.

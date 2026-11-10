@@ -374,8 +374,8 @@ accurate. Both pages are protected routes (auth required).
 ## 9. Status & What's Next
 
 **Phase 1 workforce workflows are largely complete. The tracker computes ~87%
-overall (121 done, 5 in progress, 16 pending of 142 items; phase 2 booking is
-100%, phase 1 ~86%) as of November 9, 2026.** Both
+overall (123 done, 4 in progress, 16 pending of 143 items; phase 2 booking is
+100%, phase 1 ~87%) as of November 9, 2026.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.
 Portfolio media, notifications, messaging, ratings, and role-aware settings are
