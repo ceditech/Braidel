@@ -30,8 +30,9 @@ Treat the facts below as the starting point for every gate in this document.
   created under the development instance (they re-link when their owner signs
   in), and Vercel Hobby keeps runtime logs for only one hour, so webhook
   failures are visible mainly in Clerk's Message Attempts.
-- **Dependencies:** `npm audit --omit=dev` reports 11 advisories (1 critical in
-  `next`, 9 high, 1 moderate).
+- **Dependencies:** `npm audit --omit=dev` reports 3 advisories after the November 10,
+  2026 lockfile and `@vercel/blob` update (1 critical in `next`, plus `postcss` and
+  `sharp` that ship with it). The Next.js 16.4.6 upgrade is the remaining step.
 - **Quality gates:** no CI, no automated tests, no error monitoring, no rate
   limiting; full lint fails on 2 errors in the `Braidel Design System/`
   reference folder.
@@ -455,11 +456,14 @@ own workstream ships.
 
 ## Security and Operations
 
-- [ ] Complete dependency and vulnerability review. *(`npm audit --omit=dev` on
-      November 9, 2026: 11 advisories — 1 critical in `next` (installed 16.2.7;
-      audit lists 16.4.6 as the non-major fix), 9 high including the
-      `@vercel/blob` chain, `nanoid`, `undici`, `sharp`, `postcss`, and 1
-      moderate. Triage and patch.)*
+- [ ] Complete dependency and vulnerability review. *(`npm audit --omit=dev`:
+      11 advisories on November 9, 2026, 3 after PR A on November 10: updated
+      `undici`, `nanoid`, `source-map-js`, `baseline-browser-mapping`, `@vercel/blob` 2.9.0,
+      `@vercel/oidc`, and an `overrides` pin of `@vercel/cli-config` to 0.3.8 for the
+      zod advisory (every `@vercel/oidc` 3.x pins a vulnerable zod; the fixed 4.x is a
+      major outside `@vercel/blob`'s range). Remaining: `next` (critical), `postcss`,
+      `sharp`, fixed by upgrading Next.js 16.2.7 to 16.4.6 in PR B. Remove the
+      override once `@vercel/blob` depends on a fixed `@vercel/oidc`.)*
 - [ ] Review server logs to ensure secrets and sensitive payloads are not logged.
 - [ ] Add rate limiting or abuse controls to sensitive public and write routes.
 - [ ] Configure runtime error monitoring and alert ownership.
@@ -700,3 +704,16 @@ Add dated entries here as production gates are verified.
   deleted.braidel.invalid form, role unchanged). The update step is confirmed by
   delivery only, because the later deletion overwrote the name. Runtime logs for
   the test were not available (Vercel Hobby retains one hour).
+
+- **November 10, 2026 (item 3, PR A: dependency patches, low risk):** Updated
+  `undici` 6.29.1, `nanoid` 3.3.20, `source-map-js` 1.2.2, `baseline-browser-mapping`
+  2.11.35, `@vercel/blob` 2.9.0, `@vercel/oidc` 3.8.10, and added an npm `overrides`
+  entry for `@vercel/cli-config` 0.3.8 (brings zod 4.6.7). `npm audit fix` was tried
+  first and reverted: it rewrote about 245 lockfile entries. `npm audit --omit=dev`:
+  11 to 3 advisories (all in the `next` group). Verified: `tsc` clean; lint at the
+  usual baseline (62 problems, 2 errors in the design-system folder);
+  `npm run build` succeeds; `npm run verify:clerk-link` passes; a production-mode
+  smoke test returned 200 for /, /pricing, /find-braiders, /marketplace, /sign-in
+  and /faq, a signed-out `/dashboard` redirects to the Clerk handshake, and
+  `@vercel/blob` still exports `put` and `del`. Blob uploads were not exercised
+  because `BLOB_READ_WRITE_TOKEN` is not set anywhere.
