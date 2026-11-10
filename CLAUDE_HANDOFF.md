@@ -76,7 +76,8 @@ src/
 │   ├── schema.ts                 # 33 tables + relations
 │   ├── queries.ts, admin-queries.ts, booking-queries.ts, review-queries.ts,
 │   │   verification-queries.ts, cms-queries.ts
-│   ├── seed.ts                   # Dev seed (NO production guard — see §5)
+│   ├── seed.ts                   # Dev seed (refuses production hosts)
+│   ├── safety.ts                 # Guards for data-writing scripts (see §5)
 │   └── migrations/               # 24 Drizzle SQL migrations (0000–0024; no 0003 file)
 ├── lib/                          # Domain + auth helpers (booking-*, payments-domain,
 │                                 #   admin-auth/-domain, cms-domain, roadmap, …)
@@ -234,11 +235,17 @@ npm run db:migrate   # apply migrations to Neon (see warning below)
 npm run db:studio    # browse the database (Drizzle Studio)
 ```
 
-> ⚠️ **Shared database.** Production (braidel.com) and local development currently
-> use the **same Neon database**, and `npm run db:seed` has no production guard.
-> Treat `db:migrate`, `db:seed`, and any script that writes data as a production
-> command until a separate Neon dev branch exists (tracked in the *Production
-> Readiness & Hardening* group of `docs/PROJECT_TRACKER.md`).
+> **Databases.** Production (braidel.com) uses the Neon branch `production`; local
+> development uses the Neon branch `development` (a copy-on-write fork created
+> November 9, 2026). `.env.local` must point at `development` and list the
+> production hostname in `BRAIDEL_PRODUCTION_DB_HOSTS`; `db:seed` and
+> `verify:booking` refuse to run against a listed host or when the list is empty
+> (`src/db/safety.ts`). `npm run db:target` shows which database you are about to
+> touch, and `db:migrate` prints it first. To migrate production deliberately,
+> set `DATABASE_URL` for that single command only (a shell value overrides
+> `.env.local`). Vercel Preview deployments still use the production
+> `DATABASE_URL` and Clerk keys until their scope is changed (tracked in the
+> *Production Readiness & Hardening* group of `docs/PROJECT_TRACKER.md`).
 
 > **Port:** dev runs on **3003** (hardcoded via `next dev --port 3003`) because
 > 3000/3001/3002 are used by other local apps. `.claude/launch.json` matches.
@@ -367,7 +374,7 @@ accurate. Both pages are protected routes (auth required).
 ## 9. Status & What's Next
 
 **Phase 1 workforce workflows are largely complete. The tracker computes ~87%
-overall (119 done, 4 in progress, 16 pending of 139 items; phase 2 booking is
+overall (121 done, 5 in progress, 16 pending of 142 items; phase 2 booking is
 100%, phase 1 ~86%) as of November 9, 2026.** Both
 marketplace sides are navigable, with public discovery, opportunities,
 applications/applicants, style catalog, and dashboard summaries now DB-backed.

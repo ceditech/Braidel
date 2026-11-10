@@ -15,10 +15,14 @@ approved before a production launch. It is not the general product backlog; use
 The site is already live at `braidel.com`, but on a **development-grade setup**.
 Treat the facts below as the starting point for every gate in this document.
 
-- **Shared database:** production and local development use the **same Neon
-  database** (confirmed August 30, 2026). Local migrations, seeding, and QA touch
-  live data, and `src/db/seed.ts` has no production guard. Seeded demo accounts
-  are visible in the admin portal.
+- **Databases:** until November 9, 2026 production and local development shared
+  one Neon database. Local development now uses the Neon branch `development`
+  (a fork of `production`), and `db:seed`/`verify:booking` refuse production
+  hosts, and the two branches have separate passwords. **Still open:** Vercel
+  Preview deployments currently have no `DATABASE_URL` (the shared variable was
+  narrowed to Production on November 9, 2026; a Preview value for `development`
+  still has to be added), and Preview shares the production Clerk keys. Seeded demo accounts are still present in the
+  production data (an admin show/hide toggle is planned).
 - **Clerk:** the production sign-in page shows Clerk's *Development mode* badge,
   so the Clerk production instance is not in use. The identity webhook is not
   activated.
@@ -102,10 +106,25 @@ Production must not launch until every item in this section is complete.
 
 ### Database and Data Safety
 
-- [ ] Use an isolated production database or Neon production branch.
-      **Currently failing:** production and development share one Neon
-      database (see Production Reality Check). Create a separate Neon branch for
-      development and point `.env.local` at it.
+- [x] Use an isolated production database or Neon production branch. *(Neon
+      project `Braidel` has branches `production` and `development`; local
+      `.env.local` points at `development`. A canary write to `development` was
+      verified absent from `production` on November 9, 2026.)*
+- [ ] Point Vercel Preview deployments at the `development` branch. *(In
+      progress: the Vercel `DATABASE_URL` variable was narrowed from
+      Production+Preview to Production only on November 9, 2026, so previews can
+      no longer reach production. Still needed: a Preview-scoped `DATABASE_URL`
+      (type Sensitive) holding the `development` connection string; until then
+      Preview deployments have no database connection.)*
+- [x] Give the `development` branch its own `neondb_owner` password. *(A Neon
+      branch inherits its parent's role passwords; the `development` password was
+      reset on November 9, 2026. Verified: passwords differ, the development
+      password is rejected by the production host, and each credential works on
+      its own host.)*
+- [ ] Rotate the production database password. *(The production connection
+      string was printed once into a local assistant session transcript on
+      November 9, 2026. Rotating requires updating the Vercel Production
+      `DATABASE_URL` and redeploying.)*
 - [ ] Confirm all committed Drizzle migrations apply cleanly in a
       production-equivalent environment.
 - [ ] Apply migration `0009_striped_black_knight.sql` to the production database
@@ -137,9 +156,10 @@ Production must not launch until every item in this section is complete.
       admin action ledger, `0019` internal `admin` role, `0020` user-account
       audit target, `0021` account status and provider visibility, `0022`
       review reminder events, `0023` CMS tables, `0024` CMS audit target. *(All
-      are applied to the shared Neon database today; `0024` was verified by a
-      direct `pg_constraint` query on August 30, 2026. That does not satisfy
-      this gate until production has its own database.)*
+      are applied to the `production` branch, and `development` was forked from
+      it after `0024`; `0024` was verified by a direct `pg_constraint` query on
+      August 30, 2026. Future migrations should be applied to `development`
+      first, then to `production` deliberately.)*
 - [ ] Verify booking message/review context checks reject rows with no context
       or both application and booking contexts.
 - [ ] Verify every editable review creates exactly one current `ratings` row and
@@ -161,9 +181,11 @@ Production must not launch until every item in this section is complete.
 - [ ] Review every pending migration for destructive or locking operations.
 - [ ] Capture and verify a pre-launch backup or restorable Neon branch.
 - [ ] Document database rollback and forward-fix procedures.
-- [ ] Prevent `npm run db:seed` from being run against production. *(Today
-      `src/db/seed.ts` has no environment guard and the local `.env.local` points
-      at the production database.)*
+- [x] Prevent `npm run db:seed` from being run against production. *(Guard in
+      `src/db/safety.ts`, also applied to `verify:booking`. It refuses production
+      hostnames listed in `BRAIDEL_PRODUCTION_DB_HOSTS` (pooled or direct),
+      refuses when that list is unset, and refuses when `NODE_ENV` or
+      `VERCEL_ENV` is production. All paths validated November 9, 2026.)*
 - [x] Confirm production queries do not merge development/demo rows. *(The
       `includeDemoRows()` helper was removed entirely in commit `1296d22` and
       verified August 29, 2026.)*
@@ -360,11 +382,12 @@ own workstream ships.
 
 ## Storage and Media
 
-- [ ] Provision the production Vercel Blob store and token. **Likely failing
-      today:** braider portfolio uploads failed on `braidel.com` (reported
-      August 26, 2026), and `src/lib/portfolio-storage.ts` throws "Portfolio
-      storage is not configured" in production when `BLOB_READ_WRITE_TOKEN` is
-      unset. Confirm the variable in Vercel Production.
+- [ ] Provision the production Vercel Blob store and token. **Failing
+      today (cause confirmed November 9, 2026):** braider portfolio uploads
+      failed on `braidel.com` (reported August 26, 2026), and
+      `BLOB_READ_WRITE_TOKEN` does not exist in any Vercel environment, so
+      `src/lib/portfolio-storage.ts` throws "Portfolio storage is not configured"
+      in production. Create a Vercel Blob store and connect it to the project.
 - [ ] Verify upload, read, and delete flows against production-equivalent Blob
       storage.
 - [ ] Confirm file type, file size, count, and ownership limits are enforced.
@@ -611,3 +634,22 @@ Add dated entries here as production gates are verified.
   Clerk Development mode on production, 11 dependency advisories (1 critical),
   no CI or automated tests, no monitoring or rate limiting, and several
   user-visible defects. The release posture stays **NO-GO**.
+- **November 9, 2026:** Environment isolation (roadmap item "Isolate the
+  production database from development"). Created the Neon branch `development`
+  (fork of `production`, own compute endpoint) with `neonctl`, pointed the local
+  `.env.local` at it, and recorded the production hostname in
+  `BRAIDEL_PRODUCTION_DB_HOSTS`. Added `src/db/safety.ts` (fail-closed guard) to
+  `db:seed` and `verify:booking`, plus `npm run db:target`, and `db:migrate` now
+  prints its target first. Verified: `db:target` reports a non-production host;
+  seed and verify refuse the production host (direct and pooled), an unset host
+  list, and a production environment flag; `db:migrate` and `verify:booking`
+  succeed on `development`; a canary row written to `development` was absent from
+  `production` (read-only check) and was removed. Findings from the Vercel
+  project: `DATABASE_URL` is one sensitive variable scoped to Production and
+  Preview (so previews still hit production); the Clerk keys are also shared with
+  Preview; `BLOB_READ_WRITE_TOKEN` and `CLERK_WEBHOOK_SIGNING_SECRET` are not set
+  anywhere. Follow-up the same day: reset the `development` role password
+  (the branch had inherited production's) and verified the credentials are now
+  separate; narrowed the Vercel `DATABASE_URL` to Production only. Open: add the
+  Preview-scoped `DATABASE_URL` for `development`, and rotate the production
+  password.
