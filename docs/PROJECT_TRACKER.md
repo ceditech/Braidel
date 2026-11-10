@@ -5,7 +5,7 @@
 > [`src/lib/roadmap.ts`](../src/lib/roadmap.ts). This markdown is a point-in-time
 > snapshot — regenerate it when the roadmap changes.
 
-**Overall: ~87% complete** (123 done · 4 in progress · 16 pending of 143) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
+**Overall: ~88% complete** (124 done · 4 in progress · 15 pending of 143) · Legend: ✅ Done · 🔄 In progress · ⬜ Pending · ⛔ Blocked
 
 > All work follows the [STABLE Framework](../STABLE_FRAMEWORK.md) — surgical &
 > SOLID, testable & traceable, architecture-aligned & available, balanced for
@@ -24,7 +24,7 @@
 
 | Phase | Focus | Done | In progress | % |
 |-------|-------|------|--------------|---|
-| **Phase 1** | Workforce & Staffing | 76 / 88 | 1 | ~87% |
+| **Phase 1** | Workforce & Staffing | 77 / 88 | 1 | ~88% |
 | **Phase 2** | Client Booking | 21 / 21 | 0 | 100% |
 | **Phase 3** | Online Payments | 6 / 7 | 1 | ~93% |
 | **Phase 4** | Reputation & Verification | 20 / 26 | 2 | ~81% |
@@ -292,7 +292,7 @@ _Launch gates and operational risk, ordered by risk (from the November 9, 2026 a
 | ✅ | Give the development branch its own database password | High | 1 | A Neon branch inherits its parent's role passwords, so development initially shared production's neondb_owner password. Reset on November 9, 2026 (development branch only) and .env.local refreshed. Verified with a script that never prints credentials: the two passwords differ, the development password is rejected by the production host, and each credential works on its own host. |
 | ⬜ | Rotate the production database password | Medium | 1 | The production connection string was printed once into a local assistant session transcript on November 9, 2026. Rotating it requires updating the Vercel Production DATABASE_URL and redeploying, so schedule it deliberately. |
 | ✅ | Re-link existing accounts by verified email when the Clerk instance changes | High | 1 | src/lib/clerk-link-domain.ts decides link/insert/conflict; clerk-sync.ts relinkClerkIdentityByEmail attaches a new Clerk ID to the existing user row with the same VERIFIED email (never unverified or deleted rows), keeping role, onboarding and history. Used by the webhook sync, the first sign-in miss in requireOnboardedUser, and the onboarding route. Verified: npm run verify:clerk-link (6 rule cases) and a throwaway-row check on the development branch (conflict when unverified, link when verified with role preserved, idempotent repeat, unknown email unchanged). |
-| ⬜ | Clerk production instance + identity webhook | High | 1 | The production sign-in page shows Clerk's Development mode badge, and Preview deployments share the same Clerk keys as Production. Code prerequisite (email re-link) is done. Remaining: create the Clerk production instance and DNS records, split the Vercel Clerk keys (Production live keys, Preview development keys), then activate /api/webhooks/clerk (CLERK_WEBHOOK_SIGNING_SECRET is not set anywhere yet; steps in PRE-PRODUCTION-RELEASE-CHECKS.md). |
+| ✅ | Clerk production instance + identity webhook | High | 1 | Done November 10, 2026. braidel.com now uses the Clerk production instance (DNS verified in GoDaddy, SSL issued, Google + email sign-in), Production and Preview have separate Clerk keys, and /api/webhooks/clerk is active with a Production-only signing secret. Verified: live key on the deployed page, admin sign-in with role preserved via the verified-email re-link, and a disposable-user lifecycle (created, updated, deleted all delivered; Neon row tombstoned). Open follow-ups: turn off the unused Username requirement, retire the old development Clerk app, audit leftover development-era accounts, and Vercel Hobby keeps runtime logs for one hour only. |
 | ⬜ | Patch dependency vulnerabilities | High | 1 | npm audit --omit=dev (November 9, 2026): 11 advisories (1 critical, 9 high, 1 moderate). The critical one is next (installed 16.2.7; audit lists 16.4.6 as the non-major fix). The @vercel/blob chain (@vercel/oidc, @vercel/cli-config, zod) plus nanoid, undici, source-map-js, and sharp need triage. |
 | ⬜ | Automated test suite (domain unit tests + smoke tests) | High | 1 | No test runner is installed; regression protection is manual QA plus three ad hoc scripts/verify-*.ts files. Start with unit tests for payments-domain, booking-availability, review-reminders, and the CMS sanitizer, then a small Playwright smoke suite for the public routes. |
 | ⬜ | Error monitoring, uptime alerting, and rate limiting | High | 1 | None exist. Add runtime error monitoring and uptime checks, and rate-limit public and write routes (applications, messages, onboarding, portfolio upload). |
@@ -659,3 +659,13 @@ _Defects reported in manual QA (screenshots in docs/Issues/); none scheduled yet
   webhook sync, the first-sign-in lookup miss and the onboarding route. Verified:
   `npm run verify:clerk-link` (6 cases) and a throwaway-row check on
   `development`. The Clerk production instance, DNS, key split and webhook remain.
+
+- **November 10, 2026 (item 2 complete: Clerk production + webhook):** The Clerk
+  production instance is live on braidel.com (DNS verified, Google and email
+  sign-in, live keys on Production, development keys kept for Preview), and the
+  identity webhook is active. The admin signed in and kept the admin role via the
+  verified-email re-link; a disposable-user lifecycle delivered created, updated
+  and deleted events and tombstoned the Neon row. Follow-ups: turn off the unused
+  Username requirement, retire the old development Clerk app, audit leftover
+  development-era accounts, and note that Vercel Hobby keeps runtime logs for one
+  hour only. Overall moves to ~88% (124 done · 4 in progress · 15 pending of 143).

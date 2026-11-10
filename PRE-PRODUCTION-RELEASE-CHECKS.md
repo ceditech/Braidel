@@ -20,15 +20,16 @@ Treat the facts below as the starting point for every gate in this document.
   (a fork of `production`), and `db:seed`/`verify:booking` refuse production
   hosts, and the two branches have separate passwords. Vercel now has separate
   `DATABASE_URL` values: Production uses `production`, Preview uses `development`
-  (verified November 10, 2026). **Still open:** Preview shares the Clerk
-  development keys with Production, and the production password still needs
-  rotating. Seeded demo accounts are still present in the production data (an
+  (verified November 10, 2026). **Still open:** the production password still
+  needs rotating. Seeded demo accounts are still present in the production data (an
   admin show/hide toggle is planned).
-- **Clerk:** the production sign-in page shows Clerk's *Development mode* badge,
-  so the Clerk production instance is not in use. The identity webhook is not
-  activated. The code prerequisite for the switch is done: existing accounts are
-  re-linked by verified email when a person first appears under a new Clerk
-  instance (`npm run verify:clerk-link`).
+- **Clerk:** production now uses the Clerk production instance (November 10,
+  2026) and the identity webhook is active. Existing accounts are re-linked by
+  verified email on first sign-in (`npm run verify:clerk-link`). Preview and local
+  keep the Clerk development instance. **Still open:** audit leftover accounts
+  created under the development instance (they re-link when their owner signs
+  in), and Vercel Hobby keeps runtime logs for only one hour, so webhook
+  failures are visible mainly in Clerk's Message Attempts.
 - **Dependencies:** `npm audit --omit=dev` reports 11 advisories (1 critical in
   `next`, 9 high, 1 moderate).
 - **Quality gates:** no CI, no automated tests, no error monitoring, no rate
@@ -91,10 +92,11 @@ Production must not launch until every item in this section is complete.
 ### Environment and Secrets
 
 - [ ] Configure and validate `DATABASE_URL` for the production Neon database.
-- [ ] Configure production `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
-      `CLERK_SECRET_KEY`.
-- [ ] Configure `CLERK_WEBHOOK_SIGNING_SECRET` after the production webhook
-      endpoint is created.
+- [x] Configure production `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+      `CLERK_SECRET_KEY`. *(Done November 10, 2026: Production-only variables
+      for the Clerk production instance; Preview keeps the development keys.)*
+- [x] Configure `CLERK_WEBHOOK_SIGNING_SECRET` after the production webhook
+      endpoint is created. *(Done November 10, 2026, Production only, Secret.)*
 - [ ] Configure `BLOB_READ_WRITE_TOKEN`; production portfolio uploads must not
       rely on the local filesystem fallback.
 - [ ] Configure `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and
@@ -198,8 +200,10 @@ Production must not launch until every item in this section is complete.
 
 ### Authentication and Authorization
 
-- [ ] Configure and test the Clerk Production instance. *(Not done: the
-      production sign-in page still shows Clerk's Development mode badge.)*
+- [x] Configure and test the Clerk Production instance. *(Done November 10,
+      2026: domain braidel.com verified, Google + email code/password sign-in,
+      admin signed in on braidel.com. Open: turn off the unused Username
+      requirement and confirm the old development Clerk app is retired.)*
 - [x] Configure `BRAIDEL_ADMIN_EMAILS` in production. *(The admin portal and
       "Preview as" mode are in use on `braidel.com`; seen in the August 30, 2026
       issue screenshots.)*
@@ -225,7 +229,7 @@ Production must not launch until every item in this section is complete.
 
 ## Clerk Webhook Activation
 
-**Status: Deferred until a stable staging or production URL exists.**
+**Status: Active in production since November 10, 2026.**
 
 Webhook activation is not a prerequisite for continued feature development.
 It is a production launch gate because Clerk-side identity changes and deletion
@@ -271,19 +275,28 @@ events otherwise will not automatically synchronize to Neon.
 
 ### Production Activation
 
-- [ ] Create a separate endpoint in the Clerk Production instance using the
-      stable production URL.
-- [ ] Subscribe to `user.created`, `user.updated`, and `user.deleted`.
-- [ ] Store the production endpoint's signing secret in the Vercel Production
+- [x] Create a separate endpoint in the Clerk Production instance using the
+      stable production URL. *(https://www.braidel.com/api/webhooks/clerk)*
+- [x] Subscribe to `user.created`, `user.updated`, and `user.deleted`.
+- [x] Store the production endpoint's signing secret in the Vercel Production
       environment.
-- [ ] Redeploy production so the new environment variable is active.
-- [ ] Send and verify example deliveries for all three events.
+- [x] Redeploy production so the new environment variable is active.
+- [x] Send and verify deliveries for all three events. *(Deliberately not
+      Clerk's "Send example" button, whose fake users would create junk rows in
+      the production database; a disposable real user was used instead.)*
 - [ ] Audit existing Clerk and Neon users before launch; reconcile missing or
       stale identities because webhooks only guarantee future event delivery.
-- [ ] Perform one controlled production lifecycle test with a disposable user.
-- [ ] Confirm webhook failures are visible in operational monitoring.
-- [ ] Record the endpoint owner, activation date, test evidence, and rotation
-      procedure in Completed Evidence.
+      *(Accounts from the development Clerk instance re-link by verified email
+      when their owner first signs in; unclaimed rows, including seeded demo
+      accounts, stay as they are.)*
+- [x] Perform one controlled production lifecycle test with a disposable user.
+- [ ] Confirm webhook failures are visible in operational monitoring. *(Partial:
+      Clerk's Message Attempts lists every delivery; Vercel Hobby keeps runtime
+      logs for one hour only. Covered by the monitoring item.)*
+- [x] Record the endpoint owner, activation date, test evidence, and rotation
+      procedure in Completed Evidence. *(Owner: the project owner; activated
+      November 10, 2026; rotation: create the new signing secret in Clerk,
+      update the Vercel Production variable, redeploy.)*
 
 ## Stripe Payments Activation
 
@@ -670,3 +683,20 @@ Add dated entries here as production gates are verified.
   rebuilt healthy afterwards (pages 200, runtime logs free of database errors).
   Remaining for item 2: create the Clerk production instance and DNS, split the
   Vercel Clerk keys, then activate the webhook.
+
+- **November 10, 2026 (item 2, activation):** Created the Clerk production
+  instance for braidel.com (five CNAME records verified in GoDaddy DNS, SSL
+  issued), enabled email code/password and Google with the project's own OAuth
+  client, and split the Vercel Clerk variables: Production uses the live keys,
+  Preview keeps the development keys. Redeployed production without build cache;
+  verified the deployed page carries the live key for clerk.braidel.com and no
+  reference to the development instance, pages return 200, and `/dashboard`
+  redirects signed-out browsers to `/sign-in`. The admin signed in on braidel.com
+  (Google and email code) and kept the admin role through the verified-email
+  re-link. Created the webhook endpoint (user.created/updated/deleted) and its
+  Production-only signing secret; an unsigned request returns 400. Lifecycle test
+  with a disposable user: Clerk reported all three deliveries successful and the
+  Neon row was tombstoned (name "Deleted User", email rewritten to the
+  deleted.braidel.invalid form, role unchanged). The update step is confirmed by
+  delivery only, because the later deletion overwrote the name. Runtime logs for
+  the test were not available (Vercel Hobby retains one hour).
