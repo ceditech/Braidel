@@ -30,9 +30,9 @@ Treat the facts below as the starting point for every gate in this document.
   created under the development instance (they re-link when their owner signs
   in), and Vercel Hobby keeps runtime logs for only one hour, so webhook
   failures are visible mainly in Clerk's Message Attempts.
-- **Dependencies:** `npm audit --omit=dev` reports 3 advisories after the November 10,
-  2026 lockfile and `@vercel/blob` update (1 critical in `next`, plus `postcss` and
-  `sharp` that ship with it). The Next.js 16.4.6 upgrade is the remaining step.
+- **Dependencies:** `npm audit --omit=dev` reports 0 advisories since November 10, 2026
+  (Next.js 16.4.6 and in-range updates). `npm audit` including dev dependencies still
+  lists 14 (11 moderate, 3 high), all in unshipped tooling; tracked in the roadmap.
 - **Quality gates:** no CI, no automated tests, no error monitoring, no rate
   limiting; full lint fails on 2 errors in the `Braidel Design System/`
   reference folder.
@@ -456,7 +456,9 @@ own workstream ships.
 
 ## Security and Operations
 
-- [ ] Complete dependency and vulnerability review. *(`npm audit --omit=dev`:
+- [x] Complete dependency and vulnerability review. *(Done November 10, 2026:
+      production audit is clean (0). Dev-tooling advisories are tracked separately.
+      History: `npm audit --omit=dev`:
       11 advisories on November 9, 2026, 3 after PR A on November 10: updated
       `undici`, `nanoid`, `source-map-js`, `baseline-browser-mapping`, `@vercel/blob` 2.9.0,
       `@vercel/oidc`, and an `overrides` pin of `@vercel/cli-config` to 0.3.8 for the
@@ -717,3 +719,18 @@ Add dated entries here as production gates are verified.
   and /faq, a signed-out `/dashboard` redirects to the Clerk handshake, and
   `@vercel/blob` still exports `put` and `del`. Blob uploads were not exercised
   because `BLOB_READ_WRITE_TOKEN` is not set anywhere.
+
+- **November 10, 2026 (item 3, PR B: Next.js 16.4.6):** Upgraded `next` and
+  `eslint-config-next` from 16.2.7 to 16.4.6 (exact pins, kept in sync); sharp
+  0.35.5 and a patched postcss came with it. Release notes for 16.3 and 16.4 were
+  read first: nothing breaking for this app (the dev-only `/_next/webpack-hmr`
+  endpoint became `/_next/hmr`). `npm audit --omit=dev`: 0 advisories (was 3 after
+  PR A, 11 originally). Verified: `tsc` clean; lint at the baseline (62 problems,
+  2 errors in the design-system folder); `npm run build` succeeds with the same
+  route table; `npm run verify:clerk-link` passes; `npm run verify:booking` passes on
+  the development database; a production-mode server returned 200 for the 15
+  public pages, the pricing page title is intact, signed-out dashboard and API
+  requests go to the Clerk handshake, the unsigned webhook is rejected, and the
+  image optimizer returns 400 for a non-allowed host. Dev-only audit: 14
+  advisories (11 moderate, 3 high) remain in tooling; `npm audit fix --force` would
+  downgrade `drizzle-kit` to 0.18.1 and was not used.
